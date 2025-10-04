@@ -1,0 +1,38 @@
+{
+  "name": "midi-strummer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "./node_modules/.bin/tsc",
+    "build:watch": "./node_modules/.bin/tsc --watch",
+    "lint": "npm run lint:eslint",
+    "lint:eslint": "eslint 'src/**/*.ts'",
+    "lint:lit-analyzer": "lit-analyzer",
+    "format": "prettier \\\\\\\"**/*.{cjs,html,js,json,md,ts}\\\\\\\" --write",
+    "dev": "npm run build:watch & wds --watch",
+    "serve": "npm run build && node ./src/node/server.js --force-node-api-uncaught-exceptions-policy=true --trace-deprecation"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bengfarrell/midi-strummer.git"
+  },
+  "private": true,
+  "dependencies": {
+    "@spectrum-web-components/bundle": "^1.7.0",
+    "jzz": "^1.9.6",
+    "lit": "^3.3.1",
+    "node-hid": "^3.2.0",
+    "piano-keys-webcomponent-v0": "^1.0.3",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.25.0",
+    "@typescript-eslint/parser": "^5.25.0",
+    "@web/dev-server": "^0.1.31",
+    "eslint": "^8.15.0",
+    "prettier": "^2.6.2",
+    "typescript": "~5.2.0"
+  }
+}

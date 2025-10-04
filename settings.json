@@ -1,0 +1,48 @@
+{
+  "device": {
+    "product": "Deco 640",
+    "usage": 1,
+    "interface": 2
+  },
+  "midiInputId": "Launchkey MK4 25 MIDI Out",
+  "initialNotes": [ "C4", "E4", "G4" ],
+  "upperNoteSpread": 3,
+  "lowerNoteSpread": 3,
+  "mappings": {
+    "status": { "byteIndex": 1, "max": 63, "type": "code", "values": {
+      "192": {
+        "state": "none"
+      },
+      "160": {
+        "state": "hover"
+      },
+      "162": {
+        "state": "hover",
+        "secondaryButtonPressed": true
+      },
+      "164": {
+        "state": "hover",
+        "primaryButtonPressed": true
+      },
+      "161": {
+        "state": "contact"
+      },
+      "163": {
+        "state": "contact",
+        "secondaryButtonPressed": true
+      },
+      "165": {
+        "state": "contact",
+        "primaryButtonPressed": true
+      },
+      "240": {
+        "state": "buttons"
+      }
+    }},
+    "x": { "byteIndex": 3, "max": 124, "type": "range" },
+    "y": { "byteIndex": 5, "max": 70, "type": "range" },
+    "pressure": { "byteIndex": 7, "max": 63, "type": "range" },
+    "tiltX": { "byteIndex": 8, "positiveMax": 60, "negativeMin": 256, "negativeMax": 196, "type": "wrapped-range" },
+    "tiltY": { "byteIndex": 9, "positiveMax": 60, "negativeMin": 256, "negativeMax": 196, "type": "wrapped-range" }
+  }
+}
