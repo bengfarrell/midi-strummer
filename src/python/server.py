@@ -89,16 +89,21 @@ def setup_midi_and_strummer(cfg: Dict[str, Any]) -> Midi:
     
     def on_midi_note_event(event):
         """Handle MIDI note events"""
+        print(f"[SERVER] MIDI note event received! Event type: {event.type}")
         midi_notes = [Note.parse_notation(n) for n in midi.notes]
-        print(midi_notes)
+        print(f"[SERVER] Current MIDI notes: {midi_notes}")
         strummer.notes = Note.fill_note_spread(
             midi_notes,
             cfg.get('lowerNoteSpread', 0),
             cfg.get('upperNoteSpread', 0)
         )
+        print(f"[SERVER] Strummer notes updated")
     
+    print("[SERVER] Adding MIDI note event listener...")
     midi.add_event_listener(MidiEvent.NOTE_EVENT, on_midi_note_event)
+    print("[SERVER] Refreshing MIDI connection...")
     midi.refresh_connection(cfg.get('midiInputId'))
+    print("[SERVER] MIDI setup complete")
     
     return midi
 
