@@ -1,0 +1,183 @@
+import json
+import sys
+import signal
+import threading
+import time
+from typing import Dict, Any, Union
+
+from finddevice import get_tablet_device
+from datahelpers import parse_code, parse_range_data, parse_wrapped_range_data
+from strummer import strummer
+from nodemidi import NodeMidi
+from midievent import MidiEvent
+from note import Note
+
+
+def load_config() -> Dict[str, Any]:
+    """Load configuration from settings.json"""
+    try:
+        with open('settings-python.json', 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print("Error: settings.json not found")
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"Error parsing settings.json: {e}")
+        sys.exit(1)
+
+
+def setup_midi_and_strummer(cfg: Dict[str, Any]) -> NodeMidi:
+    """Setup MIDI connection and strummer configuration"""
+    # Initialize strummer with initial notes if provided
+    if 'initialNotes' in cfg and cfg['initialNotes']:
+        initial_notes = [Note.parse_notation(n) for n in cfg['initialNotes']]
+        strummer.notes = Note.fill_note_spread(
+            initial_notes, 
+            cfg.get('lowerNoteSpread', 0), 
+            cfg.get('upperNoteSpread', 0)
+        )
+    
+    # Setup MIDI
+    midi = NodeMidi()
+    
+    def on_midi_note_event(event):
+        """Handle MIDI note events"""
+        midi_notes = [Note.parse_notation(n) for n in midi.notes]
+        strummer.notes = Note.fill_note_spread(
+            midi_notes,
+            cfg.get('lowerNoteSpread', 0),
+            cfg.get('upperNoteSpread', 0)
+        )
+    
+    midi.add_event_listener(MidiEvent.NOTE_EVENT, on_midi_note_event)
+    midi.refresh_connection(cfg.get('midiInputId'))
+    
+    return midi
+
+
+def process_device_data(data: bytes, cfg: Dict[str, Any], midi: NodeMidi) -> None:
+    """Process incoming device data"""
+    # Convert bytes to list of integers
+    data_list = list(data)
+    
+    result: Dict[str, Union[str, int, float]] = {}
+    
+    # Process each mapping in the configuration
+    for key, mapping in cfg['mappings'].items():
+        mapping_type = mapping.get('type')
+        byte_index = mapping.get('byteIndex', 0)
+        
+        if byte_index >= len(data_list):
+            continue
+            
+        if mapping_type == 'range':
+            result[key] = parse_range_data(
+                data_list, 
+                byte_index, 
+                mapping.get('min', 0), 
+                mapping.get('max', 0)
+            )
+        elif mapping_type == 'wrapped-range':
+            result[key] = parse_wrapped_range_data(
+                data_list,
+                byte_index,
+                mapping.get('positiveMin', 0),
+                mapping.get('positiveMax', 0),
+                mapping.get('negativeMin', 0),
+                mapping.get('negativeMax', 0)
+            )
+        elif mapping_type == 'code':
+            code_result = parse_code(data_list, byte_index, mapping.get('values', []))
+            if isinstance(code_result, dict):
+                result.update(code_result)
+            else:
+                result[key] = code_result
+    
+    # Process strumming
+    x = result.get('x', 0.0)
+    y = result.get('y', 0.0)
+    pressure = result.get('pressure', 0.0)
+    tilt_x = result.get('tiltX', 0.0)
+    tilt_y = result.get('tiltY', 0.0)
+    
+    strum = strummer.strum(float(x), float(y), float(pressure), float(tilt_x), float(tilt_y))
+    
+    if strum:
+        print(strum['note'])
+        midi.send_note(strum['note'], strum['velocity'])
+        print(f"Note: {strum['note'].notation}{strum['note'].octave}")
+
+
+def main():
+    """Main application entry point"""
+    # Load configuration
+    cfg = load_config()
+    
+    # Setup MIDI and strummer
+    midi = setup_midi_and_strummer(cfg)
+    
+    # Get tablet device
+    device = get_tablet_device(cfg['device'])
+    if not device:
+        print("Failed to initialize device")
+        sys.exit(1)
+    
+    print("MIDI Strummer server started. Press Ctrl+C to exit.")
+    
+    # Setup signal handler for graceful shutdown
+    def signal_handler(sig, frame):
+        print("\nShutting down...")
+        if device:
+            device.close()
+        midi.close()
+        sys.exit(0)
+    
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    
+    # Main device reading loop
+    try:
+        # Try both blocking and non-blocking modes to see which works
+        print("Testing device reading modes...")
+        
+        # First try blocking mode (often more reliable for tablets)
+        print("Setting device to blocking mode...")
+        device.set_nonblocking(False)
+        
+        print("Starting device reading loop...")
+        print("Try interacting with your tablet now (touch, move stylus, etc.)...")
+        
+        read_count = 0
+        while True:
+            try:
+                # Read data from device
+                data = device.read(64)
+                read_count += 1
+                
+                if data:
+                    #print(f"Read #{read_count}: Raw data received: {data} (length: {len(data)})")
+                    # Convert to hex for easier debugging
+                    hex_data = ' '.join(f'{b:02x}' for b in data)
+                    #print(f"Read #{read_count}: Hex data: {hex_data}")
+                    process_device_data(bytes(data), cfg, midi)
+                else:
+                    if read_count % 100 == 0:  # Print occasionally to show it's still running
+                        print(f"Read #{read_count}: No data (still listening...)")
+                    time.sleep(0.01)
+                    
+            except Exception as e:
+                print(f"Error reading from device: {e}")
+                time.sleep(0.1)  # Brief pause before retrying
+                
+    except KeyboardInterrupt:
+        print("\nReceived interrupt signal")
+    finally:
+        print("Cleaning up...")
+        if device:
+            device.close()
+        midi.close()
+
+
+if __name__ == "__main__":
+    main()
+
