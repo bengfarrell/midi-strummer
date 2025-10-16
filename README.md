@@ -36,6 +36,15 @@ pip install -r requirements.txt
 python src/python/server.py
 ```
 
+3. **To stop the server properly:**
+   - Press **Ctrl+C** for graceful shutdown
+   - The server will automatically close the device and MIDI connections
+   - Wait for the "Device should be released now" message
+
+**Important:** If you use Ctrl+Z, it suspends the process without releasing the device. If this happens:
+- Bring the process back with `fg`
+- Then press Ctrl+C to properly exit
+
 ## Troubleshooting
 
 ### HID Device Connection Issues
@@ -43,18 +52,30 @@ python src/python/server.py
 If you get "open failed" errors when trying to connect to your HID device, this usually means another process is holding the device. This can happen if:
 
 - **XPPen driver is running** (most common cause)
-- You stopped the server with Ctrl+C but the process didn't clean up properly
+- You stopped the server with Ctrl+Z (suspends process without cleanup)
 - The process was killed unexpectedly
 - Multiple instances of the server are running
 
 **Solution:**
 
-1. **Check for XPPen driver processes:**
+1. **Check for suspended or hung processes:**
+   ```bash
+   jobs -l
+   ```
+   If you have suspended jobs, resume them with `fg` then exit properly with Ctrl+C
+
+2. **Use the force release utility:**
+   ```bash
+   python force_release_device.py
+   ```
+   This will help identify processes holding the device
+
+3. **Check for XPPen driver processes:**
    ```bash
    ps aux | grep -i xppen
    ```
 
-2. **Kill XPPen driver processes:**
+4. **Kill XPPen driver processes:**
    ```bash
    python kill_xppen_driver.py
    ```
@@ -63,17 +84,19 @@ If you get "open failed" errors when trying to connect to your HID device, this 
    kill -9 <XPPen_PID>
    ```
 
-3. **Check for zombie Python processes:**
+5. **Check for zombie Python processes:**
    ```bash
    ps aux | grep python | grep server.py
    ```
 
-4. **Use the cleanup utility:**
+6. **Use the cleanup utility:**
    ```bash
    python cleanup_zombie_processes.py
    ```
 
-The server now includes automatic detection and will warn you if XPPen driver or other processes are running that might interfere with HID device access.
+7. **As a last resort:** Unplug and replug the USB device
+
+The server now properly handles shutdown signals (Ctrl+C, Ctrl+Z, kill) and will automatically release the device with a proper delay to let the OS clean up.
 
 **Note:** Killing the XPPen driver will disable XPPen's official software until you restart it. The driver will restart automatically when you reconnect your tablet.
 

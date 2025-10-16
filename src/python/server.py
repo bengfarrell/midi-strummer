@@ -3,7 +3,8 @@ import sys
 import signal
 import threading
 import time
-from typing import Dict, Any, Union
+import atexit
+from typing import Dict, Any, Union, Optional
 
 from finddevice import get_tablet_device
 from datahelpers import parse_code, parse_range_data, parse_wrapped_range_data
@@ -11,6 +12,52 @@ from strummer import strummer
 from midi import Midi
 from midievent import MidiEvent
 from note import Note
+
+# Global references for cleanup
+_device = None
+_midi = None
+
+
+def cleanup_resources():
+    """Clean up device and MIDI resources"""
+    global _device, _midi
+    
+    print("\nCleaning up resources...")
+    
+    # Close device first - this is critical for device release
+    if _device is not None:
+        try:
+            print("Closing HID device...")
+            # Try to ensure the device is in a good state before closing
+            try:
+                _device.set_nonblocking(False)
+            except:
+                pass  # Ignore if this fails
+            
+            _device.close()
+            print("HID device closed successfully")
+            _device = None
+            
+            # Give the OS more time to fully release the device handle
+            # This is crucial for HID devices on macOS
+            print("Waiting for OS to release device handle...")
+            time.sleep(0.5)
+            print("Device should be released now")
+            
+        except Exception as e:
+            print(f"Error closing device: {e}")
+            _device = None  # Clear reference even if close failed
+    
+    # Close MIDI
+    if _midi is not None:
+        try:
+            print("Closing MIDI connections...")
+            _midi.close()
+            _midi = None
+            print("MIDI connections closed successfully")
+        except Exception as e:
+            print(f"Error closing MIDI: {e}")
+            _midi = None
 
 
 def load_config() -> Dict[str, Any]:
@@ -111,15 +158,20 @@ def process_device_data(data: bytes, cfg: Dict[str, Any], midi: Midi) -> None:
 
 def main():
     """Main application entry point"""
+    global _device, _midi
+    
+    # Register cleanup function to run on exit
+    atexit.register(cleanup_resources)
+    
     # Load configuration
     cfg = load_config()
     
     # Setup MIDI and strummer
-    midi = setup_midi_and_strummer(cfg)
+    _midi = setup_midi_and_strummer(cfg)
     
     # Get tablet device
-    device = get_tablet_device(cfg['device'])
-    if not device:
+    _device = get_tablet_device(cfg['device'])
+    if not _device:
         print("Failed to initialize device")
         sys.exit(1)
     
@@ -127,56 +179,68 @@ def main():
     
     # Setup signal handler for graceful shutdown
     def signal_handler(sig, frame):
-        print("\nShutting down...")
-        if device:
-            device.close()
-        midi.close()
+        signal_name = signal.Signals(sig).name
+        print(f"\nReceived {signal_name} signal, shutting down gracefully...")
+        cleanup_resources()
         sys.exit(0)
     
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
+    # Handle various termination signals
+    signal.signal(signal.SIGINT, signal_handler)   # Ctrl+C
+    signal.signal(signal.SIGTERM, signal_handler)  # kill command
+    signal.signal(signal.SIGTSTP, signal_handler)  # Ctrl+Z
+    signal.signal(signal.SIGHUP, signal_handler)   # Terminal closed
     
     # Main device reading loop
     try:
-        # Try both blocking and non-blocking modes to see which works
-        print("Testing device reading modes...")
-        
-        # First try blocking mode (often more reliable for tablets)
-        print("Setting device to blocking mode...")
-        device.set_nonblocking(False)
+        # Use non-blocking mode to allow signal handling
+        print("Setting device to non-blocking mode...")
+        _device.set_nonblocking(True)
         
         print("Starting device reading loop...")
         print("Try interacting with your tablet now (touch, move stylus, etc.)...")
         
         read_count = 0
+        empty_read_count = 0
+        
         while True:
             try:
-                # Read data from device
-                data = device.read(64)
+                # Read data from device (non-blocking)
+                data = _device.read(64)
                 read_count += 1
                 
                 if data:
+                    empty_read_count = 0  # Reset empty count
                     #print(f"Read #{read_count}: Raw data received: {data} (length: {len(data)})")
                     # Convert to hex for easier debugging
                     hex_data = ' '.join(f'{b:02x}' for b in data)
                     #print(f"Read #{read_count}: Hex data: {hex_data}")
-                    process_device_data(bytes(data), cfg, midi)
+                    process_device_data(bytes(data), cfg, _midi)
                 else:
-                    if read_count % 100 == 0:  # Print occasionally to show it's still running
-                        print(f"Read #{read_count}: No data (still listening...)")
-                    time.sleep(0.01)
+                    empty_read_count += 1
+                    if empty_read_count % 1000 == 0:  # Print occasionally to show it's still running
+                        print(f"Still listening... ({empty_read_count} empty reads)")
+                    # Small sleep to prevent CPU spinning, but short enough for responsive signal handling
+                    time.sleep(0.001)
                     
-            except Exception as e:
+            except OSError as e:
+                # Handle device disconnection
+                if "read error" in str(e).lower() or "device" in str(e).lower():
+                    print(f"Device disconnected or error: {e}")
+                    break
                 print(f"Error reading from device: {e}")
-                time.sleep(0.1)  # Brief pause before retrying
+                time.sleep(0.1)
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                time.sleep(0.1)
                 
     except KeyboardInterrupt:
-        print("\nReceived interrupt signal")
-    finally:
-        print("Cleaning up...")
-        if device:
-            device.close()
-        midi.close()
+        print("\nReceived keyboard interrupt")
+        cleanup_resources()
+        sys.exit(0)
+    except Exception as e:
+        print(f"\nUnexpected error in main loop: {e}")
+        cleanup_resources()
+        sys.exit(1)
 
 
 if __name__ == "__main__":
