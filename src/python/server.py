@@ -8,7 +8,7 @@ from typing import Dict, Any, Union
 from finddevice import get_tablet_device
 from datahelpers import parse_code, parse_range_data, parse_wrapped_range_data
 from strummer import strummer
-from nodemidi import NodeMidi
+from midi import Midi
 from midievent import MidiEvent
 from note import Note
 
@@ -26,7 +26,7 @@ def load_config() -> Dict[str, Any]:
         sys.exit(1)
 
 
-def setup_midi_and_strummer(cfg: Dict[str, Any]) -> NodeMidi:
+def setup_midi_and_strummer(cfg: Dict[str, Any]) -> Midi:
     """Setup MIDI connection and strummer configuration"""
     # Initialize strummer with initial notes if provided
     if 'initialNotes' in cfg and cfg['initialNotes']:
@@ -38,11 +38,12 @@ def setup_midi_and_strummer(cfg: Dict[str, Any]) -> NodeMidi:
         )
     
     # Setup MIDI
-    midi = NodeMidi()
+    midi = Midi()
     
     def on_midi_note_event(event):
         """Handle MIDI note events"""
         midi_notes = [Note.parse_notation(n) for n in midi.notes]
+        print(midi_notes)
         strummer.notes = Note.fill_note_spread(
             midi_notes,
             cfg.get('lowerNoteSpread', 0),
@@ -55,7 +56,7 @@ def setup_midi_and_strummer(cfg: Dict[str, Any]) -> NodeMidi:
     return midi
 
 
-def process_device_data(data: bytes, cfg: Dict[str, Any], midi: NodeMidi) -> None:
+def process_device_data(data: bytes, cfg: Dict[str, Any], midi: Midi) -> None:
     """Process incoming device data"""
     # Convert bytes to list of integers
     data_list = list(data)
