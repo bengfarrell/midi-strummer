@@ -1,4 +1,5 @@
 import time
+import threading
 from typing import List, Optional, Callable
 import rtmidi
 from note import Note, NoteObject
@@ -119,17 +120,23 @@ class Midi(EventEmitter):
         else:
             print(f"MIDI message too short: {message}")
 
-    def send_note(self, note: NoteObject, velocity: int) -> None:
-        """Send a MIDI note"""
+    def send_note(self, note: NoteObject, velocity: int, duration: float = 0.1) -> None:
+        """Send a MIDI note with non-blocking note-off"""
         if self.midi_out:
             midi_note = Note.notation_to_midi(note.notation + str(note.octave))
             note_on_message = [0x90, midi_note, velocity]
             note_off_message = [0x80, midi_note, 0x40]
             
+            # Send note-on immediately
             self.midi_out.send_message(note_on_message)
-            # Schedule note off after 700ms (simplified - in real implementation you'd use threading)
-            time.sleep(0.7)
-            self.midi_out.send_message(note_off_message)
+            
+            # Schedule note-off in a separate thread to avoid blocking
+            def send_note_off():
+                time.sleep(duration)
+                if self.midi_out:
+                    self.midi_out.send_message(note_off_message)
+            
+            threading.Thread(target=send_note_off, daemon=True).start()
 
     def on_note_down(self, notation: str, octave: int) -> None:
         """Handle note down event"""

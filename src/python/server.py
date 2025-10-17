@@ -167,6 +167,8 @@ def start_socket_server(port: int) -> tuple[SocketServer, asyncio.AbstractEventL
 
 def process_device_data(data: bytes, cfg: Dict[str, Any], midi: Midi) -> None:
     """Process incoming device data"""
+    start_time = time.time()
+    
     # Convert bytes to list of integers
     data_list = list(data)
     
@@ -210,12 +212,14 @@ def process_device_data(data: bytes, cfg: Dict[str, Any], midi: Midi) -> None:
     tilt_x = result.get('tiltX', 0.0)
     tilt_y = result.get('tiltY', 0.0)
     
-    strum = strummer.strum(float(x), float(y), float(pressure), float(tilt_x), float(tilt_y))
+    strums = strummer.strum(float(x), float(y), float(pressure), float(tilt_x), float(tilt_y))
     
-    if strum:
-        print(strum['note'])
-        midi.send_note(strum['note'], strum['velocity'])
-        print(f"Note: {strum['note'].notation}{strum['note'].octave}")
+    # strum now returns a list of notes to play (all crossed strings)
+    if strums:
+        for strum in strums:
+            midi.send_note(strum['note'], strum['velocity'])
+            elapsed_ms = (time.time() - start_time) * 1000
+            print(f"Note: {strum['note'].notation}{strum['note'].octave} (latency: {elapsed_ms:.2f}ms)")
 
 
 def main():
