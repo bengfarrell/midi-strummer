@@ -33,20 +33,17 @@ class Midi(EventEmitter):
             # Initialize MIDI output
             self.midi_out = rtmidi.MidiOut()
             available_outputs = self.midi_out.get_ports()
-            print(f"Available MIDI output ports: {available_outputs}")
             
             output_port = None
             if available_outputs:
                 self.midi_out.open_port(0)
                 output_port = available_outputs[0]
-                print(f"Opened MIDI output port: {output_port}")
             else:
                 print("WARNING: No MIDI output ports available")
             
             # Initialize MIDI input
             self.midi_in = rtmidi.MidiIn()
             available_inputs = self.midi_in.get_ports()
-            print(f"Available MIDI input ports: {available_inputs}")
             
             input_port = None
             if available_inputs:
@@ -58,15 +55,11 @@ class Midi(EventEmitter):
                 
                 self.midi_in.open_port(port_index)
                 input_port = available_inputs[port_index]
-                print(f"Opened MIDI input port {port_index}: {input_port}")
                 
                 # Set up MIDI input callback
                 self.midi_in.set_callback(self._midi_callback)
-                print("MIDI input callback registered")
             else:
                 print("WARNING: No MIDI input ports available")
-            
-            print(f"✓ MIDI connections established successfully")
             
             # Emit connection event with proper event object
             self.emit(
@@ -105,7 +98,6 @@ class Midi(EventEmitter):
             for idx, port_name in enumerate(available_inputs):
                 if port_name == midi_input_id or midi_input_id in port_name:
                     self._current_input_id = str(idx)
-                    print(f"Found MIDI input port '{midi_input_id}' at index {idx}")
                     return idx
             
             print(f"WARNING: MIDI input port '{midi_input_id}' not found, using port 0")
@@ -115,28 +107,20 @@ class Midi(EventEmitter):
     def _midi_callback(self, event, data=None) -> None:
         """Handle incoming MIDI messages"""
         message, deltatime = event
-        print(f"MIDI callback triggered - Message: {message}, Deltatime: {deltatime}")
         
         if len(message) >= 3:
             command, note, velocity = message[0], message[1], message[2]
-            print(f"Command: {command}, Note: {note}, Velocity: {velocity}")
-            
             notation_list = [*Note.sharp_notations, *Note.sharp_notations]
             notation = notation_list[note % len(Note.sharp_notations)]
             octave = note // len(Note.sharp_notations) - 1
             
             if command == 144:  # Note on message
                 if velocity > 0:
-                    print(f"Note ON: {notation}{octave}")
                     self.on_note_down(notation, octave)
                 else:
-                    print(f"Note OFF (via velocity 0): {notation}{octave}")
                     self.on_note_up(notation, octave)
             elif command == 128:  # Note off message
-                print(f"Note OFF: {notation}{octave}")
                 self.on_note_up(notation, octave)
-        else:
-            print(f"MIDI message too short: {message}")
 
     def send_note(self, note: NoteObject, velocity: int, duration: float = 0.1) -> None:
         """Send a MIDI note with non-blocking note-off"""
@@ -162,7 +146,6 @@ class Midi(EventEmitter):
         if note_str not in self._notes:
             self._notes.append(note_str)
             self._notes = Note.sort(self._notes)
-            print(f"Note added - Current notes: {self._notes}")
             
             # Emit event with proper event object
             self.emit(
@@ -172,8 +155,6 @@ class Midi(EventEmitter):
                     added=note_str
                 )
             )
-        else:
-            print(f"Note {note_str} already in list")
 
     def on_note_up(self, notation: str, octave: int) -> None:
         """Handle note up event"""
@@ -206,7 +187,6 @@ class Midi(EventEmitter):
             self.midi_in.set_callback(self._midi_callback)
             
             input_port = available_inputs[port_index]
-            print(f"Switched to MIDI input port {port_index}: {input_port}")
             
             # Emit connection event
             self.emit(
