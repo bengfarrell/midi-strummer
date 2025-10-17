@@ -8,12 +8,15 @@ class SocketServer:
     def __init__(self):
         self.sockets: Set[websockets.WebSocketServerProtocol] = set()
         self.server = None
+        self.loop = None
 
     async def start(self, port: int = 8080):
         """Start the WebSocket server"""
+        # Store the event loop for cross-thread access
+        self.loop = asyncio.get_event_loop()
         print(f'WebSocket server is running on ws://localhost:{port}')
         
-        async def handle_client(websocket, path):
+        async def handle_client(websocket):
             print('New client connected')
             self.sockets.add(websocket)
             try:
@@ -47,18 +50,8 @@ class SocketServer:
                     self.sockets.discard(socket)
 
     def send_message_sync(self, message: str):
-        """Synchronous wrapper for send_message"""
-        if self.sockets:
-            # Get the current event loop or create a new one
-            try:
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    # If loop is already running, schedule the coroutine
-                    asyncio.create_task(self.send_message(message))
-                else:
-                    # If no loop is running, run the coroutine
-                    loop.run_until_complete(self.send_message(message))
-            except RuntimeError:
-                # No event loop in current thread, create a new one
-                asyncio.run(self.send_message(message))
+        """Synchronous wrapper for send_message - thread-safe"""
+        if self.sockets and self.loop:
+            # Schedule the coroutine in the server's event loop (thread-safe)
+            asyncio.run_coroutine_threadsafe(self.send_message(message), self.loop)
 

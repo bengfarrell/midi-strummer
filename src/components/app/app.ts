@@ -32,43 +32,43 @@ export class StrummerApp extends LitElement {
 
     protected notes: NoteObject[] = [];
 
-    protected lowerNoteSpread = 2;
-    protected upperNoteSpread = 2;
-
-    protected midi: Midi = new Midi();
-
-    constructor() {
-        super();
-        this.midi.addEventListener(MidiEvent.CONNECTION_EVENT, () => this.requestUpdate());
-        this.midi.addEventListener(MidiEvent.NOTE_EVENT, () => {
-            this.updateNotes(this.midi.notes.map(note => Note.parseNotation(note)));
-        });
-
-        padinput.connect('pointerevents', this.getBoundingClientRect().width, this.getBoundingClientRect().height);
-        padinput.addEventListener(PadInputEvent.PAD_INPUT_EVENT, (ev: PadInputEvent) => {
-            if (ev.data.state === 'none') {
-                strummer.clearStrum();
-                return;
-            }
-
-            const result = strummer.strum(ev.data.x, ev.data.y, ev.data.pressure, ev.data.tiltX, ev.data.tiltY);
-            if (result) this.midi.sendNote(result.note, result.velocity);
-        });
-    }
+    protected webSocket?: WebSocket;
 
     connectedCallback() {
         super.connectedCallback();
-        /*this.midi.addListener((evt: { type: 'up' | 'down', note: string, octave: number }) => {
-            if (evt.type === 'down') {
-                this.piano?.setNoteDown(evt.note, evt.octave);
+        if (this.webSocket && this.webSocket.readyState === WebSocket.OPEN) {
+            // already connected
+            return;
+        }
+
+        this.webSocket = new WebSocket('ws://localhost:8080');
+
+        this.webSocket.onopen = () => {
+            //updateStatus(true);
+        };
+
+        this.webSocket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                //log(`📨 Received: ${JSON.stringify(data)}`);
+
+                if (data.type === 'notes') {
+                    //updateNotes(data.notes);
+                }
+            } catch (error) {
+                //log(`❌ Error parsing message: ${error.message}`);
             }
-            if (evt.type === 'up') {
-                this.piano?.setNoteUp(evt.note, evt.octave);
-            }
-            this.updateNotes(this.midi.notes);
-            strummer.notes = this.midi.notes;
-        });*/
-        //padinput.connect('websocket');
+        };
+
+        this.webSocket.onerror = (error) => {
+            //log(`❌ WebSocket error: ${error}`);
+        };
+
+        this.webSocket.onclose = () => {
+            //log('🔌 Connection closed');
+            //updateStatus(false);
+            //updateNotes([]);
+        };
     }
 
     updateNotes(notes: NoteObject[]) {
@@ -76,11 +76,10 @@ export class StrummerApp extends LitElement {
             this.piano?.setNoteUp(note.notation, note.octave);
         });
 
-        this.notes = Note.fillNoteSpread(notes, this.lowerNoteSpread, this.upperNoteSpread);
+        this.notes = notes;
         this.notes.forEach(note => {
             this.piano?.setNoteDown(note.notation, note.octave);
         });
-        strummer.notes = this.notes;
     }
 
     render() {

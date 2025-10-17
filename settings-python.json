@@ -4,6 +4,8 @@
     "usage": 1,
     "interface": 2
   },
+  "useSocketServer": true,
+  "socketServerPort": 8080,
   "midiInputId": "Launchkey MK4 25 MIDI Out",
   "initialNotes": [ "C4", "E4", "G4" ],
   "upperNoteSpread": 3,

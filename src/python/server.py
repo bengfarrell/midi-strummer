@@ -4,7 +4,9 @@ import signal
 import threading
 import time
 import atexit
+import asyncio
 from typing import Dict, Any, Union, Optional
+from dataclasses import asdict
 
 from finddevice import get_tablet_device
 from datahelpers import parse_code, parse_range_data, parse_wrapped_range_data
@@ -12,17 +14,43 @@ from strummer import strummer
 from midi import Midi
 from midievent import MidiEvent
 from note import Note
+from socketserver import SocketServer
 
 # Global references for cleanup
 _device = None
 _midi = None
+_socket_server = None
+_event_loop = None
+_loop_thread = None
 
 
 def cleanup_resources():
     """Clean up device and MIDI resources"""
-    global _device, _midi
+    global _device, _midi, _socket_server, _event_loop, _loop_thread
     
     print("\nCleaning up resources...")
+    
+    # Close socket server first
+    if _socket_server is not None:
+        try:
+            print("Closing socket server...")
+            _socket_server.stop()
+            _socket_server = None
+            print("Socket server closed successfully")
+        except Exception as e:
+            print(f"Error closing socket server: {e}")
+            _socket_server = None
+    
+    # Stop event loop
+    if _event_loop is not None and _event_loop.is_running():
+        try:
+            print("Stopping event loop...")
+            _event_loop.call_soon_threadsafe(_event_loop.stop)
+            if _loop_thread is not None:
+                _loop_thread.join(timeout=2.0)
+            print("Event loop stopped successfully")
+        except Exception as e:
+            print(f"Error stopping event loop: {e}")
     
     # Close device first - this is critical for device release
     if _device is not None:
@@ -73,7 +101,7 @@ def load_config() -> Dict[str, Any]:
         sys.exit(1)
 
 
-def setup_midi_and_strummer(cfg: Dict[str, Any]) -> Midi:
+def setup_midi_and_strummer(cfg: Dict[str, Any], socket_server: Optional[SocketServer] = None) -> Midi:
     """Setup MIDI connection and strummer configuration"""
     # Initialize strummer with initial notes if provided
     if 'initialNotes' in cfg and cfg['initialNotes']:
@@ -89,23 +117,52 @@ def setup_midi_and_strummer(cfg: Dict[str, Any]) -> Midi:
     
     def on_midi_note_event(event):
         """Handle MIDI note events"""
-        print(f"[SERVER] MIDI note event received! Event type: {event.type}")
         midi_notes = [Note.parse_notation(n) for n in midi.notes]
-        print(f"[SERVER] Current MIDI notes: {midi_notes}")
         strummer.notes = Note.fill_note_spread(
             midi_notes,
             cfg.get('lowerNoteSpread', 0),
             cfg.get('upperNoteSpread', 0)
         )
-        print(f"[SERVER] Strummer notes updated")
-    
-    print("[SERVER] Adding MIDI note event listener...")
+        
+        # Broadcast notes to socket server if enabled
+        if socket_server is not None:
+            try:
+                message = json.dumps({
+                    'type': 'notes',
+                    'notes': [asdict(note) for note in strummer.notes],
+                    'timestamp': time.time()
+                })
+                socket_server.send_message_sync(message)
+            except Exception as e:
+                print(f"[SERVER] Error broadcasting to WebSocket: {e}")
+
     midi.add_event_listener(MidiEvent.NOTE_EVENT, on_midi_note_event)
-    print("[SERVER] Refreshing MIDI connection...")
     midi.refresh_connection(cfg.get('midiInputId'))
-    print("[SERVER] MIDI setup complete")
     
     return midi
+
+
+def start_socket_server(port: int) -> tuple[SocketServer, asyncio.AbstractEventLoop, threading.Thread]:
+    """Start socket server in a separate thread with its own event loop"""
+    socket_server = SocketServer()
+    
+    def run_event_loop(loop, server, port):
+        """Run the event loop in a separate thread"""
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(server.start(port))
+        loop.run_forever()
+    
+    # Create a new event loop for the socket server
+    loop = asyncio.new_event_loop()
+    
+    # Start the event loop in a separate thread
+    thread = threading.Thread(target=run_event_loop, args=(loop, socket_server, port), daemon=True)
+    thread.start()
+    
+    # Give the server a moment to start
+    time.sleep(0.5)
+    
+    return socket_server, loop, thread
 
 
 def process_device_data(data: bytes, cfg: Dict[str, Any], midi: Midi) -> None:
@@ -163,7 +220,7 @@ def process_device_data(data: bytes, cfg: Dict[str, Any], midi: Midi) -> None:
 
 def main():
     """Main application entry point"""
-    global _device, _midi
+    global _device, _midi, _socket_server, _event_loop, _loop_thread
     
     # Register cleanup function to run on exit
     atexit.register(cleanup_resources)
@@ -171,8 +228,21 @@ def main():
     # Load configuration
     cfg = load_config()
     
+    # Optionally start socket server
+    if cfg.get('useSocketServer', False):
+        port = cfg.get('socketServerPort', 8080)
+        print(f"[SERVER] Starting WebSocket server on port {port}...")
+        try:
+            _socket_server, _event_loop, _loop_thread = start_socket_server(port)
+            print(f"[SERVER] WebSocket server started successfully")
+        except Exception as e:
+            print(f"[SERVER] Failed to start WebSocket server: {e}")
+            _socket_server = None
+    else:
+        print("[SERVER] WebSocket server disabled in configuration")
+    
     # Setup MIDI and strummer
-    _midi = setup_midi_and_strummer(cfg)
+    _midi = setup_midi_and_strummer(cfg, _socket_server)
     
     # Get tablet device
     _device = get_tablet_device(cfg['device'])
