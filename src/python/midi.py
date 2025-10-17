@@ -1,9 +1,9 @@
 import time
 import threading
-from typing import List, Optional, Callable
+from typing import List, Optional
 import rtmidi
 from note import Note, NoteObject
-from midievent import MidiEvent
+from midievent import MidiConnectionEvent, MidiNoteEvent, NOTE_EVENT, CONNECTION_EVENT
 from eventlistener import EventEmitter
 
 
@@ -35,50 +35,30 @@ class Midi(EventEmitter):
             available_outputs = self.midi_out.get_ports()
             print(f"Available MIDI output ports: {available_outputs}")
             
+            output_port = None
+            if available_outputs:
+                self.midi_out.open_port(0)
+                output_port = available_outputs[0]
+                print(f"Opened MIDI output port: {output_port}")
+            else:
+                print("WARNING: No MIDI output ports available")
+            
             # Initialize MIDI input
             self.midi_in = rtmidi.MidiIn()
             available_inputs = self.midi_in.get_ports()
             print(f"Available MIDI input ports: {available_inputs}")
             
-            # Open first available output port
-            if available_outputs:
-                self.midi_out.open_port(0)
-                print(f"Opened MIDI output port: {available_outputs[0]}")
-            else:
-                print("WARNING: No MIDI output ports available")
-            
-            # Open specified or first available input port
+            input_port = None
             if available_inputs:
                 port_index = 0
                 if midi_input_id is not None:
-                    # Try to parse as integer first
-                    try:
-                        port_index = int(midi_input_id)
-                        if 0 <= port_index < len(available_inputs):
-                            self._current_input_id = midi_input_id
-                        else:
-                            print(f"WARNING: Invalid MIDI input index {midi_input_id}, using port 0")
-                            port_index = 0
-                            self._current_input_id = "0"
-                    except ValueError:
-                        # If not an integer, try to find port by name
-                        found = False
-                        for idx, port_name in enumerate(available_inputs):
-                            if port_name == midi_input_id or midi_input_id in port_name:
-                                port_index = idx
-                                self._current_input_id = str(idx)
-                                found = True
-                                print(f"Found MIDI input port '{midi_input_id}' at index {idx}")
-                                break
-                        if not found:
-                            print(f"WARNING: MIDI input port '{midi_input_id}' not found, using port 0")
-                            port_index = 0
-                            self._current_input_id = "0"
+                    port_index = self._resolve_input_id(midi_input_id, available_inputs)
                 else:
                     self._current_input_id = "0"
                 
                 self.midi_in.open_port(port_index)
-                print(f"Opened MIDI input port {port_index}: {available_inputs[port_index]}")
+                input_port = available_inputs[port_index]
+                print(f"Opened MIDI input port {port_index}: {input_port}")
                 
                 # Set up MIDI input callback
                 self.midi_in.set_callback(self._midi_callback)
@@ -87,12 +67,50 @@ class Midi(EventEmitter):
                 print("WARNING: No MIDI input ports available")
             
             print(f"✓ MIDI connections established successfully")
-            self.dispatch_event(MidiEvent(MidiEvent.CONNECTION_EVENT))
+            
+            # Emit connection event with proper event object
+            self.emit(
+                CONNECTION_EVENT,
+                MidiConnectionEvent(
+                    connected=True,
+                    input_port=input_port,
+                    output_port=output_port
+                )
+            )
             
         except Exception as e:
             print(f'✗ Failed to get MIDI access - {e}')
             import traceback
             traceback.print_exc()
+            
+            # Emit disconnection event
+            self.emit(
+                CONNECTION_EVENT,
+                MidiConnectionEvent(connected=False)
+            )
+    
+    def _resolve_input_id(self, midi_input_id: str, available_inputs: List[str]) -> int:
+        """Resolve input ID to port index."""
+        try:
+            port_index = int(midi_input_id)
+            if 0 <= port_index < len(available_inputs):
+                self._current_input_id = midi_input_id
+                return port_index
+            else:
+                print(f"WARNING: Invalid MIDI input index {midi_input_id}, using port 0")
+                self._current_input_id = "0"
+                return 0
+        except ValueError:
+            # Try to find port by name
+            for idx, port_name in enumerate(available_inputs):
+                if port_name == midi_input_id or midi_input_id in port_name:
+                    self._current_input_id = str(idx)
+                    print(f"Found MIDI input port '{midi_input_id}' at index {idx}")
+                    return idx
+            
+            print(f"WARNING: MIDI input port '{midi_input_id}' not found, using port 0")
+            self._current_input_id = "0"
+            return 0
 
     def _midi_callback(self, event, data=None) -> None:
         """Handle incoming MIDI messages"""
@@ -145,7 +163,15 @@ class Midi(EventEmitter):
             self._notes.append(note_str)
             self._notes = Note.sort(self._notes)
             print(f"Note added - Current notes: {self._notes}")
-            self.dispatch_event(MidiEvent(MidiEvent.NOTE_EVENT))
+            
+            # Emit event with proper event object
+            self.emit(
+                NOTE_EVENT,
+                MidiNoteEvent(
+                    notes=self._notes.copy(),
+                    added=note_str
+                )
+            )
         else:
             print(f"Note {note_str} already in list")
 
@@ -155,10 +181,15 @@ class Midi(EventEmitter):
         if note_str in self._notes:
             self._notes.remove(note_str)
             self._notes = Note.sort(self._notes)
-            print(f"Note removed - Current notes: {self._notes}")
-            self.dispatch_event(MidiEvent(MidiEvent.NOTE_EVENT))
-        else:
-            print(f"Note {note_str} not in list to remove")
+            
+            # Emit event with proper event object
+            self.emit(
+                NOTE_EVENT,
+                MidiNoteEvent(
+                    notes=self._notes.copy(),
+                    removed=note_str
+                )
+            )
 
     def choose_input(self, input_id: str) -> None:
         """Choose MIDI input by ID (can be port index or port name)"""
@@ -169,32 +200,28 @@ class Midi(EventEmitter):
             self.midi_in = rtmidi.MidiIn()
             available_inputs = self.midi_in.get_ports()
             
-            port_index = 0
-            # Try to parse as integer first
-            try:
-                port_index = int(input_id)
-                if not (0 <= port_index < len(available_inputs)):
-                    print(f"Error: Invalid MIDI input index {input_id}")
-                    return
-            except ValueError:
-                # If not an integer, try to find port by name
-                found = False
-                for idx, port_name in enumerate(available_inputs):
-                    if port_name == input_id or input_id in port_name:
-                        port_index = idx
-                        found = True
-                        break
-                if not found:
-                    print(f"Error: MIDI input port '{input_id}' not found")
-                    return
+            port_index = self._resolve_input_id(input_id, available_inputs)
             
             self.midi_in.open_port(port_index)
-            self._current_input_id = str(port_index)
             self.midi_in.set_callback(self._midi_callback)
-            print(f"Switched to MIDI input port {port_index}: {available_inputs[port_index]}")
-            self.dispatch_event(MidiEvent(MidiEvent.CONNECTION_EVENT))
+            
+            input_port = available_inputs[port_index]
+            print(f"Switched to MIDI input port {port_index}: {input_port}")
+            
+            # Emit connection event
+            self.emit(
+                CONNECTION_EVENT,
+                MidiConnectionEvent(
+                    connected=True,
+                    input_port=input_port
+                )
+            )
         except Exception as e:
             print(f"Error choosing MIDI input: {e}")
+            self.emit(
+                CONNECTION_EVENT,
+                MidiConnectionEvent(connected=False)
+            )
 
     def close(self) -> None:
         """Close MIDI connections"""
@@ -202,4 +229,10 @@ class Midi(EventEmitter):
             self.midi_out.close_port()
         if self.midi_in:
             self.midi_in.close_port()
+        
+        # Emit disconnection event
+        self.emit(
+            CONNECTION_EVENT,
+            MidiConnectionEvent(connected=False)
+        )
 

@@ -12,7 +12,7 @@ from finddevice import get_tablet_device
 from datahelpers import parse_code, parse_range_data, parse_wrapped_range_data
 from strummer import strummer
 from midi import Midi
-from midievent import MidiEvent
+from midievent import MidiNoteEvent, NOTE_EVENT
 from note import Note
 from socketserver import SocketServer
 
@@ -115,9 +115,10 @@ def setup_midi_and_strummer(cfg: Dict[str, Any], socket_server: Optional[SocketS
     # Setup MIDI
     midi = Midi()
     
-    def on_midi_note_event(event):
+    def on_midi_note_event(event: MidiNoteEvent):
         """Handle MIDI note events"""
-        midi_notes = [Note.parse_notation(n) for n in midi.notes]
+        # Use notes from the event object instead of accessing midi.notes directly
+        midi_notes = [Note.parse_notation(n) for n in event.notes]
         strummer.notes = Note.fill_note_spread(
             midi_notes,
             cfg.get('lowerNoteSpread', 0),
@@ -136,7 +137,8 @@ def setup_midi_and_strummer(cfg: Dict[str, Any], socket_server: Optional[SocketS
             except Exception as e:
                 print(f"[SERVER] Error broadcasting to WebSocket: {e}")
 
-    midi.add_event_listener(MidiEvent.NOTE_EVENT, on_midi_note_event)
+    # Use Pythonic event handler registration
+    midi.on(NOTE_EVENT, on_midi_note_event)
     midi.refresh_connection(cfg.get('midiInputId'))
     
     return midi
