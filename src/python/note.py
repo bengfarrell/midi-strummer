@@ -7,6 +7,7 @@ import math
 class NoteObject:
     notation: str
     octave: int
+    secondary: bool = False
 
 
 class Note:
@@ -186,13 +187,18 @@ class Note:
     @classmethod
     def fill_note_spread(cls, notes: List[NoteObject], lower_spread: int = 0, upper_spread: int = 0) -> List[NoteObject]:
         """Fill note spread with upper and lower notes"""
+        # If no notes provided, return empty list
+        if not notes:
+            return []
+        
         upper = []
         for c in range(upper_spread):
             note_index = c % len(notes)
             octave_increase = c // len(notes)
             upper.append(NoteObject(
                 notation=notes[note_index].notation,
-                octave=notes[note_index].octave + octave_increase + 1
+                octave=notes[note_index].octave + octave_increase + 1,
+                secondary=True
             ))
         
         lower = []
@@ -202,7 +208,8 @@ class Note:
             reverse_index = len(notes) - 1 - note_index
             lower.append(NoteObject(
                 notation=notes[reverse_index].notation,
-                octave=notes[reverse_index].octave - octave_decrease - 1
+                octave=notes[reverse_index].octave - octave_decrease - 1,
+                secondary=True
             ))
         
         return [*lower, *notes, *upper]

@@ -8,8 +8,8 @@
   "socketServerPort": 8080,
   "midiInputId": "Launchkey MK4 25 MIDI Out",
   "initialNotes": [ "C4", "E4", "G4" ],
-  "upperNoteSpread": 5,
-  "lowerNoteSpread": 5,
+  "upperNoteSpread": 3,
+  "lowerNoteSpread": 3,
   "mappings": {
     "status": { "byteIndex": 1, "max": 63, "type": "code", "values": {
       "192": {

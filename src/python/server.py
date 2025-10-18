@@ -229,7 +229,7 @@ def process_device_data(data: bytes, cfg: Dict[str, Any], midi: Midi) -> None:
         for strum in strums:
             midi.send_note(strum['note'], strum['velocity'])
             elapsed_ms = (time.time() - start_time) * 1000
-            print(f"Note: {strum['note'].notation}{strum['note'].octave} (latency: {elapsed_ms:.2f}ms)")
+            #print(f"Note: {strum['note'].notation}{strum['note'].octave} (latency: {elapsed_ms:.2f}ms)")
 
 
 def main():
@@ -302,8 +302,6 @@ def main():
                         process_device_data(bytes(data), cfg, _midi)
                     else:
                         empty_read_count += 1
-                        if empty_read_count % 1000 == 0:  # Print occasionally to show it's still running
-                            print(f"Still listening... ({empty_read_count} empty reads)")
                         # Small sleep to prevent CPU spinning, but short enough for responsive signal handling
                         time.sleep(0.001)
 
