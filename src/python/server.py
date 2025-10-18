@@ -136,7 +136,7 @@ def setup_midi_and_strummer(cfg: Dict[str, Any], socket_server: Optional[SocketS
         )
     
     # Setup MIDI
-    midi = Midi()
+    midi = Midi(midi_strum_channel=cfg.get('midiStrumChannel'))
     
     # Create a lambda that captures cfg and socket_server
     def handler(event):

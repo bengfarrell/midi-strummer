@@ -8,7 +8,7 @@ from eventlistener import EventEmitter
 
 
 class Midi(EventEmitter):
-    def __init__(self):
+    def __init__(self, midi_strum_channel: Optional[int] = None):
         super().__init__()
         self.midi_out: Optional[rtmidi.MidiOut] = None
         self.midi_in: Optional[rtmidi.MidiIn] = None
@@ -16,6 +16,7 @@ class Midi(EventEmitter):
         self.inputs: List[rtmidi.MidiIn] = []
         self._current_input_id: Optional[str] = None
         self._notes: List[str] = []
+        self._midi_strum_channel: Optional[int] = midi_strum_channel
 
     @property
     def current_input(self) -> Optional[rtmidi.MidiIn]:
@@ -122,21 +123,31 @@ class Midi(EventEmitter):
             elif command == 128:  # Note off message
                 self.on_note_up(notation, octave)
 
-    def send_note(self, note: NoteObject, velocity: int, duration: float = 0.1) -> None:
+    def send_note(self, note: NoteObject, velocity: int, duration: float = 1.5) -> None:
         """Send a MIDI note with non-blocking note-off"""
         if self.midi_out:
             midi_note = Note.notation_to_midi(note.notation + str(note.octave))
-            note_on_message = [0x90, midi_note, velocity]
-            note_off_message = [0x80, midi_note, 0x40]
             
-            # Send note-on immediately
-            self.midi_out.send_message(note_on_message)
+            # Determine which channels to send on
+            if self._midi_strum_channel is not None:
+                # Send on specific channel (channels are 1-16, but MIDI uses 0-15)
+                channels = [self._midi_strum_channel - 1]
+            else:
+                # Send on all channels (0-15)
+                channels = list(range(16))
+            
+            # Send note-on messages
+            for channel in channels:
+                note_on_message = [0x90 + channel, midi_note, velocity]
+                self.midi_out.send_message(note_on_message)
             
             # Schedule note-off in a separate thread to avoid blocking
             def send_note_off():
                 time.sleep(duration)
                 if self.midi_out:
-                    self.midi_out.send_message(note_off_message)
+                    for channel in channels:
+                        note_off_message = [0x80 + channel, midi_note, 0x40]
+                        self.midi_out.send_message(note_off_message)
             
             threading.Thread(target=send_note_off, daemon=True).start()
 
