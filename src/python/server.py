@@ -101,6 +101,29 @@ def load_config() -> Dict[str, Any]:
         sys.exit(1)
 
 
+def on_midi_note_event(event: MidiNoteEvent, cfg: Dict[str, Any], socket_server: Optional[SocketServer] = None):
+    """Handle MIDI note events - defined at module level to avoid garbage collection"""
+    # Use notes from the event object instead of accessing midi.notes directly
+    midi_notes = [Note.parse_notation(n) for n in event.notes]
+    strummer.notes = Note.fill_note_spread(
+        midi_notes,
+        cfg.get('lowerNoteSpread', 0),
+        cfg.get('upperNoteSpread', 0)
+    )
+    
+    # Broadcast notes to socket server if enabled
+    if socket_server is not None:
+        try:
+            message = json.dumps({
+                'type': 'notes',
+                'notes': [asdict(note) for note in strummer.notes],
+                'timestamp': time.time()
+            })
+            socket_server.send_message_sync(message)
+        except Exception as e:
+            print(f"[SERVER] Error broadcasting to WebSocket: {e}")
+
+
 def setup_midi_and_strummer(cfg: Dict[str, Any], socket_server: Optional[SocketServer] = None) -> Midi:
     """Setup MIDI connection and strummer configuration"""
     # Initialize strummer with initial notes if provided
@@ -115,30 +138,15 @@ def setup_midi_and_strummer(cfg: Dict[str, Any], socket_server: Optional[SocketS
     # Setup MIDI
     midi = Midi()
     
-    def on_midi_note_event(event: MidiNoteEvent):
-        """Handle MIDI note events"""
-        # Use notes from the event object instead of accessing midi.notes directly
-        midi_notes = [Note.parse_notation(n) for n in event.notes]
-        strummer.notes = Note.fill_note_spread(
-            midi_notes,
-            cfg.get('lowerNoteSpread', 0),
-            cfg.get('upperNoteSpread', 0)
-        )
-        
-        # Broadcast notes to socket server if enabled
-        if socket_server is not None:
-            try:
-                message = json.dumps({
-                    'type': 'notes',
-                    'notes': [asdict(note) for note in strummer.notes],
-                    'timestamp': time.time()
-                })
-                socket_server.send_message_sync(message)
-            except Exception as e:
-                print(f"[SERVER] Error broadcasting to WebSocket: {e}")
-
+    # Create a lambda that captures cfg and socket_server
+    def handler(event):
+        on_midi_note_event(event, cfg, socket_server)
+    
+    # Store handler reference to prevent garbage collection
+    midi._note_handler = handler
+    
     # Use Pythonic event handler registration
-    midi.on(NOTE_EVENT, on_midi_note_event)
+    midi.on(NOTE_EVENT, handler)
     midi.refresh_connection(cfg.get('midiInputId'))
     
     return midi
@@ -250,13 +258,13 @@ def main():
     # Setup MIDI and strummer
     _midi = setup_midi_and_strummer(cfg, _socket_server)
     
-    # Get tablet device
+    # Get tablet device (optional)
     _device = get_tablet_device(cfg['device'])
     if not _device:
-        print("Failed to initialize device")
-        sys.exit(1)
-    
-    print("MIDI Strummer server started. Press Ctrl+C to exit.")
+        print("HID device not available - continuing with MIDI-only mode")
+        print("MIDI Strummer server started (MIDI-only mode). Press Ctrl+C to exit.")
+    else:
+        print("MIDI Strummer server started with HID device. Press Ctrl+C to exit.")
     
     # Setup signal handler for graceful shutdown
     def signal_handler(sig, frame):
@@ -271,48 +279,48 @@ def main():
     signal.signal(signal.SIGTSTP, signal_handler)  # Ctrl+Z
     signal.signal(signal.SIGHUP, signal_handler)   # Terminal closed
     
-    # Main device reading loop
+    # Main device reading loop (only if device is available)
     try:
-        # Use non-blocking mode to allow signal handling
-        print("Setting device to non-blocking mode...")
-        _device.set_nonblocking(True)
-        
-        print("Starting device reading loop...")
-        print("Try interacting with your tablet now (touch, move stylus, etc.)...")
-        
-        read_count = 0
-        empty_read_count = 0
-        
-        while True:
-            try:
-                # Read data from device (non-blocking)
-                data = _device.read(64)
-                read_count += 1
-                
-                if data:
-                    empty_read_count = 0  # Reset empty count
-                    #print(f"Read #{read_count}: Raw data received: {data} (length: {len(data)})")
-                    # Convert to hex for easier debugging
-                    hex_data = ' '.join(f'{b:02x}' for b in data)
-                    #print(f"Read #{read_count}: Hex data: {hex_data}")
-                    process_device_data(bytes(data), cfg, _midi)
-                else:
-                    empty_read_count += 1
-                    if empty_read_count % 1000 == 0:  # Print occasionally to show it's still running
-                        print(f"Still listening... ({empty_read_count} empty reads)")
-                    # Small sleep to prevent CPU spinning, but short enough for responsive signal handling
-                    time.sleep(0.001)
-                    
-            except OSError as e:
-                # Handle device disconnection
-                if "read error" in str(e).lower() or "device" in str(e).lower():
-                    print(f"Device disconnected or error: {e}")
-                    break
-                print(f"Error reading from device: {e}")
-                time.sleep(0.1)
-            except Exception as e:
-                print(f"Unexpected error: {e}")
-                time.sleep(0.1)
+        if _device:
+            # Use non-blocking mode to allow signal handling
+            _device.set_nonblocking(True)
+            read_count = 0
+            empty_read_count = 0
+
+            while True:
+                try:
+                    # Read data from device (non-blocking)
+                    data = _device.read(64)
+                    read_count += 1
+
+                    if data:
+                        empty_read_count = 0  # Reset empty count
+                        #print(f"Read #{read_count}: Raw data received: {data} (length: {len(data)})")
+                        # Convert to hex for easier debugging
+                        hex_data = ' '.join(f'{b:02x}' for b in data)
+                        #print(f"Read #{read_count}: Hex data: {hex_data}")
+                        process_device_data(bytes(data), cfg, _midi)
+                    else:
+                        empty_read_count += 1
+                        if empty_read_count % 1000 == 0:  # Print occasionally to show it's still running
+                            print(f"Still listening... ({empty_read_count} empty reads)")
+                        # Small sleep to prevent CPU spinning, but short enough for responsive signal handling
+                        time.sleep(0.001)
+
+                except OSError as e:
+                    # Handle device disconnection
+                    if "read error" in str(e).lower() or "device" in str(e).lower():
+                        print(f"Device disconnected or error: {e}")
+                        break
+                    print(f"Error reading from device: {e}")
+                    time.sleep(0.1)
+                except Exception as e:
+                    print(f"Unexpected error: {e}")
+                    time.sleep(0.1)
+        else:
+            # No device available - just keep the application running for MIDI functionality
+            while True:
+                time.sleep(1.0)  # Keep the main thread alive
                 
     except KeyboardInterrupt:
         print("\nReceived keyboard interrupt")

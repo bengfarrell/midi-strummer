@@ -3,25 +3,28 @@ from typing import Dict, Optional, Any
 
 import hid
 
+DEBUG = False
+
 def get_tablet_device(filter_values: Dict[str, str]) -> Optional[Any]:
     try:
         devices = hid.enumerate()
-        print(f"Found {len(devices)} HID devices")
+
+        if DEBUG:
+            print(f"Found {len(devices)} HID devices")
         
-        # Debug: Show all available devices
-        print("Available HID devices:")
-        for i, device_info in enumerate(devices):
-            print(f"  Device {i}:")
-            for key, value in device_info.items():
-                if isinstance(value, int):
-                    print(f"    {key}: {value} (0x{value:04x})")
-                else:
-                    print(f"    {key}: {value}")
-            print()
+            # Debug: Show all available devices
+            print("Available HID devices:")
+            for i, device_info in enumerate(devices):
+                print(f"  Device {i}:")
+                for key, value in device_info.items():
+                    if isinstance(value, int):
+                        print(f"    {key}: {value} (0x{value:04x})")
+                    else:
+                        print(f"    {key}: {value}")
             
     except Exception as e:
         print(f'Error enumerating HID devices: {e}')
-        sys.exit(1)
+        return None
 
     print(f"Looking for device with filters: {filter_values}")
     
@@ -29,7 +32,8 @@ def get_tablet_device(filter_values: Dict[str, str]) -> Optional[Any]:
     matching_devices = []
     for i, device_info in enumerate(devices):
         matches = True
-        print(f"\nChecking device {i}: {device_info.get('product_string', 'Unknown')}")
+        if DEBUG:
+            print(f"\nChecking device {i}: {device_info.get('product_string', 'Unknown')}")
         
         for filter_key, filter_value in filter_values.items():
             # Convert filter_key to match HID device info keys
@@ -79,13 +83,8 @@ def get_tablet_device(filter_values: Dict[str, str]) -> Optional[Any]:
             matching_devices.append(device_info)
 
     if not matching_devices:
-        print('Could not find device')
-        #print('Available devices:')
-        #for device_info in devices:
-         #   print(f"  Vendor ID: 0x{device_info.get('vendor_id', 0):04x}, "
-          #        f"Product ID: 0x{device_info.get('product_id', 0):04x}, "
-           #       f"Product: {device_info.get('product_string', 'Unknown')}")
-        sys.exit(1)
+        print('Could not find matching HID device')
+        return None
     
     # Try to open the first matching device
     if matching_devices:

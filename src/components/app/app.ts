@@ -12,13 +12,9 @@ import '@spectrum-web-components/theme/sp-theme.js';
 import '@spectrum-web-components/theme/scale-medium.js';
 import '@spectrum-web-components/theme/theme-dark.js';
 
-import 'piano-keys-webcomponent-v0';
-import { PianoElement } from 'piano-keys-webcomponent-v0/dist/piano';
-import { Midi } from '../../utils/midi.js';
-import { MidiEvent } from '../../utils/midievent.js';
-import { padinput, PadInputEvent } from '../../utils/padinput.js';
-import { strummer } from '../../utils/strummer.js';
-import { Note, NoteObject } from '../../utils/note.js';
+import '../piano/piano.js';
+import { PianoElement } from '../piano/piano.js';
+import { NoteObject } from '../../utils/note.js';
 
 @customElement('strummer-app')
 export class StrummerApp extends LitElement {
@@ -27,40 +23,31 @@ export class StrummerApp extends LitElement {
     @query('piano-keys')
     protected piano?: PianoElement;
 
-    @state()
-    protected activated = false;
-
     protected notes: NoteObject[] = [];
 
     protected webSocket?: WebSocket;
 
+    @state()
+    protected lowerNoteSpread = 2;
+
+    @state()
+    protected upperNoteSpread = 2;
+
     connectedCallback() {
         super.connectedCallback();
-        if (this.webSocket && this.webSocket.readyState === WebSocket.OPEN) {
-            // already connected
-            return;
-        }
-
+        if (this.webSocket && this.webSocket.readyState === WebSocket.OPEN) return;
         this.webSocket = new WebSocket('ws://localhost:8080');
-
         this.webSocket.onopen = () => {
             //updateStatus(true);
+            console.log('WebSocket opened');
         };
 
         this.webSocket.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                //log(`📨 Received: ${JSON.stringify(data)}`);
-
-                if (data.type === 'notes') {
-                    //updateNotes(data.notes);
-                }
-            } catch (error) {
-                //log(`❌ Error parsing message: ${error.message}`);
-            }
+            const data = JSON.parse(event.data);
+            if (data.type === 'notes') this.updateNotes(data.notes);
         };
 
-        this.webSocket.onerror = (error) => {
+        this.webSocket.onerror = (_error) => {
             //log(`❌ WebSocket error: ${error}`);
         };
 
@@ -78,17 +65,14 @@ export class StrummerApp extends LitElement {
 
         this.notes = notes;
         this.notes.forEach(note => {
-            this.piano?.setNoteDown(note.notation, note.octave);
+            console.log('down', note.notation, note.octave);
+            this.piano?.setNoteDown(note.notation, note.octave, note.secondary);
         });
     }
 
     render() {
         return html`<sp-theme system="spectrum" color="dark" scale="medium">
             <h1>MIDI Strummer</h1>
-            <sp-action-button 
-                @click=${() => {this.activated = !this.activated}}
-                ?selected=${this.activated}>${this.activated ? 'Strumming' : 'Turn on'}
-            </sp-action-button>
 
             <sp-action-button
                 @click=${() => {
@@ -99,9 +83,9 @@ export class StrummerApp extends LitElement {
 
             <sp-field-label>Octave Spread Lower</sp-field-label>
             <sp-number-field 
-                @input=${(ev: InputEvent) => {
-                    this.lowerNoteSpread = Number((ev.target as HTMLInputElement).value);
-                    this.updateNotes(this.notes);
+                @input=${(_ev: InputEvent) => {
+                    //this.lowerNoteSpread = Number((ev.target as HTMLInputElement).value);
+                    //this.updateNotes(this.notes);
                 }}
                 label="Octave Spread Lower"
                 value=${this.lowerNoteSpread} 
@@ -109,9 +93,9 @@ export class StrummerApp extends LitElement {
                 step="1" size="m"></sp-number-field>
             <sp-field-label>Octave Spread Higher</sp-field-label>
             <sp-number-field
-                @input=${(ev: InputEvent) => {
-                    this.upperNoteSpread = Number((ev.target as HTMLInputElement).value);
-                    this.updateNotes(this.notes);
+                @input=${(_ev: InputEvent) => {
+                    //this.upperNoteSpread = Number((ev.target as HTMLInputElement).value);
+                    //this.updateNotes(this.notes);
                 }}
                 label="Octave Spread Higher" 
                 value=${this.upperNoteSpread} 
@@ -121,13 +105,9 @@ export class StrummerApp extends LitElement {
             <piano-keys layout="C" keys=20></piano-keys>
             
             <sp-button @click=${() => {
-                this.midi.refreshConnection();
+                //this.midi.refreshConnection();
             }}>Refresh MIDI Device List
             </sp-button>
-
-            <sp-picker value=${this.midi.currentInput?.id} @change=${(ev: Event) => { this.midi.chooseInput((ev.target as HTMLInputElement).value)}}>
-                ${this.midi.inputs.map((input: MIDIInput) => html`<sp-menu-item value=${input.id}>${input.name}</sp-menu-item>`)}
-            </sp-picker>
         </sp-theme>`
     }
 

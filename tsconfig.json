@@ -1,13 +1,16 @@
 {
   "compilerOptions": {
-    "target": "es2021",
+    "target": "es2019",
     "module": "es2020",
-    "lib": ["es2021", "DOM", "DOM.Iterable"],
+    "lib": ["es2020", "DOM", "DOM.Iterable"],
+    "declaration": true,
+    "declarationMap": true,
     "sourceMap": true,
     "inlineSources": true,
-    "outDir": "./src",
     "rootDir": "./src",
     "strict": true,
+    "outDir": "./src",
+    "skipLibCheck": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
@@ -18,20 +21,16 @@
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
     "plugins": [
       {
         "name": "ts-lit-plugin",
         "strict": true
       }
-    ],
-    "paths": {
-      "*": ["./src/*", "./node_modules/@types/*", "./node_modules/jzz/*"]
-    }
+    ]
   },
   "include": [
     "src/**/*.ts",
+    "src/**/*.d.ts",
   ],
-  "types": [],
-  "exclude": [],
+  "exclude": []
 }

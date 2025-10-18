@@ -1,4 +1,4 @@
-export type NoteObject = { notation: string, octave: number };
+export type NoteObject = { notation: string, octave: number, secondary?: boolean };
 
 /**
  * Note static class
