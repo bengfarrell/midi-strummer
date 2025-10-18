@@ -228,7 +228,7 @@ def process_device_data(data: bytes, cfg: Dict[str, Any], midi: Midi) -> None:
     if strums:
         for strum in strums:
             midi.send_note(strum['note'], strum['velocity'])
-            elapsed_ms = (time.time() - start_time) * 1000
+            #elapsed_ms = (time.time() - start_time) * 1000
             #print(f"Note: {strum['note'].notation}{strum['note'].octave} (latency: {elapsed_ms:.2f}ms)")
 
 
