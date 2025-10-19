@@ -126,6 +126,9 @@ def on_midi_note_event(event: MidiNoteEvent, cfg: Dict[str, Any], socket_server:
 
 def setup_midi_and_strummer(cfg: Dict[str, Any], socket_server: Optional[SocketServer] = None) -> Midi:
     """Setup MIDI connection and strummer configuration"""
+    # Configure strummer settings
+    strummer.note_up_on_release = cfg.get('noteUpOnRelease', False)
+    
     # Initialize strummer with initial notes if provided
     if 'initialNotes' in cfg and cfg['initialNotes']:
         initial_notes = [Note.parse_notation(n) for n in cfg['initialNotes']]
@@ -226,14 +229,20 @@ def process_device_data(data: bytes, cfg: Dict[str, Any], midi: Midi) -> None:
     if cfg.get('allowPitchBend', False):
         midi.send_pitch_bend(float(tilt_x))
     
-    strums = strummer.strum(float(x), float(y), float(pressure), float(tilt_x), float(tilt_y))
+    strum_result = strummer.strum(float(x), float(y), float(pressure), float(tilt_x), float(tilt_y))
     
-    # strum now returns a list of notes to play (all crossed strings)
-    if strums:
-        for strum in strums:
-            midi.send_note(strum['note'], strum['velocity'])
-            #elapsed_ms = (time.time() - start_time) * 1000
-            #print(f"Note: {strum['note'].notation}{strum['note'].octave} (latency: {elapsed_ms:.2f}ms)")
+    # Handle strum result based on type
+    if strum_result:
+        if strum_result.get('type') == 'strum':
+            # Play notes from strum
+            for note_data in strum_result['notes']:
+                # Skip notes with velocity 0 (these would act as note-off in MIDI)
+                if note_data['velocity'] > 0:
+                    midi.send_note(note_data['note'], note_data['velocity'])
+        elif strum_result.get('type') == 'release':
+            # Handle pressure release - release specific notes immediately
+            # Note: strummer only returns release events when noteUpOnRelease is enabled
+            midi.release_notes(strum_result['notes'])
 
 
 def main():

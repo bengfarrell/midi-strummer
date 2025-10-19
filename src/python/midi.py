@@ -17,6 +17,8 @@ class Midi(EventEmitter):
         self._current_input_id: Optional[str] = None
         self._notes: List[str] = []
         self._midi_strum_channel: Optional[int] = midi_strum_channel
+        self._active_note_timers: dict = {}  # Track active note-off timers by MIDI note number
+        self._timer_lock = threading.Lock()  # Thread-safe access to timers
 
     @property
     def current_input(self) -> Optional[rtmidi.MidiIn]:
@@ -153,6 +155,33 @@ class Midi(EventEmitter):
                 pitch_bend_message = [0xE0 + channel, lsb, msb]
                 self.midi_out.send_message(pitch_bend_message)
 
+    def release_notes(self, notes: List[NoteObject]) -> None:
+        """Immediately release specific notes by canceling timers and sending note-offs"""
+        if not self.midi_out or not notes:
+            return
+        
+        # Determine which channels to send on
+        if self._midi_strum_channel is not None:
+            channels = [self._midi_strum_channel - 1]
+        else:
+            channels = list(range(16))
+        
+        # Convert notes to MIDI note numbers and release them
+        for note in notes:
+            midi_note = Note.notation_to_midi(note.notation + str(note.octave))
+            
+            # Cancel the timer if it exists
+            with self._timer_lock:
+                if midi_note in self._active_note_timers:
+                    timer = self._active_note_timers[midi_note]
+                    timer.cancel()
+                    del self._active_note_timers[midi_note]
+            
+            # Send note-off messages
+            for channel in channels:
+                note_off_message = [0x80 + channel, midi_note, 0x40]
+                self.midi_out.send_message(note_off_message)
+
     def send_note(self, note: NoteObject, velocity: int, duration: float = 1.5) -> None:
         """Send a MIDI note with non-blocking note-off"""
         if self.midi_out:
@@ -166,20 +195,35 @@ class Midi(EventEmitter):
                 # Send on all channels (0-15)
                 channels = list(range(16))
             
+            # Cancel any existing timer for this note to prevent premature note-off
+            with self._timer_lock:
+                if midi_note in self._active_note_timers:
+                    old_timer = self._active_note_timers[midi_note]
+                    old_timer.cancel()
+                    del self._active_note_timers[midi_note]
+            
             # Send note-on messages
             for channel in channels:
                 note_on_message = [0x90 + channel, midi_note, velocity]
                 self.midi_out.send_message(note_on_message)
             
-            # Schedule note-off in a separate thread to avoid blocking
+            # Schedule note-off with a timer that can be cancelled
             def send_note_off():
-                time.sleep(duration)
                 if self.midi_out:
                     for channel in channels:
                         note_off_message = [0x80 + channel, midi_note, 0x40]
                         self.midi_out.send_message(note_off_message)
+                
+                # Remove this timer from active timers
+                with self._timer_lock:
+                    if midi_note in self._active_note_timers:
+                        del self._active_note_timers[midi_note]
             
-            threading.Thread(target=send_note_off, daemon=True).start()
+            # Create and store the timer
+            timer = threading.Timer(duration, send_note_off)
+            with self._timer_lock:
+                self._active_note_timers[midi_note] = timer
+            timer.start()
 
     def on_note_down(self, notation: str, octave: int) -> None:
         """Handle note down event"""
@@ -246,6 +290,12 @@ class Midi(EventEmitter):
 
     def close(self) -> None:
         """Close MIDI connections"""
+        # Cancel all active note timers
+        with self._timer_lock:
+            for timer in self._active_note_timers.values():
+                timer.cancel()
+            self._active_note_timers.clear()
+        
         if self.midi_out:
             self.midi_out.close_port()
         if self.midi_in:

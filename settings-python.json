@@ -5,13 +5,14 @@
     "interface": 2
   },
   "useSocketServer": true,
+  "noteUpOnRelease": false,
   "allowPitchBend": false,
   "socketServerPort": 8080,
   "midiInputId": "Launchkey MK4 25 MIDI Out",
   "midiStrumChannel": 10,
   "initialNotes": [ "C4", "E4", "G4" ],
-  "upperNoteSpread": 1,
-  "lowerNoteSpread": 1,
+  "upperNoteSpread": 3,
+  "lowerNoteSpread": 3,
   "mappings": {
     "status": { "byteIndex": 1, "max": 63, "type": "code", "values": {
       "192": {
