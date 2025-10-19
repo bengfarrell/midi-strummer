@@ -5,6 +5,7 @@
     "interface": 2
   },
   "useSocketServer": true,
+  "allowPitchBend": false,
   "socketServerPort": 8080,
   "midiInputId": "Launchkey MK4 25 MIDI Out",
   "midiStrumChannel": 10,

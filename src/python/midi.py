@@ -123,6 +123,36 @@ class Midi(EventEmitter):
             elif command == 128:  # Note off message
                 self.on_note_up(notation, octave)
 
+    def send_pitch_bend(self, bend_value: float) -> None:
+        """
+        Send a pitch bend message.
+        
+        Args:
+            bend_value: Float between -1.0 (full down) and 1.0 (full up), 0 is center
+        """
+        if self.midi_out:
+            # Clamp bend_value to valid range
+            bend_value = max(-1.0, min(1.0, bend_value))
+            
+            # Convert to 14-bit MIDI pitch bend value (0-16383, center is 8192)
+            midi_bend = int((bend_value + 1.0) * 8192)
+            midi_bend = max(0, min(16383, midi_bend))
+            
+            # Split into LSB and MSB (7 bits each)
+            lsb = midi_bend & 0x7F
+            msb = (midi_bend >> 7) & 0x7F
+            
+            # Determine which channels to send on
+            if self._midi_strum_channel is not None:
+                channels = [self._midi_strum_channel - 1]
+            else:
+                channels = list(range(16))
+            
+            # Send pitch bend messages (0xE0 + channel)
+            for channel in channels:
+                pitch_bend_message = [0xE0 + channel, lsb, msb]
+                self.midi_out.send_message(pitch_bend_message)
+
     def send_note(self, note: NoteObject, velocity: int, duration: float = 1.5) -> None:
         """Send a MIDI note with non-blocking note-off"""
         if self.midi_out:

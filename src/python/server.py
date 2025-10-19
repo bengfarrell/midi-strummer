@@ -222,6 +222,10 @@ def process_device_data(data: bytes, cfg: Dict[str, Any], midi: Midi) -> None:
     tilt_x = result.get('tiltX', 0.0)
     tilt_y = result.get('tiltY', 0.0)
     
+    # Send pitch bend if enabled (send continuously based on tilt)
+    if cfg.get('allowPitchBend', False):
+        midi.send_pitch_bend(float(tilt_x))
+    
     strums = strummer.strum(float(x), float(y), float(pressure), float(tilt_x), float(tilt_y))
     
     # strum now returns a list of notes to play (all crossed strings)
