@@ -4,7 +4,17 @@
     "usage": 1,
     "interface": 2
   },
+  "useSocketServer": true,
+  "noteUpOnRelease": false,
+  "noteDuration": 1.5,
+  "allowPitchBend": false,
+  "pitchBend": {
+    "multiplier": 2,
+    "clamp": [0.2, 0.8]
+  },
+  "socketServerPort": 8080,
   "midiInputId": "Launchkey MK4 25 MIDI Out",
+  "midiStrumChannel": 10,
   "initialNotes": [ "C4", "E4", "G4" ],
   "upperNoteSpread": 3,
   "lowerNoteSpread": 3,

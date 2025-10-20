@@ -5,6 +5,7 @@ import threading
 import time
 import atexit
 import asyncio
+import math
 from typing import Dict, Any, Union, Optional
 from dataclasses import asdict
 
@@ -91,7 +92,7 @@ def cleanup_resources():
 def load_config() -> Dict[str, Any]:
     """Load configuration from settings.json"""
     try:
-        with open('settings-python.json', 'r') as f:
+        with open('settings.json', 'r') as f:
             return json.load(f)
     except FileNotFoundError:
         print("Error: settings.json not found")
@@ -260,7 +261,11 @@ def process_device_data(data: bytes, cfg: Dict[str, Any], midi: Midi) -> None:
     
     # Send pitch bend if enabled (send continuously based on tilt)
     if cfg.get('allowPitchBend', False):
-        midi.send_pitch_bend(float(tilt_x))
+        xyTilt = math.sqrt(float(tilt_x) * float(tilt_x) + float(tilt_y) * float(tilt_y))
+        clamping = cfg.get('pitchBend.clamp', [0,1])
+        clampedXYTilt = max(clamping[0], min(xyTilt, clamping[1]))
+        multiplier = cfg.get('pitchBend.multiplier', 1)
+        midi.send_pitch_bend(clampedXYTilt * multiplier)
     
     strum_result = strummer.strum(float(x), float(y), float(pressure), float(tilt_x), float(tilt_y))
     

@@ -30,7 +30,6 @@ class SocketServer:
                         'config': self.config
                     })
                     await websocket.send(config_message)
-                    print('Sent config to new client')
                 except Exception as e:
                     print(f'Error sending config to new client: {e}')
             
@@ -40,7 +39,6 @@ class SocketServer:
                     try:
                         # Parse incoming message as JSON
                         data = json.loads(message)
-                        print(f'Received message from client: {data}')
                         
                         # Call the message callback if it exists
                         if self.on_message_callback:

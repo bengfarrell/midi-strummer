@@ -143,11 +143,11 @@ export class StrummerApp extends LitElement {
                 </sp-picker>
                 
                 <sp-checkbox @change=${(ev: InputEvent) => {
-                    this.updateServerConfig( { noteUpOnRelease: Boolean((ev.target as HTMLInputElement).value) });
+                    this.updateServerConfig( { noteUpOnRelease: Boolean((ev.target as HTMLInputElement).checked) });
                 }} ?checked=${this.noteUpOnRelease}>Release note on pen up</sp-checkbox>
     
                 <sp-checkbox @change=${(ev: InputEvent) => {
-                    this.updateServerConfig( { allowPitchBend: Boolean((ev.target as HTMLInputElement).value) });
+                    this.updateServerConfig( { allowPitchBend: Boolean((ev.target as HTMLInputElement).checked) });
                 }} ?checked=${this.allowPitchBend}>Allow pitch bending</sp-checkbox>
             </div>
         </sp-theme>`
