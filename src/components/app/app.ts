@@ -111,43 +111,45 @@ export class StrummerApp extends LitElement {
 
             <piano-keys layout="C" keys=20></piano-keys>
             
-            <sp-field-label>Octave Spread Lower</sp-field-label>
-            <sp-number-field 
-                @input=${(ev: InputEvent) => {
-                    this.updateServerConfig( { lowerNoteSpread: Number((ev.target as HTMLInputElement).value) });
-                }}
-                label="Octave Spread Lower"
-                value=${this.lowerNoteSpread} 
-                min="0" max="24" 
-                step="1" size="m"></sp-number-field>
-            <sp-field-label>Octave Spread Higher</sp-field-label>
-            <sp-number-field
-                @input=${(ev: InputEvent) => {
-                    this.updateServerConfig( { upperNoteSpread: Number((ev.target as HTMLInputElement).value) });
-                }}
-                label="Octave Spread Higher" 
-                value=${this.upperNoteSpread} 
-                min="0" max="24" 
-                step="1" size="m"></sp-number-field>
-
-            <sp-field-label>Strum Channel</sp-field-label>
-            <sp-picker value=${this.midiStrumChannel} @change=${(ev: InputEvent) => {
-                const val = Number((ev.target as HTMLInputElement).value);
-                this.updateServerConfig( { midiStrumChannel: val === -1 ? undefined : val });
-            }}>
-                <sp-menu-item value=-1>Send on all channels</sp-menu-item>
-                ${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].map(channel => (
+            <div class="controls">
+                <sp-field-label>Octave Spread Lower</sp-field-label>
+                <sp-number-field 
+                    @input=${(ev: InputEvent) => {
+                        this.updateServerConfig( { lowerNoteSpread: Number((ev.target as HTMLInputElement).value) });
+                    }}
+                    label="Octave Spread Lower"
+                    value=${this.lowerNoteSpread} 
+                    min="0" max="24" 
+                    step="1" size="m"></sp-number-field>
+                <sp-field-label>Octave Spread Higher</sp-field-label>
+                <sp-number-field
+                    @input=${(ev: InputEvent) => {
+                        this.updateServerConfig( { upperNoteSpread: Number((ev.target as HTMLInputElement).value) });
+                    }}
+                    label="Octave Spread Higher" 
+                    value=${this.upperNoteSpread} 
+                    min="0" max="24" 
+                    step="1" size="m"></sp-number-field>
+    
+                <sp-field-label>Strum Channel</sp-field-label>
+                <sp-picker value=${this.midiStrumChannel} @change=${(ev: InputEvent) => {
+                    const val = Number((ev.target as HTMLInputElement).value);
+                            this.updateServerConfig( { midiStrumChannel: val === -1 ? undefined : val });
+                        }}>
+                        <sp-menu-item value=-1>Send on all channels</sp-menu-item>
+                        ${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].map(channel => (
                     html`<sp-menu-item value=${channel}>MIDI Out Channel ${channel}</sp-menu-item>`
                 ))}
-            </sp-picker>
-            
-            <sp-checkbox @change=${(ev: InputEvent) => {
-                this.updateServerConfig( { noteUpOnRelease: Boolean((ev.target as HTMLInputElement).value) });
-            }} ?checked=${this.noteUpOnRelease}>Release note on pen up</sp-checkbox>
-
-            <sp-checkbox @change=${(ev: InputEvent) => {
-                this.updateServerConfig( { allowPitchBend: Boolean((ev.target as HTMLInputElement).value) });
-            }} ?checked=${this.allowPitchBend}>Allow pitch bending</sp-checkbox>
+                </sp-picker>
+                
+                <sp-checkbox @change=${(ev: InputEvent) => {
+                    this.updateServerConfig( { noteUpOnRelease: Boolean((ev.target as HTMLInputElement).value) });
+                }} ?checked=${this.noteUpOnRelease}>Release note on pen up</sp-checkbox>
+    
+                <sp-checkbox @change=${(ev: InputEvent) => {
+                    this.updateServerConfig( { allowPitchBend: Boolean((ev.target as HTMLInputElement).value) });
+                }} ?checked=${this.allowPitchBend}>Allow pitch bending</sp-checkbox>
+            </div>
         </sp-theme>`
     }
 

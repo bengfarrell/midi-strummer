@@ -23,7 +23,10 @@ export const styles = css`
         pointer-events: none;
     }
     
-    sp-combobox {
-        width: 250px;
+    .controls {
+        display: flex;
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 16px;
     }
 `;
