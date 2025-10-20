@@ -38,9 +38,6 @@ export class StrummerApp extends LitElement {
     protected midiStrumChannel = -1;
 
     @state()
-    protected noteUpOnRelease:boolean = false;
-
-    @state()
     protected allowPitchBend:boolean = false;
 
     connectedCallback() {
@@ -66,9 +63,6 @@ export class StrummerApp extends LitElement {
                     }
                     if (config.lowerNoteSpread) {
                         this.lowerNoteSpread = config.lowerNoteSpread;
-                    }
-                    if (config.noteUpOnRelease) {
-                        this.noteUpOnRelease = Boolean(config.noteUpOnRelease);
                     }
                     if (config.midiStrumChannel) {
                         this.midiStrumChannel = config.midiStrumChannel;
@@ -141,10 +135,6 @@ export class StrummerApp extends LitElement {
                     html`<sp-menu-item value=${channel}>MIDI Out Channel ${channel}</sp-menu-item>`
                 ))}
                 </sp-picker>
-                
-                <sp-checkbox @change=${(ev: InputEvent) => {
-                    this.updateServerConfig( { noteUpOnRelease: Boolean((ev.target as HTMLInputElement).checked) });
-                }} ?checked=${this.noteUpOnRelease}>Release note on pen up</sp-checkbox>
     
                 <sp-checkbox @change=${(ev: InputEvent) => {
                     this.updateServerConfig( { allowPitchBend: Boolean((ev.target as HTMLInputElement).checked) });

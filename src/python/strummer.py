@@ -10,8 +10,6 @@ class Strummer:
         self.last_strummed_index: int = -1
         self.last_pressure: float = 0.0
         self.pressure_threshold: float = 0.1  # Minimum pressure to trigger a strum
-        self.active_notes: List[NoteObject] = []  # Track currently active notes from this strum session
-        self.note_up_on_release: bool = False  # Whether to track notes for release
 
     @property
     def notes(self) -> List[NoteObject]:
@@ -32,19 +30,11 @@ class Strummer:
             pressure_down = self.last_pressure < self.pressure_threshold and pressure >= self.pressure_threshold
             pressure_up = self.last_pressure >= self.pressure_threshold and pressure < self.pressure_threshold
             
-            # Return pressure release event when pressure is released
+            # Reset strummed index when pressure is released
             if pressure_up:
                 self.last_strummed_index = -1
                 self.last_pressure = pressure
-                # Only return release event if note_up_on_release is enabled
-                if self.note_up_on_release and self.active_notes:
-                    released_notes = self.active_notes.copy()
-                    self.active_notes = []
-                    return {'type': 'release', 'notes': released_notes}
-                else:
-                    # Clear active notes without triggering release
-                    self.active_notes = []
-                    return None
+                return None
             
             self.last_x = x
             self.last_pressure = pressure
@@ -65,9 +55,6 @@ class Strummer:
                         'note': note,
                         'velocity': int(pressure * 127)
                     })
-                    # Track this note as active only if note_up_on_release is enabled
-                    if self.note_up_on_release and note not in self.active_notes:
-                        self.active_notes.append(note)
                 else:
                     # Play all intermediate notes between last and current index
                     start = min(self.last_strummed_index, index)
@@ -87,9 +74,6 @@ class Strummer:
                             'note': note,
                             'velocity': int(pressure * 127)
                         })
-                        # Track this note as active only if note_up_on_release is enabled
-                        if self.note_up_on_release and note not in self.active_notes:
-                            self.active_notes.append(note)
                 
                 self.last_strummed_index = index
                 return {'type': 'strum', 'notes': notes_to_play} if notes_to_play else None
@@ -99,7 +83,6 @@ class Strummer:
         """Clear the last strummed index and pressure"""
         self.last_strummed_index = -1
         self.last_pressure = 0.0
-        self.active_notes = []
 
     def update_bounds(self, width: float, height: float) -> None:
         """Update the bounds of the strummer"""

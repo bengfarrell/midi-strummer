@@ -127,9 +127,6 @@ def on_midi_note_event(event: MidiNoteEvent, cfg: Dict[str, Any], socket_server:
 
 def setup_midi_and_strummer(cfg: Dict[str, Any], socket_server: Optional[SocketServer] = None) -> Midi:
     """Setup MIDI connection and strummer configuration"""
-    # Configure strummer settings
-    strummer.note_up_on_release = cfg.get('noteUpOnRelease', False)
-    
     # Initialize strummer with initial notes if provided
     if 'initialNotes' in cfg and cfg['initialNotes']:
         initial_notes = [Note.parse_notation(n) for n in cfg['initialNotes']]
@@ -272,15 +269,23 @@ def process_device_data(data: bytes, cfg: Dict[str, Any], midi: Midi) -> None:
     # Handle strum result based on type
     if strum_result:
         if strum_result.get('type') == 'strum':
+            # Calculate note duration based on Y position
+            # Center Y = max duration, edges (top/bottom) = min duration
+            y_max = cfg.get('mappings.y.max', 1.0)
+            y_center = y_max / 2.0
+            distance_from_center = abs(float(y) - y_center)
+            max_distance = y_center
+            normalized_distance = min(distance_from_center / max_distance, 1.0)  # Clamp to 1.0
+            
+            max_duration = cfg.get('maxNoteDuration', 1.5)
+            min_duration = cfg.get('minNoteDuration', 0.2)
+            duration = max_duration - (normalized_distance * (max_duration - min_duration))
+            
             # Play notes from strum
             for note_data in strum_result['notes']:
                 # Skip notes with velocity 0 (these would act as note-off in MIDI)
                 if note_data['velocity'] > 0:
-                    midi.send_note(note_data['note'], note_data['velocity'])
-        elif strum_result.get('type') == 'release':
-            # Handle pressure release - release specific notes immediately
-            # Note: strummer only returns release events when noteUpOnRelease is enabled
-            midi.release_notes(strum_result['notes'])
+                    midi.send_note(note_data['note'], note_data['velocity'], duration)
 
 
 def main():
