@@ -8,6 +8,40 @@ class NoteObject:
     notation: str
     octave: int
     secondary: bool = False
+    
+    def transpose(self, semitones: int) -> 'NoteObject':
+        """Transpose the note by a given number of semitones"""
+        if semitones == 0:
+            return self
+        
+        # Convert to MIDI note number
+        from note import Note
+        try:
+            note_index = Note.sharp_notations.index(self.notation)
+        except ValueError:
+            try:
+                note_index = Note.flat_notations.index(self.notation)
+            except ValueError:
+                note_index = 0
+        
+        midi_number = self.octave * 12 + note_index
+        
+        # Add semitones
+        transposed_midi = midi_number + semitones
+        
+        # Convert back to notation and octave
+        new_octave = transposed_midi // 12
+        new_note_index = transposed_midi % 12
+        
+        # Prefer to use the same notation style (sharp vs flat) as the original
+        if '#' in self.notation:
+            new_notation = Note.sharp_notations[new_note_index]
+        elif 'b' in self.notation:
+            new_notation = Note.flat_notations[new_note_index]
+        else:
+            new_notation = Note.sharp_notations[new_note_index]
+        
+        return NoteObject(notation=new_notation, octave=new_octave, secondary=self.secondary)
 
 
 class Note:

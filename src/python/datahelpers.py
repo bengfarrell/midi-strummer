@@ -24,9 +24,19 @@ def parse_wrapped_range_data(data: List[int], byte_index: int,
         return -(neg_min - value) / (neg_min - neg_max)
 
 
-def parse_code(data: List[int], byte_index: int, values: List[Union[int, float]]) -> Union[int, float]:
-    """Parse code from byte array using lookup values"""
+def parse_code(data: List[int], byte_index: int, values) -> Union[int, float, dict]:
+    """Parse code from byte array using lookup values (dict or list)"""
     code = data[byte_index]
-    if code < len(values):
+    
+    # Handle dictionary-based lookup (like status codes)
+    if isinstance(values, dict):
+        code_str = str(code)
+        if code_str in values:
+            return values[code_str]
+        return {}
+    
+    # Handle list-based lookup (legacy)
+    if isinstance(values, list) and code < len(values):
         return values[code]
+    
     return 0

@@ -215,7 +215,7 @@ def process_device_data(data: bytes, cfg: Dict[str, Any], midi: Midi) -> None:
     
     # Convert bytes to list of integers
     data_list = list(data)
-    
+
     result: Dict[str, Union[str, int, float]] = {}
     
     # Process each mapping in the configuration
@@ -248,7 +248,7 @@ def process_device_data(data: bytes, cfg: Dict[str, Any], midi: Midi) -> None:
                 result.update(code_result)
             else:
                 result[key] = code_result
-    
+
     # Process strumming
     x = result.get('x', 0.0)
     y = result.get('y', 0.0)
@@ -264,7 +264,17 @@ def process_device_data(data: bytes, cfg: Dict[str, Any], midi: Midi) -> None:
         multiplier = cfg.get('pitchBend.multiplier', 1)
         midi.send_pitch_bend(clampedXYTilt * multiplier)
     
-    strum_result = strummer.strum(float(x), float(y), float(pressure), float(tilt_x), float(tilt_y))
+    # Get button press states and adjustments from config
+    primary_button_pressed = result.get('primaryButtonPressed', False)
+    secondary_button_pressed = result.get('secondaryButtonPressed', False)
+    primary_adjustment = cfg.get('primaryButtonSemitoneAdjustment', 0)
+    secondary_adjustment = cfg.get('secondaryButtonSemitoneAdjustment', 0)
+
+    strum_result = strummer.strum(
+        float(x), float(y), float(pressure), float(tilt_x), float(tilt_y),
+        primary_button_pressed, secondary_button_pressed,
+        primary_adjustment, secondary_adjustment
+    )
     
     # Handle strum result based on type
     if strum_result:

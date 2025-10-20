@@ -18,6 +18,8 @@
   "initialNotes": [ "C4", "E4", "G4" ],
   "upperNoteSpread": 3,
   "lowerNoteSpread": 3,
+  "primaryButtonSemitoneAdjustment": 12,
+  "secondaryButtonSemitoneAdjustment": -12,
   "mappings": {
     "status": { "byteIndex": 1, "max": 63, "type": "code", "values": {
       "192": {
