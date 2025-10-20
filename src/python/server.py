@@ -6,19 +6,19 @@ import time
 import atexit
 import asyncio
 import math
-from typing import Dict, Any, Union, Optional
+from typing import Dict, Any, Union, Optional, Callable
 from dataclasses import asdict
 
 from finddevice import get_tablet_device
-from datahelpers import parse_code, parse_range_data, parse_wrapped_range_data
 from strummer import strummer
 from midi import Midi
 from midievent import MidiNoteEvent, NOTE_EVENT
 from note import Note
 from socketserver import SocketServer
+from hidreader import HIDReader
 
 # Global references for cleanup
-_device = None
+_hid_reader = None
 _midi = None
 _socket_server = None
 _event_loop = None
@@ -27,7 +27,7 @@ _loop_thread = None
 
 def cleanup_resources():
     """Clean up device and MIDI resources"""
-    global _device, _midi, _socket_server, _event_loop, _loop_thread
+    global _hid_reader, _midi, _socket_server, _event_loop, _loop_thread
     
     print("\nCleaning up resources...")
     
@@ -53,29 +53,15 @@ def cleanup_resources():
         except Exception as e:
             print(f"Error stopping event loop: {e}")
     
-    # Close device first - this is critical for device release
-    if _device is not None:
+    # Stop and close HID reader
+    if _hid_reader is not None:
         try:
-            print("Closing HID device...")
-            # Try to ensure the device is in a good state before closing
-            try:
-                _device.set_nonblocking(False)
-            except:
-                pass  # Ignore if this fails
-            
-            _device.close()
-            print("HID device closed successfully")
-            _device = None
-            
-            # Give the OS more time to fully release the device handle
-            # This is crucial for HID devices on macOS
-            print("Waiting for OS to release device handle...")
-            time.sleep(0.5)
-            print("Device should be released now")
-            
+            _hid_reader.stop()
+            _hid_reader.close()
+            _hid_reader = None
         except Exception as e:
-            print(f"Error closing device: {e}")
-            _device = None  # Clear reference even if close failed
+            print(f"Error closing HID reader: {e}")
+            _hid_reader = None
     
     # Close MIDI
     if _midi is not None:
@@ -209,98 +195,73 @@ def start_socket_server(port: int, cfg: Dict[str, Any]) -> tuple[SocketServer, a
     return socket_server, loop, thread
 
 
-def process_device_data(data: bytes, cfg: Dict[str, Any], midi: Midi) -> None:
-    """Process incoming device data"""
-    start_time = time.time()
+def create_hid_data_handler(cfg: Dict[str, Any], midi: Midi) -> Callable[[Dict[str, Union[str, int, float]]], None]:
+    """
+    Create a callback function to handle processed HID data
     
-    # Convert bytes to list of integers
-    data_list = list(data)
-
-    result: Dict[str, Union[str, int, float]] = {}
-    
-    # Process each mapping in the configuration
-    for key, mapping in cfg['mappings'].items():
-        mapping_type = mapping.get('type')
-        byte_index = mapping.get('byteIndex', 0)
+    Args:
+        cfg: Configuration dictionary
+        midi: MIDI instance
         
-        if byte_index >= len(data_list):
-            continue
-            
-        if mapping_type == 'range':
-            result[key] = parse_range_data(
-                data_list, 
-                byte_index, 
-                mapping.get('min', 0), 
-                mapping.get('max', 0)
-            )
-        elif mapping_type == 'wrapped-range':
-            result[key] = parse_wrapped_range_data(
-                data_list,
-                byte_index,
-                mapping.get('positiveMin', 0),
-                mapping.get('positiveMax', 0),
-                mapping.get('negativeMin', 0),
-                mapping.get('negativeMax', 0)
-            )
-        elif mapping_type == 'code':
-            code_result = parse_code(data_list, byte_index, mapping.get('values', []))
-            if isinstance(code_result, dict):
-                result.update(code_result)
-            else:
-                result[key] = code_result
+    Returns:
+        Callback function that processes HID data and sends MIDI messages
+    """
+    def handle_hid_data(result: Dict[str, Union[str, int, float]]) -> None:
+        """Handle processed HID data - send MIDI messages based on strumming"""
+        # Extract data values
+        x = result.get('x', 0.0)
+        y = result.get('y', 0.0)
+        pressure = result.get('pressure', 0.0)
+        tilt_x = result.get('tiltX', 0.0)
+        tilt_y = result.get('tiltY', 0.0)
+        
+        # Send pitch bend if enabled (send continuously based on tilt)
+        if cfg.get('allowPitchBend', False):
+            xyTilt = math.sqrt(float(tilt_x) * float(tilt_x) + float(tilt_y) * float(tilt_y))
+            clamping = cfg.get('pitchBend.clamp', [0,1])
+            clampedXYTilt = max(clamping[0], min(xyTilt, clamping[1]))
+            multiplier = cfg.get('pitchBend.multiplier', 1)
+            midi.send_pitch_bend(clampedXYTilt * multiplier)
+        
+        # Get button press states and adjustments from config
+        primary_button_pressed = result.get('primaryButtonPressed', False)
+        secondary_button_pressed = result.get('secondaryButtonPressed', False)
+        primary_adjustment = cfg.get('primaryButtonSemitoneAdjustment', 0)
+        secondary_adjustment = cfg.get('secondaryButtonSemitoneAdjustment', 0)
 
-    # Process strumming
-    x = result.get('x', 0.0)
-    y = result.get('y', 0.0)
-    pressure = result.get('pressure', 0.0)
-    tilt_x = result.get('tiltX', 0.0)
-    tilt_y = result.get('tiltY', 0.0)
+        strum_result = strummer.strum(
+            float(x), float(y), float(pressure), float(tilt_x), float(tilt_y),
+            primary_button_pressed, secondary_button_pressed,
+            primary_adjustment, secondary_adjustment
+        )
+        
+        # Handle strum result based on type
+        if strum_result:
+            if strum_result.get('type') == 'strum':
+                # Calculate note duration based on Y position
+                # Center Y = max duration, edges (top/bottom) = min duration
+                y_max = cfg.get('mappings.y.max', 1.0)
+                y_center = y_max / 2.0
+                distance_from_center = abs(float(y) - y_center)
+                max_distance = y_center
+                normalized_distance = min(distance_from_center / max_distance, 1.0)  # Clamp to 1.0
+                
+                max_duration = cfg.get('maxNoteDuration', 1.5)
+                min_duration = cfg.get('minNoteDuration', 0.2)
+                duration = max_duration - (normalized_distance * (max_duration - min_duration))
+                
+                # Play notes from strum
+                for note_data in strum_result['notes']:
+                    # Skip notes with velocity 0 (these would act as note-off in MIDI)
+                    if note_data['velocity'] > 0:
+                        midi.send_note(note_data['note'], note_data['velocity'], duration)
     
-    # Send pitch bend if enabled (send continuously based on tilt)
-    if cfg.get('allowPitchBend', False):
-        xyTilt = math.sqrt(float(tilt_x) * float(tilt_x) + float(tilt_y) * float(tilt_y))
-        clamping = cfg.get('pitchBend.clamp', [0,1])
-        clampedXYTilt = max(clamping[0], min(xyTilt, clamping[1]))
-        multiplier = cfg.get('pitchBend.multiplier', 1)
-        midi.send_pitch_bend(clampedXYTilt * multiplier)
-    
-    # Get button press states and adjustments from config
-    primary_button_pressed = result.get('primaryButtonPressed', False)
-    secondary_button_pressed = result.get('secondaryButtonPressed', False)
-    primary_adjustment = cfg.get('primaryButtonSemitoneAdjustment', 0)
-    secondary_adjustment = cfg.get('secondaryButtonSemitoneAdjustment', 0)
-
-    strum_result = strummer.strum(
-        float(x), float(y), float(pressure), float(tilt_x), float(tilt_y),
-        primary_button_pressed, secondary_button_pressed,
-        primary_adjustment, secondary_adjustment
-    )
-    
-    # Handle strum result based on type
-    if strum_result:
-        if strum_result.get('type') == 'strum':
-            # Calculate note duration based on Y position
-            # Center Y = max duration, edges (top/bottom) = min duration
-            y_max = cfg.get('mappings.y.max', 1.0)
-            y_center = y_max / 2.0
-            distance_from_center = abs(float(y) - y_center)
-            max_distance = y_center
-            normalized_distance = min(distance_from_center / max_distance, 1.0)  # Clamp to 1.0
-            
-            max_duration = cfg.get('maxNoteDuration', 1.5)
-            min_duration = cfg.get('minNoteDuration', 0.2)
-            duration = max_duration - (normalized_distance * (max_duration - min_duration))
-            
-            # Play notes from strum
-            for note_data in strum_result['notes']:
-                # Skip notes with velocity 0 (these would act as note-off in MIDI)
-                if note_data['velocity'] > 0:
-                    midi.send_note(note_data['note'], note_data['velocity'], duration)
+    return handle_hid_data
 
 
 def main():
     """Main application entry point"""
-    global _device, _midi, _socket_server, _event_loop, _loop_thread
+    global _hid_reader, _midi, _socket_server, _event_loop, _loop_thread
     
     # Register cleanup function to run on exit
     atexit.register(cleanup_resources)
@@ -325,12 +286,15 @@ def main():
     _midi = setup_midi_and_strummer(cfg, _socket_server)
     
     # Get tablet device (optional)
-    _device = get_tablet_device(cfg['device'])
-    if not _device:
+    device = get_tablet_device(cfg['device'])
+    if not device:
         print("HID device not available - continuing with MIDI-only mode")
         print("MIDI Strummer server started (MIDI-only mode). Press Ctrl+C to exit.")
     else:
         print("MIDI Strummer server started with HID device. Press Ctrl+C to exit.")
+        # Create HID reader with callback
+        data_handler = create_hid_data_handler(cfg, _midi)
+        _hid_reader = HIDReader(device, cfg, data_handler)
     
     # Setup signal handler for graceful shutdown
     def signal_handler(sig, frame):
@@ -347,40 +311,9 @@ def main():
     
     # Main device reading loop (only if device is available)
     try:
-        if _device:
-            # Use non-blocking mode to allow signal handling
-            _device.set_nonblocking(True)
-            read_count = 0
-            empty_read_count = 0
-
-            while True:
-                try:
-                    # Read data from device (non-blocking)
-                    data = _device.read(64)
-                    read_count += 1
-
-                    if data:
-                        empty_read_count = 0  # Reset empty count
-                        #print(f"Read #{read_count}: Raw data received: {data} (length: {len(data)})")
-                        # Convert to hex for easier debugging
-                        hex_data = ' '.join(f'{b:02x}' for b in data)
-                        #print(f"Read #{read_count}: Hex data: {hex_data}")
-                        process_device_data(bytes(data), cfg, _midi)
-                    else:
-                        empty_read_count += 1
-                        # Small sleep to prevent CPU spinning, but short enough for responsive signal handling
-                        time.sleep(0.001)
-
-                except OSError as e:
-                    # Handle device disconnection
-                    if "read error" in str(e).lower() or "device" in str(e).lower():
-                        print(f"Device disconnected or error: {e}")
-                        break
-                    print(f"Error reading from device: {e}")
-                    time.sleep(0.1)
-                except Exception as e:
-                    print(f"Unexpected error: {e}")
-                    time.sleep(0.1)
+        if _hid_reader:
+            # Start reading from HID device (blocking call)
+            _hid_reader.start_reading()
         else:
             # No device available - just keep the application running for MIDI functionality
             while True:
