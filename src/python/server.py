@@ -155,9 +155,42 @@ def setup_midi_and_strummer(cfg: Dict[str, Any], socket_server: Optional[SocketS
     return midi
 
 
-def start_socket_server(port: int) -> tuple[SocketServer, asyncio.AbstractEventLoop, threading.Thread]:
+def update_config(cfg: Dict[str, Any], updates: Dict[str, Any]) -> None:
+    """
+    Update configuration with key-value pairs from incoming messages.
+    Supports nested keys using dot notation (e.g., "device.product").
+    """
+    for key, value in updates.items():
+        # Handle nested keys with dot notation
+        if '.' in key:
+            keys = key.split('.')
+            target = cfg
+            # Navigate to the nested dictionary
+            for k in keys[:-1]:
+                if k not in target:
+                    target[k] = {}
+                target = target[k]
+            # Set the final value
+            target[keys[-1]] = value
+            print(f'[CONFIG] Updated {key} = {value}')
+        else:
+            # Direct key update
+            cfg[key] = value
+            print(f'[CONFIG] Updated {key} = {value}')
+
+
+def start_socket_server(port: int, cfg: Dict[str, Any]) -> tuple[SocketServer, asyncio.AbstractEventLoop, threading.Thread]:
     """Start socket server in a separate thread with its own event loop"""
-    socket_server = SocketServer()
+    
+    # Create message handler that updates config
+    def handle_message(data: Dict[str, Any]):
+        """Handle incoming WebSocket messages"""
+        try:
+            update_config(cfg, data)
+        except Exception as e:
+            print(f'[SERVER] Error updating config: {e}')
+    
+    socket_server = SocketServer(on_message=handle_message, config=cfg)
     
     def run_event_loop(loop, server, port):
         """Run the event loop in a separate thread"""
@@ -260,7 +293,7 @@ def main():
         port = cfg.get('socketServerPort', 8080)
         print(f"[SERVER] Starting WebSocket server on port {port}...")
         try:
-            _socket_server, _event_loop, _loop_thread = start_socket_server(port)
+            _socket_server, _event_loop, _loop_thread = start_socket_server(port, cfg)
             print(f"[SERVER] WebSocket server started successfully")
         except Exception as e:
             print(f"[SERVER] Failed to start WebSocket server: {e}")

@@ -1,14 +1,16 @@
 import asyncio
 import websockets
-from typing import Set
+from typing import Set, Callable, Optional, Dict, Any
 import json
 
 
 class SocketServer:
-    def __init__(self):
+    def __init__(self, on_message: Optional[Callable[[Dict[str, Any]], None]] = None, config: Optional[Dict[str, Any]] = None):
         self.sockets: Set[websockets.WebSocketServerProtocol] = set()
         self.server = None
         self.loop = None
+        self.on_message_callback = on_message
+        self.config = config
 
     async def start(self, port: int = 8080):
         """Start the WebSocket server"""
@@ -19,8 +21,37 @@ class SocketServer:
         async def handle_client(websocket):
             print('New client connected')
             self.sockets.add(websocket)
+            
+            # Send the current config to the new client
+            if self.config is not None:
+                try:
+                    config_message = json.dumps({
+                        'type': 'config',
+                        'config': self.config
+                    })
+                    await websocket.send(config_message)
+                    print('Sent config to new client')
+                except Exception as e:
+                    print(f'Error sending config to new client: {e}')
+            
             try:
-                await websocket.wait_closed()
+                # Listen for incoming messages
+                async for message in websocket:
+                    try:
+                        # Parse incoming message as JSON
+                        data = json.loads(message)
+                        print(f'Received message from client: {data}')
+                        
+                        # Call the message callback if it exists
+                        if self.on_message_callback:
+                            self.on_message_callback(data)
+                            
+                    except json.JSONDecodeError as e:
+                        print(f'Error parsing message as JSON: {e}')
+                    except Exception as e:
+                        print(f'Error processing message: {e}')
+            except websockets.exceptions.ConnectionClosed:
+                pass
             finally:
                 print('Client disconnected')
                 self.sockets.discard(websocket)
