@@ -9,8 +9,12 @@
   "minNoteDuration": 0.2,
   "allowPitchBend": false,
   "pitchBend": {
-    "multiplier": 2,
-    "clamp": [0.2, 0.8]
+    "multiplier": 1,
+    "clamp": [0, 0.9]
+  },
+  "noteVelocity": {
+    "multiplier": 1,
+    "curve": 4.0
   },
   "socketServerPort": 8080,
   "midiInputId": "Launchkey MK4 25 MIDI Out",

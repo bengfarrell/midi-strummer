@@ -108,3 +108,11 @@ If your tablet device is not found:
 2. Check that your `settings-python.json` configuration matches your device
 3. Try running the server with debug output to see available devices
 4. Ensure no other applications are using the device exclusively
+
+
+Logarithmic Curve Values:
+1.0 → Linear (no curve, bypasses the mapping entirely)
+2.0 → Gentle logarithmic curve
+3.0 → Moderate curve (current setting) - good balance
+4.0 → Steep curve - very sensitive at low pressures
+0.5 → Compressed - reduces low-end sensitivity

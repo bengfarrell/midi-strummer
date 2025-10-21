@@ -17,6 +17,42 @@ from note import Note
 from socketserver import SocketServer
 from hidreader import HIDReader
 
+
+def apply_velocity_curve(velocity: int, curve: float = 1.0) -> int:
+    """
+    Apply a velocity curve mapping to MIDI velocity values.
+    
+    Args:
+        velocity: Linear MIDI velocity value (0 to 127)
+        curve: Curve parameter that controls the response curve:
+               - curve = 1.0: Linear (no change)
+               - curve > 1.0: Logarithmic/exponential - makes low velocities more sensitive
+               - curve < 1.0: Compressed - reduces sensitivity at low velocities
+               
+               Recommended values:
+               - 1.0 = Linear (default/bypass)
+               - 2.0 = Gentle curve
+               - 3.0 = Moderate curve
+               - 4.0 = Steep curve
+    
+    Returns:
+        Curved MIDI velocity value (0 to 127)
+    """
+    if velocity <= 0:
+        return 0
+    if velocity >= 127:
+        return 127
+    if curve == 1.0:
+        return velocity  # Linear passthrough for efficiency
+    
+    # Normalize to 0-1 range
+    normalized = velocity / 127.0
+    
+    # Apply exponential curve: (e^(curve*x) - 1) / (e^curve - 1)
+    curved = (math.exp(curve * normalized) - 1) / (math.exp(curve) - 1)
+    
+    return int(curved * 127)
+
 # Global references for cleanup
 _hid_reader = None
 _midi = None
@@ -254,7 +290,18 @@ def create_hid_data_handler(cfg: Dict[str, Any], midi: Midi) -> Callable[[Dict[s
                 for note_data in strum_result['notes']:
                     # Skip notes with velocity 0 (these would act as note-off in MIDI)
                     if note_data['velocity'] > 0:
-                        midi.send_note(note_data['note'], note_data['velocity'], duration)
+                        # Apply velocity curve and multiplier
+                        curve = cfg.get('noteVelocity', {}).get('curve', 1.0)
+                        multiplier = cfg.get('noteVelocity', {}).get('multiplier', 1.0)
+                        
+                        # First apply curve, then multiply
+                        curved_velocity = apply_velocity_curve(note_data['velocity'], curve)
+                        final_velocity = int(curved_velocity * multiplier)
+                        
+                        # Clamp to valid MIDI range
+                        final_velocity = max(0, min(127, final_velocity))
+                        
+                        midi.send_note(note_data['note'], final_velocity, duration)
     
     return handle_hid_data
 
