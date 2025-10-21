@@ -263,9 +263,12 @@ def create_hid_data_handler(cfg: Dict[str, Any], midi: Midi) -> Callable[[Dict[s
     Returns:
         Callback function that processes HID data and sends MIDI messages
     """
+    # Track previous tilt for adaptive duration
+    previous_tilt = 0.0
     
     def handle_hid_data(result: Dict[str, Union[str, int, float]]) -> None:
         """Handle processed HID data - send MIDI messages based on strumming"""
+        nonlocal previous_tilt
         
         # Extract data values
         x = result.get('x', 0.0)
@@ -289,6 +292,27 @@ def create_hid_data_handler(cfg: Dict[str, Any], midi: Midi) -> Callable[[Dict[s
         final_bend = curved_y * multiplier
         
         midi.send_pitch_bend(final_bend)
+        
+        # Calculate note duration based on tilt (continuously for adaptive duration)
+        # No tilt = max duration, max tilt = min duration
+        multiplier = cfg.get('noteDuration', {}).get('multiplier', 1.0)
+        xyTilt = math.sqrt(float(tilt_x) * float(tilt_x) + float(tilt_y) * float(tilt_y)) * multiplier
+        
+        # Apply curve to tilt
+        curve = cfg.get('noteDuration', {}).get('curve', 1.0)
+        curved_tilt = apply_curve(xyTilt, curve, input_range=(0.0, 1.0))
+        
+        # Calculate duration: no tilt = max, full tilt = min
+        max_duration = cfg.get('maxNoteDuration', 1.5)
+        min_duration = cfg.get('minNoteDuration', 0.2)
+        duration = max_duration - (curved_tilt * (max_duration - min_duration))
+        
+        # Update active note durations if tilt changed significantly
+        # Use a small threshold to avoid updating too frequently
+        tilt_change_threshold = 0.01
+        if abs(xyTilt - previous_tilt) > tilt_change_threshold:
+            midi.update_active_note_durations(duration)
+            previous_tilt = xyTilt
         
         # Get button press states and adjustments from config
         primary_button_pressed = result.get('primaryButtonPressed', False)
