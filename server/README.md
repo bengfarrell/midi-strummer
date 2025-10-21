@@ -50,15 +50,20 @@ The code will automatically detect which HID package is available.
 
 ## Usage
 
-1. Ensure your `settings.json` file is in the project root directory
+1. Ensure your `settings.json` file is in the project root directory (or parent directory)
 2. Run the server:
 ```bash
-python server.py
+python main.py
+```
+
+Or from the project root:
+```bash
+python server/main.py
 ```
 
 ## File Structure
 
-- `server.py` - Main application entry point
+- `main.py` - Main application entry point
 - `datahelpers.py` - Data parsing utilities
 - `finddevice.py` - HID device discovery and connection
 - `socketserver.py` - WebSocket server implementation

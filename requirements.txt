@@ -9,3 +9,6 @@ websockets>=11.0.0
 
 # Additional utilities
 typing-extensions>=4.0.0
+
+# Build and packaging (optional - only needed for building executables)
+pyinstaller>=6.0.0

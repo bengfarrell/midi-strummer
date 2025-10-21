@@ -2,6 +2,36 @@
 
 A Python implementation of the MIDI Strummer application for processing tablet input and generating MIDI output.
 
+## Quick Start
+
+### For End Users (Download & Run)
+
+**Coming Soon:** Pre-built applications for easy installation!
+
+Once available, simply:
+1. Download the app for your platform (macOS/Windows/Linux)
+2. Install system dependencies (see below)
+3. Download or create your `settings.json` configuration file
+4. Double-click to run!
+
+See [DISTRIBUTION.md](DISTRIBUTION.md) for details on downloading and installing.
+
+### For Developers (Run from Source)
+
+Continue to the [Installation](#installation) section below.
+
+## Building Standalone Apps
+
+Want to package this as a distributable application? See:
+- **[DISTRIBUTION.md](DISTRIBUTION.md)** - Complete guide for end-user distribution
+- **[BUILD.md](BUILD.md)** - Detailed build instructions for developers
+
+**Quick build:**
+```bash
+./build.sh           # Build standalone app
+./create-dmg.sh      # Create macOS installer (macOS only)
+```
+
 ## Installation
 
 ### System Dependencies
@@ -30,10 +60,16 @@ pip install -r requirements.txt
 
 ## Usage
 
-1. Ensure your `settings-python.json` file is configured
+1. Ensure your `settings.json` file is configured (see [Configuration](#configuration))
 2. Run the server:
 ```bash
-python src/python/server.py
+cd server
+python main.py
+```
+
+Or from the project root:
+```bash
+python server/main.py
 ```
 
 3. **To stop the server properly:**
@@ -110,9 +146,67 @@ If your tablet device is not found:
 4. Ensure no other applications are using the device exclusively
 
 
+## Configuration
+
+The application uses `settings.json` for configuration. The app will search for this file in:
+1. The application directory
+2. Parent directory
+3. Current working directory
+4. Your home directory
+
+### Example Settings
+
+See `settings.json` in the project root for a complete example configuration.
+
+### Curve Values
+
 Logarithmic Curve Values:
-1.0 → Linear (no curve, bypasses the mapping entirely)
-2.0 → Gentle logarithmic curve
-3.0 → Moderate curve (current setting) - good balance
-4.0 → Steep curve - very sensitive at low pressures
-0.5 → Compressed - reduces low-end sensitivity
+- `1.0` → Linear (no curve, bypasses the mapping entirely)
+- `2.0` → Gentle logarithmic curve
+- `3.0` → Moderate curve - good balance
+- `4.0` → Steep curve - very sensitive at low pressures
+- `0.5` → Compressed - reduces low-end sensitivity
+
+## Project Structure
+
+```
+midi-strummer/
+├── server/              # Python MIDI service
+│   ├── main.py         # Main entry point
+│   ├── midi.py         # MIDI functionality
+│   ├── strummer.py     # Strumming logic
+│   ├── hidreader.py    # HID device reading
+│   └── ...
+├── src/                # Web/TypeScript interface (optional)
+├── settings.json       # Configuration file
+├── requirements.txt    # Python dependencies
+├── build.sh           # Build script for standalone app
+├── create-dmg.sh      # macOS installer creator
+└── README.md          # This file
+```
+
+## Distribution
+
+To create distributable applications:
+
+```bash
+# Build standalone app
+./build.sh
+
+# Create installer (macOS)
+./create-dmg.sh
+```
+
+For complete distribution instructions, see [DISTRIBUTION.md](DISTRIBUTION.md) and [BUILD.md](BUILD.md).
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## License
+
+[Add your license here]

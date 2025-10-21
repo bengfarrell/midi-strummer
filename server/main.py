@@ -1,5 +1,6 @@
 import json
 import sys
+import os
 import signal
 import threading
 import time
@@ -76,16 +77,71 @@ def cleanup_resources():
             _midi = None
 
 
+def find_settings_file() -> str:
+    """
+    Find settings.json file in various locations.
+    Checks (in order):
+    1. Same directory as executable/script
+    2. Parent directory (for bundled apps)
+    3. Current working directory
+    4. User's home directory
+    """
+    # Get the directory where the executable/script is located
+    if getattr(sys, 'frozen', False):
+        # Running as compiled executable
+        app_dir = os.path.dirname(sys.executable)
+        # For macOS .app bundles, also check parent directories
+        if sys.platform == 'darwin' and '.app/Contents/MacOS' in app_dir:
+            # Try the .app/Contents/Resources directory
+            bundle_dir = os.path.join(app_dir, '..', 'Resources')
+            if os.path.exists(os.path.join(bundle_dir, 'settings.json')):
+                return os.path.join(bundle_dir, 'settings.json')
+            # Try the directory containing the .app bundle
+            parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(app_dir)))
+            if os.path.exists(os.path.join(parent_dir, 'settings.json')):
+                return os.path.join(parent_dir, 'settings.json')
+    else:
+        # Running as script
+        app_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # List of paths to check
+    search_paths = [
+        os.path.join(app_dir, 'settings.json'),
+        os.path.join(os.path.dirname(app_dir), 'settings.json'),
+        os.path.join(os.getcwd(), 'settings.json'),
+        os.path.join(os.path.expanduser('~'), 'settings.json'),
+    ]
+    
+    for path in search_paths:
+        if os.path.exists(path):
+            return path
+    
+    return None
+
+
 def load_config() -> Dict[str, Any]:
     """Load configuration from settings.json"""
-    try:
-        with open('settings.json', 'r') as f:
-            return json.load(f)
-    except FileNotFoundError:
+    settings_path = find_settings_file()
+    
+    if settings_path is None:
         print("Error: settings.json not found")
+        print("\nSearched in:")
+        print("  - Application directory")
+        print("  - Parent directory")
+        print("  - Current working directory")
+        print("  - Home directory")
+        print("\nPlease ensure settings.json is in one of these locations.")
         sys.exit(1)
+    
+    try:
+        print(f"Loading configuration from: {settings_path}")
+        with open(settings_path, 'r') as f:
+            return json.load(f)
     except json.JSONDecodeError as e:
         print(f"Error parsing settings.json: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error reading settings.json: {e}")
         sys.exit(1)
 
 
