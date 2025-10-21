@@ -303,8 +303,8 @@ def create_hid_data_handler(cfg: Dict[str, Any], midi: Midi) -> Callable[[Dict[s
         curved_tilt = apply_curve(xyTilt, curve, input_range=(0.0, 1.0))
         
         # Calculate duration: no tilt = max, full tilt = min
-        max_duration = cfg.get('maxNoteDuration', 1.5)
-        min_duration = cfg.get('minNoteDuration', 0.2)
+        max_duration = cfg.get('noteDuration', {}).get('max', 1.5)
+        min_duration = cfg.get('noteDuration', {}).get('min', 0.2)
         duration = max_duration - (curved_tilt * (max_duration - min_duration))
         
         # Update active note durations if tilt changed significantly
@@ -329,23 +329,7 @@ def create_hid_data_handler(cfg: Dict[str, Any], midi: Midi) -> Callable[[Dict[s
         # Handle strum result based on type
         if strum_result:
             if strum_result.get('type') == 'strum':
-                # Calculate note duration based on tilt
-                # No tilt = max duration, max tilt = min duration
-                xyTilt = math.sqrt(float(tilt_x) * float(tilt_x) + float(tilt_y) * float(tilt_y))
-                
-                # Apply curve to tilt
-                curve = cfg.get('noteDuration', {}).get('curve', 1.0)
-                curved_tilt = xyTilt #apply_curve(xyTilt, curve, input_range=(0.0, 1.0))
-                
-                # Calculate duration: no tilt = max, full tilt = min
-                max_duration = cfg.get('maxNoteDuration', 1.5)
-                min_duration = cfg.get('minNoteDuration', 0.2)
-                base_duration = max_duration - (curved_tilt * (max_duration - min_duration))
-                
-                # Apply multiplier
-                multiplier = cfg.get('noteDuration', {}).get('multiplier', 1.0)
-                duration = base_duration * multiplier
-                
+                # Use the duration calculated above
                 # Play notes from strum
                 for note_data in strum_result['notes']:
                     # Skip notes with velocity 0 (these would act as note-off in MIDI)
