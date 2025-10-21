@@ -18,7 +18,6 @@ __all__ = [
     'main',
     'strummer', 
     'Midi',
-    'NodeMidi',
     'Note',
     'NoteObject'
 ]
