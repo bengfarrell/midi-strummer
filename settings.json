@@ -5,6 +5,7 @@
     "interface": 2
   },
   "useSocketServer": true,
+  "yAxisMute": true,
   "maxNoteDuration": 1.5,
   "minNoteDuration": 0.2,
   "noteDuration": {
@@ -24,8 +25,8 @@
   "midiInputId": "Launchkey MK4 25 MIDI Out",
   "midiStrumChannel": 10,
   "initialNotes": [ "C4", "E4", "G4" ],
-  "upperNoteSpread": 3,
-  "lowerNoteSpread": 3,
+  "upperNoteSpread": 5,
+  "lowerNoteSpread": 5,
   "primaryButtonSemitoneAdjustment": 12,
   "secondaryButtonSemitoneAdjustment": -12,
   "mappings": {

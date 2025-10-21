@@ -207,14 +207,37 @@ def create_hid_data_handler(cfg: Dict[str, Any], midi: Midi) -> Callable[[Dict[s
     Returns:
         Callback function that processes HID data and sends MIDI messages
     """
+    # Track Y-axis boundary state
+    y_was_at_edge = False
+    
     def handle_hid_data(result: Dict[str, Union[str, int, float]]) -> None:
         """Handle processed HID data - send MIDI messages based on strumming"""
+        nonlocal y_was_at_edge
+        
         # Extract data values
         x = result.get('x', 0.0)
         y = result.get('y', 0.0)
         pressure = result.get('pressure', 0.0)
         tilt_x = result.get('tiltX', 0.0)
         tilt_y = result.get('tiltY', 0.0)
+        
+        # Check Y-axis mute functionality
+        if cfg.get('yAxisMute', False):
+            # Y is normalized to 0-1 range by parse_range_data
+            y_val = float(y)
+            
+            # Check if Y is at either edge (top or bottom)
+            # Use threshold of 3% of normalized range
+            threshold = 0.03
+            y_at_edge = y_val <= threshold or y_val >= (1.0 - threshold)
+            
+            # Detect transition from center to edge
+            if not y_was_at_edge and y_at_edge:
+                # Release all strummer notes when reaching boundary
+                midi.release_notes(strummer.notes)
+            
+            # Update state for next iteration
+            y_was_at_edge = y_at_edge
         
         # Send pitch bend if enabled (send continuously based on tilt)
         if cfg.get('allowPitchBend', False):
