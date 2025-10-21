@@ -5,14 +5,12 @@
     "interface": 2
   },
   "useSocketServer": true,
-  "yAxisMute": true,
   "maxNoteDuration": 1.5,
   "minNoteDuration": 0.2,
   "noteDuration": {
     "multiplier": 1.0,
     "curve": 1.0
   },
-  "allowPitchBend": true,
   "pitchBend": {
     "multiplier": 1,
     "curve": 4.0

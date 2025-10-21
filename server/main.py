@@ -263,12 +263,9 @@ def create_hid_data_handler(cfg: Dict[str, Any], midi: Midi) -> Callable[[Dict[s
     Returns:
         Callback function that processes HID data and sends MIDI messages
     """
-    # Track Y-axis boundary state
-    y_was_at_edge = False
     
     def handle_hid_data(result: Dict[str, Union[str, int, float]]) -> None:
         """Handle processed HID data - send MIDI messages based on strumming"""
-        nonlocal y_was_at_edge
         
         # Extract data values
         x = result.get('x', 0.0)
@@ -277,37 +274,21 @@ def create_hid_data_handler(cfg: Dict[str, Any], midi: Midi) -> Callable[[Dict[s
         tilt_x = result.get('tiltX', 0.0)
         tilt_y = result.get('tiltY', 0.0)
         
-        # Check Y-axis mute functionality
-        if cfg.get('yAxisMute', False):
-            # Y is normalized to 0-1 range by parse_range_data
-            y_val = float(y)
-            
-            # Check if Y is at either edge (top or bottom)
-            # Use threshold of 3% of normalized range
-            threshold = 0.03
-            y_at_edge = y_val <= threshold or y_val >= (1.0 - threshold)
-            
-            # Detect transition from center to edge
-            if not y_was_at_edge and y_at_edge:
-                # Release all strummer notes when reaching boundary
-                midi.release_notes(strummer.notes)
-            
-            # Update state for next iteration
-            y_was_at_edge = y_at_edge
+        # Send pitch bend continuously based on Y position
+        # Y is normalized 0-1, convert to -1 to 1 range where center (0.5) = 0
+        y_val = float(y)
+        y_centered = (y_val - 0.5) * 2.0  # Convert 0-1 to -1 to 1
         
-        # Send pitch bend if enabled (send continuously based on tilt)
-        if cfg.get('allowPitchBend', False):
-            xyTilt = math.sqrt(float(tilt_x) * float(tilt_x) + float(tilt_y) * float(tilt_y))
-            
-            # Apply curve and multiplier
-            curve = cfg.get('pitchBend', {}).get('curve', 1.0)
-            multiplier = cfg.get('pitchBend', {}).get('multiplier', 1.0)
-            
-            # Apply curve then multiply
-            curved_tilt = apply_curve(xyTilt, curve, input_range=(0.0, 1.0))
-            final_bend = curved_tilt * multiplier
-            
-            midi.send_pitch_bend(final_bend)
+        # Apply curve and multiplier
+        curve = cfg.get('pitchBend', {}).get('curve', 1.0)
+        multiplier = cfg.get('pitchBend', {}).get('multiplier', 1.0)
+        
+        # Apply curve while preserving sign
+        sign = 1.0 if y_centered >= 0 else -1.0
+        curved_y = apply_curve(abs(y_centered), curve, input_range=(0.0, 1.0)) * sign
+        final_bend = curved_y * multiplier
+        
+        midi.send_pitch_bend(final_bend)
         
         # Get button press states and adjustments from config
         primary_button_pressed = result.get('primaryButtonPressed', False)
@@ -324,21 +305,18 @@ def create_hid_data_handler(cfg: Dict[str, Any], midi: Midi) -> Callable[[Dict[s
         # Handle strum result based on type
         if strum_result:
             if strum_result.get('type') == 'strum':
-                # Calculate note duration based on Y position
-                # Center Y = max duration, edges (top/bottom) = min duration
-                y_max = cfg.get('mappings.y.max', 1.0)
-                y_center = y_max / 2.0
-                distance_from_center = abs(float(y) - y_center)
-                max_distance = y_center
-                normalized_distance = min(distance_from_center / max_distance, 1.0)  # Clamp to 1.0
+                # Calculate note duration based on tilt
+                # No tilt = max duration, max tilt = min duration
+                xyTilt = math.sqrt(float(tilt_x) * float(tilt_x) + float(tilt_y) * float(tilt_y))
                 
-                # Apply curve to the distance (inverted so center is still longest)
+                # Apply curve to tilt
                 curve = cfg.get('noteDuration', {}).get('curve', 1.0)
-                curved_distance = apply_curve(normalized_distance, curve, input_range=(0.0, 1.0))
+                curved_tilt = xyTilt #apply_curve(xyTilt, curve, input_range=(0.0, 1.0))
                 
+                # Calculate duration: no tilt = max, full tilt = min
                 max_duration = cfg.get('maxNoteDuration', 1.5)
                 min_duration = cfg.get('minNoteDuration', 0.2)
-                base_duration = max_duration - (curved_distance * (max_duration - min_duration))
+                base_duration = max_duration - (curved_tilt * (max_duration - min_duration))
                 
                 # Apply multiplier
                 multiplier = cfg.get('noteDuration', {}).get('multiplier', 1.0)
