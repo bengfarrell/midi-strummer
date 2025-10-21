@@ -7,10 +7,14 @@
   "useSocketServer": true,
   "maxNoteDuration": 1.5,
   "minNoteDuration": 0.2,
-  "allowPitchBend": false,
+  "noteDuration": {
+    "multiplier": 1.0,
+    "curve": 1.0
+  },
+  "allowPitchBend": true,
   "pitchBend": {
     "multiplier": 1,
-    "clamp": [0, 0.9]
+    "curve": 1.0
   },
   "noteVelocity": {
     "multiplier": 1,

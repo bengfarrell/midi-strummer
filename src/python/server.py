@@ -16,42 +16,7 @@ from midievent import MidiNoteEvent, NOTE_EVENT
 from note import Note
 from socketserver import SocketServer
 from hidreader import HIDReader
-
-
-def apply_velocity_curve(velocity: int, curve: float = 1.0) -> int:
-    """
-    Apply a velocity curve mapping to MIDI velocity values.
-    
-    Args:
-        velocity: Linear MIDI velocity value (0 to 127)
-        curve: Curve parameter that controls the response curve:
-               - curve = 1.0: Linear (no change)
-               - curve > 1.0: Logarithmic/exponential - makes low velocities more sensitive
-               - curve < 1.0: Compressed - reduces sensitivity at low velocities
-               
-               Recommended values:
-               - 1.0 = Linear (default/bypass)
-               - 2.0 = Gentle curve
-               - 3.0 = Moderate curve
-               - 4.0 = Steep curve
-    
-    Returns:
-        Curved MIDI velocity value (0 to 127)
-    """
-    if velocity <= 0:
-        return 0
-    if velocity >= 127:
-        return 127
-    if curve == 1.0:
-        return velocity  # Linear passthrough for efficiency
-    
-    # Normalize to 0-1 range
-    normalized = velocity / 127.0
-    
-    # Apply exponential curve: (e^(curve*x) - 1) / (e^curve - 1)
-    curved = (math.exp(curve * normalized) - 1) / (math.exp(curve) - 1)
-    
-    return int(curved * 127)
+from datahelpers import apply_curve
 
 # Global references for cleanup
 _hid_reader = None
@@ -254,10 +219,16 @@ def create_hid_data_handler(cfg: Dict[str, Any], midi: Midi) -> Callable[[Dict[s
         # Send pitch bend if enabled (send continuously based on tilt)
         if cfg.get('allowPitchBend', False):
             xyTilt = math.sqrt(float(tilt_x) * float(tilt_x) + float(tilt_y) * float(tilt_y))
-            clamping = cfg.get('pitchBend.clamp', [0,1])
-            clampedXYTilt = max(clamping[0], min(xyTilt, clamping[1]))
-            multiplier = cfg.get('pitchBend.multiplier', 1)
-            midi.send_pitch_bend(clampedXYTilt * multiplier)
+            
+            # Apply curve and multiplier
+            curve = cfg.get('pitchBend', {}).get('curve', 1.0)
+            multiplier = cfg.get('pitchBend', {}).get('multiplier', 1.0)
+            
+            # Apply curve then multiply
+            curved_tilt = apply_curve(xyTilt, curve, input_range=(0.0, 1.0))
+            final_bend = curved_tilt * multiplier
+            
+            midi.send_pitch_bend(final_bend)
         
         # Get button press states and adjustments from config
         primary_button_pressed = result.get('primaryButtonPressed', False)
@@ -282,9 +253,17 @@ def create_hid_data_handler(cfg: Dict[str, Any], midi: Midi) -> Callable[[Dict[s
                 max_distance = y_center
                 normalized_distance = min(distance_from_center / max_distance, 1.0)  # Clamp to 1.0
                 
+                # Apply curve to the distance (inverted so center is still longest)
+                curve = cfg.get('noteDuration', {}).get('curve', 1.0)
+                curved_distance = apply_curve(normalized_distance, curve, input_range=(0.0, 1.0))
+                
                 max_duration = cfg.get('maxNoteDuration', 1.5)
                 min_duration = cfg.get('minNoteDuration', 0.2)
-                duration = max_duration - (normalized_distance * (max_duration - min_duration))
+                base_duration = max_duration - (curved_distance * (max_duration - min_duration))
+                
+                # Apply multiplier
+                multiplier = cfg.get('noteDuration', {}).get('multiplier', 1.0)
+                duration = base_duration * multiplier
                 
                 # Play notes from strum
                 for note_data in strum_result['notes']:
@@ -295,7 +274,7 @@ def create_hid_data_handler(cfg: Dict[str, Any], midi: Midi) -> Callable[[Dict[s
                         multiplier = cfg.get('noteVelocity', {}).get('multiplier', 1.0)
                         
                         # First apply curve, then multiply
-                        curved_velocity = apply_velocity_curve(note_data['velocity'], curve)
+                        curved_velocity = apply_curve(float(note_data['velocity']), curve, input_range=(0.0, 127.0))
                         final_velocity = int(curved_velocity * multiplier)
                         
                         # Clamp to valid MIDI range

@@ -1,3 +1,4 @@
+import math
 from typing import List, Union
 
 
@@ -40,3 +41,44 @@ def parse_code(data: List[int], byte_index: int, values) -> Union[int, float, di
         return values[code]
     
     return 0
+
+
+def apply_curve(value: float, curve: float = 1.0, input_range: tuple = (0.0, 1.0)) -> float:
+    """
+    Apply an exponential curve mapping to a normalized value.
+    
+    Args:
+        value: Input value to map (should be within input_range)
+        curve: Curve parameter that controls the response curve:
+               - curve = 1.0: Linear (no change)
+               - curve > 1.0: Logarithmic/exponential - makes low values more sensitive
+               - curve < 1.0: Compressed - reduces sensitivity at low values
+               
+               Recommended values:
+               - 1.0 = Linear (default/bypass)
+               - 2.0 = Gentle curve
+               - 3.0 = Moderate curve
+               - 4.0 = Steep curve
+        input_range: Tuple of (min, max) for input value normalization
+    
+    Returns:
+        Curved value in the same range as input
+    """
+    min_val, max_val = input_range
+    
+    # Handle edge cases
+    if value <= min_val:
+        return min_val
+    if value >= max_val:
+        return max_val
+    if curve == 1.0:
+        return value  # Linear passthrough for efficiency
+    
+    # Normalize to 0-1 range
+    normalized = (value - min_val) / (max_val - min_val)
+    
+    # Apply exponential curve: (e^(curve*x) - 1) / (e^curve - 1)
+    curved = (math.exp(curve * normalized) - 1) / (math.exp(curve) - 1)
+    
+    # Scale back to original range
+    return min_val + (curved * (max_val - min_val))
