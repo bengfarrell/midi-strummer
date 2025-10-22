@@ -11,7 +11,6 @@ __author__ = "Converted from TypeScript/Node.js implementation"
 from .server import main
 from .strummer import strummer
 from .midi import Midi
-from .nodemidi import NodeMidi
 from .note import Note, NoteObject
 
 __all__ = [
