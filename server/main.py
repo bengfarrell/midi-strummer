@@ -263,12 +263,8 @@ def create_hid_data_handler(cfg: Dict[str, Any], midi: Midi) -> Callable[[Dict[s
     Returns:
         Callback function that processes HID data and sends MIDI messages
     """
-    # Track previous tilt for adaptive duration
-    previous_tilt = 0.0
-    
     def handle_hid_data(result: Dict[str, Union[str, int, float]]) -> None:
         """Handle processed HID data - send MIDI messages based on strumming"""
-        nonlocal previous_tilt
         
         # Extract data values
         x = result.get('x', 0.0)
@@ -307,23 +303,8 @@ def create_hid_data_handler(cfg: Dict[str, Any], midi: Midi) -> Callable[[Dict[s
         min_duration = cfg.get('noteDuration', {}).get('min', 0.2)
         duration = max_duration - (curved_tilt * (max_duration - min_duration))
         
-        # Update active note durations if tilt changed significantly
-        # Use a small threshold to avoid updating too frequently
-        tilt_change_threshold = 0.01
-        if abs(xyTilt - previous_tilt) > tilt_change_threshold:
-            midi.update_active_note_durations(duration)
-            previous_tilt = xyTilt
-        
-        # Get button press states and adjustments from config
-        primary_button_pressed = result.get('primaryButtonPressed', False)
-        secondary_button_pressed = result.get('secondaryButtonPressed', False)
-        primary_adjustment = cfg.get('primaryButtonSemitoneAdjustment', 0)
-        secondary_adjustment = cfg.get('secondaryButtonSemitoneAdjustment', 0)
-
         strum_result = strummer.strum(
-            float(x), float(y), float(pressure), float(tilt_x), float(tilt_y),
-            primary_button_pressed, secondary_button_pressed,
-            primary_adjustment, secondary_adjustment
+            float(x), float(y), float(pressure), float(tilt_x), float(tilt_y)
         )
         
         # Handle strum result based on type

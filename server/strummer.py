@@ -24,9 +24,7 @@ class Strummer:
         self._notes = notes
         self.update_bounds(self._width, self._height)
 
-    def strum(self, x: float, y: float, pressure: float, tilt_x: float, tilt_y: float, 
-              primary_button_pressed: bool = False, secondary_button_pressed: bool = False,
-              primary_button_semitone_adjustment: int = 0, secondary_button_semitone_adjustment: int = 0) -> Optional[Dict[str, Any]]:
+    def strum(self, x: float, y: float, pressure: float, tilt_x: float, tilt_y: float) -> Optional[Dict[str, Any]]:
         """Process strumming input and return dict with type and notes/velocities if triggered"""
         if len(self._notes) > 0:
             string_width = self._width / len(self._notes)
@@ -56,18 +54,12 @@ class Strummer:
             self.last_pressure = pressure
             self.last_timestamp = current_time
             
-            # Calculate semitone adjustment based on button presses
-            semitone_adjustment = 0
-            if primary_button_pressed:
-                semitone_adjustment += primary_button_semitone_adjustment
-            if secondary_button_pressed:
-                semitone_adjustment += secondary_button_semitone_adjustment
-
             # Trigger strum if:
             # 1. Index changed (moving across strings), OR
             # 2. Pressure just went from low to high (tap/press down)
             # BUT ONLY if we have sufficient pressure
             has_sufficient_pressure = pressure >= self.pressure_threshold
+            
             if has_sufficient_pressure and (self.last_strummed_index != index or pressure_down):
                 # Calculate all strings crossed between last and current position
                 notes_to_play = []
@@ -82,21 +74,15 @@ class Strummer:
                     midi_velocity = max(min_velocity, min(127, calculated_velocity))
                     
                     note = self._notes[index]
-                    # Apply semitone adjustment if buttons are pressed
-                    adjusted_note = note.transpose(semitone_adjustment) if semitone_adjustment != 0 else note
                     notes_to_play.append({
-                        'note': adjusted_note,
+                        'note': note,
                         'velocity': midi_velocity
                     })
                 else:
                     # Strumming across strings - use current pressure like before
                     # This preserves the original strumming feel
                     midi_velocity = int(pressure * 127)
-                    
-                    # Play all intermediate notes between last and current index
-                    start = min(self.last_strummed_index, index)
-                    end = max(self.last_strummed_index, index)
-                    
+
                     # Determine direction for proper ordering
                     if self.last_strummed_index < index:
                         # Moving right/forward
@@ -107,10 +93,8 @@ class Strummer:
                     
                     for i in indices:
                         note = self._notes[i]
-                        # Apply semitone adjustment if buttons are pressed
-                        adjusted_note = note.transpose(semitone_adjustment) if semitone_adjustment != 0 else note
                         notes_to_play.append({
-                            'note': adjusted_note,
+                            'note': note,
                             'velocity': midi_velocity
                         })
                 

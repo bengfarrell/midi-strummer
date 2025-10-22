@@ -235,66 +235,6 @@ class Midi(EventEmitter):
                 self._active_note_timers[midi_note] = timer
             timer.start()
 
-    def update_active_note_durations(self, new_duration: float) -> None:
-        """Update the duration of all currently active notes (for adaptive duration)"""
-        if not self.midi_out:
-            return
-        
-        current_time = time.time()
-        
-        # Determine which channels to send on
-        if self._midi_strum_channel is not None:
-            channels = [self._midi_strum_channel - 1]
-        else:
-            channels = list(range(16))
-        
-        # Collect notes to update and their info while holding the lock briefly
-        notes_info = []
-        with self._timer_lock:
-            for midi_note in list(self._active_note_timers.keys()):
-                if midi_note not in self._note_start_times:
-                    continue
-                
-                start_time = self._note_start_times[midi_note]
-                elapsed = current_time - start_time
-                remaining_duration = max(0.0, new_duration - elapsed)
-                
-                # Cancel the old timer
-                old_timer = self._active_note_timers[midi_note]
-                old_timer.cancel()
-                
-                notes_info.append((midi_note, remaining_duration))
-        
-        # Now process outside the lock to avoid deadlock
-        for midi_note, remaining_duration in notes_info:
-            # Schedule new note-off
-            def send_note_off(note_num=midi_note):
-                if self.midi_out:
-                    for channel in channels:
-                        note_off_message = [0x80 + channel, note_num, 0x40]
-                        self.midi_out.send_message(note_off_message)
-                
-                # Remove from tracking
-                with self._timer_lock:
-                    if note_num in self._active_note_timers:
-                        del self._active_note_timers[note_num]
-                    if note_num in self._note_start_times:
-                        del self._note_start_times[note_num]
-            
-            if remaining_duration <= 0:
-                # Duration already exceeded, send note-off immediately
-                send_note_off(midi_note)
-            else:
-                # Schedule new note-off with remaining duration
-                new_timer = threading.Timer(remaining_duration, send_note_off)
-                new_timer.daemon = True  # Allow process to exit even if timer is running
-                
-                # Store the new timer
-                with self._timer_lock:
-                    self._active_note_timers[midi_note] = new_timer
-                
-                new_timer.start()
-
     def on_note_down(self, notation: str, octave: int) -> None:
         """Handle note down event"""
         note_str = notation + str(octave)
