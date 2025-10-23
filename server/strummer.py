@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 import time
 from note import NoteObject
 
@@ -13,7 +13,12 @@ class Strummer:
         self.last_timestamp: float = 0.0
         self.pressure_velocity: float = 0.0  # Rate of pressure change
         self.pressure_threshold: float = 0.1  # Minimum pressure to trigger a strum
-        self.velocity_scale: float = 25.0  # Scale factor for pressure velocity to MIDI velocity
+        self.velocity_scale: float = 4.0  # Scale factor for pressure velocity to MIDI velocity
+        
+        # Pressure buffering for accurate velocity sensing on quick taps
+        self.pressure_buffer: List[Tuple[float, float]] = []  # List of (pressure, timestamp) tuples
+        self.buffer_max_samples: int = 3  # Number of samples to collect before triggering
+        self.pending_tap_index: int = -1  # Index of pending tap waiting for buffer
 
     @property
     def notes(self) -> List[NoteObject]:
@@ -42,64 +47,90 @@ class Strummer:
             pressure_down = self.last_pressure < self.pressure_threshold and pressure >= self.pressure_threshold
             pressure_up = self.last_pressure >= self.pressure_threshold and pressure < self.pressure_threshold
             
-            # Reset strummed index when pressure is released
+            # Reset strummed index and buffer when pressure is released
             if pressure_up:
                 self.last_strummed_index = -1
                 self.last_pressure = pressure
                 self.last_timestamp = current_time
                 self.pressure_velocity = 0.0
+                self.pressure_buffer.clear()
+                self.pending_tap_index = -1
                 return None
+            
+            # Handle new tap - start buffering
+            if pressure_down and (self.last_strummed_index == -1 or self.last_strummed_index != index):
+                # Include the previous pressure (before threshold) to capture the initial velocity spike
+                self.pressure_buffer = [(self.last_pressure, self.last_timestamp), (pressure, current_time)]
+                self.pending_tap_index = index
+                self.last_x = x
+                self.last_pressure = pressure
+                self.last_timestamp = current_time
+                return None  # Don't trigger yet, need to buffer
+            
+            # Continue buffering if we have a pending tap
+            if self.pending_tap_index != -1 and len(self.pressure_buffer) < self.buffer_max_samples:
+                self.pressure_buffer.append((pressure, current_time))
+                self.last_x = x
+                self.last_pressure = pressure
+                self.last_timestamp = current_time
+                
+                # Once buffer is full, trigger the note with calculated velocity
+                if len(self.pressure_buffer) >= self.buffer_max_samples:
+                    # Calculate velocity from overall pressure rise in buffer
+                    # This is more stable than sample-to-sample calculations
+                    first_pressure = self.pressure_buffer[0][0]
+                    last_pressure = self.pressure_buffer[-1][0]
+                    first_time = self.pressure_buffer[0][1]
+                    last_time = self.pressure_buffer[-1][1]
+                    
+                    total_pressure_delta = last_pressure - first_pressure
+                    total_time_delta = last_time - first_time
+                    
+                    velocity = total_pressure_delta / total_time_delta if total_time_delta > 0 else 0.0
+                    
+                    # Calculate MIDI velocity
+                    calculated_velocity = int(max(0.0, velocity) * self.velocity_scale)
+                    # Clamp to MIDI range 1-127
+                    midi_velocity = max(1, min(127, calculated_velocity))
+                    
+                    note = self._notes[self.pending_tap_index]
+                    self.last_strummed_index = self.pending_tap_index
+                    self.pending_tap_index = -1
+                    self.pressure_buffer.clear()
+                    
+                    return {'type': 'strum', 'notes': [{'note': note, 'velocity': midi_velocity}]}
+                
+                return None  # Still buffering
             
             self.last_x = x
             self.last_pressure = pressure
             self.last_timestamp = current_time
             
-            # Trigger strum if:
-            # 1. Index changed (moving across strings), OR
-            # 2. Pressure just went from low to high (tap/press down)
-            # BUT ONLY if we have sufficient pressure
+            # Handle strumming across strings (index changed while pressure maintained)
             has_sufficient_pressure = pressure >= self.pressure_threshold
-            
-            if has_sufficient_pressure and (self.last_strummed_index != index or pressure_down):
-                # Calculate all strings crossed between last and current position
+            if has_sufficient_pressure and self.last_strummed_index != -1 and self.last_strummed_index != index:
+                # Strumming across strings - use current pressure
+                midi_velocity = int(pressure * 127)
                 notes_to_play = []
+
+                # Determine direction for proper ordering
+                if self.last_strummed_index < index:
+                    # Moving right/forward
+                    indices = range(self.last_strummed_index + 1, index + 1)
+                else:
+                    # Moving left/backward  
+                    indices = range(self.last_strummed_index - 1, index - 1, -1)
                 
-                if self.last_strummed_index == -1 or pressure_down:
-                    # First strum or new tap - use velocity sensing
-                    # Calculate velocity based on pressure rate of change
-                    calculated_velocity = int(max(0.0, self.pressure_velocity) * self.velocity_scale)
-                    
-                    # Clamp to valid MIDI range, with a minimum velocity for gentle taps
-                    min_velocity = max(20, int(pressure * 127 * 0.5))
-                    midi_velocity = max(min_velocity, min(127, calculated_velocity))
-                    
-                    note = self._notes[index]
+                for i in indices:
+                    note = self._notes[i]
                     notes_to_play.append({
                         'note': note,
                         'velocity': midi_velocity
                     })
-                else:
-                    # Strumming across strings - use current pressure like before
-                    # This preserves the original strumming feel
-                    midi_velocity = int(pressure * 127)
-
-                    # Determine direction for proper ordering
-                    if self.last_strummed_index < index:
-                        # Moving right/forward
-                        indices = range(self.last_strummed_index + 1, index + 1)
-                    else:
-                        # Moving left/backward  
-                        indices = range(self.last_strummed_index - 1, index - 1, -1)
-                    
-                    for i in indices:
-                        note = self._notes[i]
-                        notes_to_play.append({
-                            'note': note,
-                            'velocity': midi_velocity
-                        })
                 
                 self.last_strummed_index = index
                 return {'type': 'strum', 'notes': notes_to_play} if notes_to_play else None
+                
         return None
 
     def clear_strum(self) -> None:
@@ -108,6 +139,13 @@ class Strummer:
         self.last_pressure = 0.0
         self.last_timestamp = 0.0
         self.pressure_velocity = 0.0
+        self.pressure_buffer.clear()
+        self.pending_tap_index = -1
+
+    def configure(self, pluck_velocity_scale: float = 4.0, pressure_threshold: float = 0.1) -> None:
+        """Configure strummer parameters"""
+        self.velocity_scale = pluck_velocity_scale
+        self.pressure_threshold = pressure_threshold
 
     def update_bounds(self, width: float, height: float) -> None:
         """Update the bounds of the strummer"""

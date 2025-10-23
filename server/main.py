@@ -163,6 +163,13 @@ def on_midi_note_event(event: MidiNoteEvent, cfg: Config, socket_server: Optiona
 
 def setup_midi_and_strummer(cfg: Config, socket_server: Optional[SocketServer] = None) -> Midi:
     """Setup MIDI connection and strummer configuration"""
+    # Configure strummer parameters
+    strumming_cfg = cfg.get('strumming', {})
+    strummer.configure(
+        pluck_velocity_scale=strumming_cfg.get('pluckVelocityScale', 4.0),
+        pressure_threshold=strumming_cfg.get('pressureThreshold', 0.1)
+    )
+    
     # Initialize strummer with initial notes if provided
     if 'initialNotes' in cfg and cfg['initialNotes']:
         initial_notes = [Note.parse_notation(n) for n in cfg['initialNotes']]
@@ -304,7 +311,7 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
                 for note_data in strum_result['notes']:
                     # Skip notes with velocity 0 (these would act as note-off in MIDI)
                     if note_data['velocity'] > 0:
-                        midi.send_note(note_data['note'], velocity, duration)
+                        midi.send_note(note_data['note'], note_data['velocity'], duration)
     
     return handle_hid_data
 

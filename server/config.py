@@ -50,6 +50,10 @@ class Config:
         "initialNotes": ["C4", "E4", "G4"],
         "upperNoteSpread": 3,
         "lowerNoteSpread": 3,
+        "strumming": {
+            "pluckVelocityScale": 4.0,
+            "pressureThreshold": 0.1
+        },
         "mappings": {
             "status": {
                 "byteIndex": 1,
