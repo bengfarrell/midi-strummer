@@ -82,3 +82,54 @@ def apply_curve(value: float, curve: float = 1.0, input_range: tuple = (0.0, 1.0
     
     # Scale back to original range
     return min_val + (curved * (max_val - min_val))
+
+
+def calculate_effect_value(input_value: float, min_val: float, max_val: float, 
+                          multiplier: float = 1.0, curve: float = 1.0, 
+                          spread: str = "direct") -> float:
+    """
+    Calculate an effect value using a unified approach.
+    
+    This function applies multiplier, curve, and range mapping to transform
+    a normalized input value (0-1) into an output value in the specified range.
+    
+    Args:
+        input_value: Normalized input value (0-1)
+        min_val: Minimum output value
+        max_val: Maximum output value
+        multiplier: Multiplier applied to input before curve (default: 1.0)
+        curve: Exponential curve parameter (default: 1.0 = linear)
+        spread: Control how input maps to output (default: "direct"):
+                - "direct": Normal mapping (min input → min output, max input → max output)
+                - "inverse": Inverted mapping (min input → max output, max input → min output)
+                - "central": Center input → max output, edge inputs → min output (bidirectional curve)
+    
+    Returns:
+        Calculated effect value in the range [min_val, max_val]
+    """
+    # Apply multiplier to input
+    scaled_input = input_value * multiplier
+    # Clamp to 0-1 range after multiplier
+    scaled_input = max(0.0, min(1.0, scaled_input))
+    
+    # Apply spread mapping
+    if spread == "central":
+        # Central mode: center (0.5) maps to max, edges (0.0 and 1.0) map to min
+        # Calculate distance from center and normalize to 0-1 range
+        distance_from_center = abs(scaled_input - 0.5) * 2.0  # 0 at center, 1 at edges
+        
+        # Apply curve to the distance
+        curved_distance = apply_curve(distance_from_center, curve, input_range=(0.0, 1.0))
+        
+        # Invert so that center (distance=0) gives max output, edges (distance=1) give min output
+        return max_val - (curved_distance * (max_val - min_val))
+    
+    elif spread == "inverse":
+        # Inverse mode: high input = low output
+        curved_value = apply_curve(scaled_input, curve, input_range=(0.0, 1.0))
+        return max_val - (curved_value * (max_val - min_val))
+    
+    else:  # "direct" or default
+        # Direct mode: normal mapping (low input = low output)
+        curved_value = apply_curve(scaled_input, curve, input_range=(0.0, 1.0))
+        return min_val + (curved_value * (max_val - min_val))

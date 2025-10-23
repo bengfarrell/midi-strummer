@@ -17,7 +17,7 @@ from midievent import MidiNoteEvent, NOTE_EVENT
 from note import Note
 from socketserver import SocketServer
 from hidreader import HIDReader
-from datahelpers import apply_curve
+from datahelpers import apply_curve, calculate_effect_value
 
 # Global references for cleanup
 _hid_reader = None
@@ -273,35 +273,68 @@ def create_hid_data_handler(cfg: Dict[str, Any], midi: Midi) -> Callable[[Dict[s
         tilt_x = result.get('tiltX', 0.0)
         tilt_y = result.get('tiltY', 0.0)
         
-        # Send pitch bend continuously based on Y position
-        # Y is normalized 0-1, convert to -1 to 1 range where center (0.5) = 0
+        # Calculate Y value (vertical position, normalized 0-1)
         y_val = float(y)
-        y_centered = (y_val - 0.5) * 2.0  # Convert 0-1 to -1 to 1
         
-        # Apply curve and multiplier
-        curve = cfg.get('pitchBend', {}).get('curve', 1.0)
-        multiplier = cfg.get('pitchBend', {}).get('multiplier', 1.0)
+        # Calculate tilt magnitude (normalized 0-1)
+        tilt_x_val = float(tilt_x)
+        tilt_y_val = float(tilt_y)
+        tilt_magnitude = math.sqrt(tilt_x_val * tilt_x_val + tilt_y_val * tilt_y_val)
         
-        # Apply curve while preserving sign
-        sign = 1.0 if y_centered >= 0 else -1.0
-        curved_y = apply_curve(abs(y_centered), curve, input_range=(0.0, 1.0)) * sign
-        final_bend = curved_y * multiplier
+        # Get effect configurations
+        pitch_bend_cfg = cfg.get('pitchBend', {})
+        note_duration_cfg = cfg.get('noteDuration', {})
+        note_velocity_cfg = cfg.get('noteVelocity', {})
         
-        midi.send_pitch_bend(final_bend)
+        # Get effect mappings from config
+        vertical_effect = cfg.get('verticalEffect', 'pitchBend')
+        tilt_effect = cfg.get('tiltEffect', 'noteDuration')
         
-        # Calculate note duration based on tilt (continuously for adaptive duration)
-        # No tilt = max duration, max tilt = min duration
-        multiplier = cfg.get('noteDuration', {}).get('multiplier', 1.0)
-        xyTilt = math.sqrt(float(tilt_x) * float(tilt_x) + float(tilt_y) * float(tilt_y)) * multiplier
+        # Calculate and apply vertical (Y axis) effect
+        if vertical_effect == 'pitchBend':
+            bend_value = calculate_effect_value(
+                y_val,
+                pitch_bend_cfg.get('min', -1.0),
+                pitch_bend_cfg.get('max', 1.0),
+                pitch_bend_cfg.get('multiplier', 1.0),
+                pitch_bend_cfg.get('curve', 1.0),
+                pitch_bend_cfg.get('spread', 'direct')
+            )
+            midi.send_pitch_bend(bend_value)
+        elif vertical_effect == 'noteDuration':
+            duration = calculate_effect_value(
+                y_val,
+                note_duration_cfg.get('min', 0.15),
+                note_duration_cfg.get('max', 1.5),
+                note_duration_cfg.get('multiplier', 1.0),
+                note_duration_cfg.get('curve', 1.0),
+                note_duration_cfg.get('spread', 'direct')
+            )
         
-        # Apply curve to tilt
-        curve = cfg.get('noteDuration', {}).get('curve', 1.0)
-        curved_tilt = apply_curve(xyTilt, curve, input_range=(0.0, 1.0))
+        # Calculate and apply tilt effect
+        if tilt_effect == 'pitchBend':
+            bend_value = calculate_effect_value(
+                tilt_magnitude,
+                pitch_bend_cfg.get('min', -1.0),
+                pitch_bend_cfg.get('max', 1.0),
+                pitch_bend_cfg.get('multiplier', 1.0),
+                pitch_bend_cfg.get('curve', 1.0),
+                pitch_bend_cfg.get('spread', 'direct')
+            )
+            midi.send_pitch_bend(bend_value)
+        elif tilt_effect == 'noteDuration':
+            duration = calculate_effect_value(
+                tilt_magnitude,
+                note_duration_cfg.get('min', 0.15),
+                note_duration_cfg.get('max', 1.5),
+                note_duration_cfg.get('multiplier', 1.0),
+                note_duration_cfg.get('curve', 1.0),
+                note_duration_cfg.get('spread', 'direct')
+            )
         
-        # Calculate duration: no tilt = max, full tilt = min
-        max_duration = cfg.get('noteDuration', {}).get('max', 1.5)
-        min_duration = cfg.get('noteDuration', {}).get('min', 0.2)
-        duration = max_duration - (curved_tilt * (max_duration - min_duration))
+        # Set default duration if not set by effects above
+        if 'duration' not in locals():
+            duration = 1.0
         
         strum_result = strummer.strum(
             float(x), float(y), float(pressure), float(tilt_x), float(tilt_y)
@@ -315,13 +348,16 @@ def create_hid_data_handler(cfg: Dict[str, Any], midi: Midi) -> Callable[[Dict[s
                 for note_data in strum_result['notes']:
                     # Skip notes with velocity 0 (these would act as note-off in MIDI)
                     if note_data['velocity'] > 0:
-                        # Apply velocity curve and multiplier
-                        curve = cfg.get('noteVelocity', {}).get('curve', 1.0)
-                        multiplier = cfg.get('noteVelocity', {}).get('multiplier', 1.0)
-                        
-                        # First apply curve, then multiply
-                        curved_velocity = apply_curve(float(note_data['velocity']), curve, input_range=(0.0, 127.0))
-                        final_velocity = int(curved_velocity * multiplier)
+                        # Normalize velocity from 0-127 to 0-1, apply effect calculation
+                        normalized_velocity = float(note_data['velocity']) / 127.0
+                        final_velocity = int(calculate_effect_value(
+                            normalized_velocity,
+                            note_velocity_cfg.get('min', 0),
+                            note_velocity_cfg.get('max', 127),
+                            note_velocity_cfg.get('multiplier', 1.0),
+                            note_velocity_cfg.get('curve', 1.0),
+                            note_velocity_cfg.get('spread', 'direct')
+                        ))
                         
                         # Clamp to valid MIDI range
                         final_velocity = max(0, min(127, final_velocity))
