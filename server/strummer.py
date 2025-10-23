@@ -14,6 +14,7 @@ class Strummer:
         self.pressure_velocity: float = 0.0  # Rate of pressure change
         self.pressure_threshold: float = 0.1  # Minimum pressure to trigger a strum
         self.velocity_scale: float = 4.0  # Scale factor for pressure velocity to MIDI velocity
+        self.last_strum_velocity: int = 0  # Last calculated velocity for release event
         
         # Pressure buffering for accurate velocity sensing on quick taps
         self.pressure_buffer: List[Tuple[float, float]] = []  # List of (pressure, timestamp) tuples
@@ -47,14 +48,24 @@ class Strummer:
             pressure_down = self.last_pressure < self.pressure_threshold and pressure >= self.pressure_threshold
             pressure_up = self.last_pressure >= self.pressure_threshold and pressure < self.pressure_threshold
             
-            # Reset strummed index and buffer when pressure is released
+            # Handle pressure release - return release event with last velocity
             if pressure_up:
+                # Store the last velocity before resetting
+                release_velocity = self.last_strum_velocity
+                
+                # Reset strummed index and buffer when pressure is released
                 self.last_strummed_index = -1
                 self.last_pressure = pressure
                 self.last_timestamp = current_time
                 self.pressure_velocity = 0.0
                 self.pressure_buffer.clear()
                 self.pending_tap_index = -1
+                self.last_strum_velocity = 0
+                
+                # Return release event if we had a previous strum
+                if release_velocity > 0:
+                    return {'type': 'release', 'velocity': release_velocity}
+                
                 return None
             
             # Handle new tap - start buffering
@@ -93,6 +104,9 @@ class Strummer:
                     # Clamp to MIDI range 1-127
                     midi_velocity = max(1, min(127, calculated_velocity))
                     
+                    # Store velocity for potential release event
+                    self.last_strum_velocity = midi_velocity
+                    
                     note = self._notes[self.pending_tap_index]
                     self.last_strummed_index = self.pending_tap_index
                     self.pending_tap_index = -1
@@ -128,6 +142,9 @@ class Strummer:
                         'velocity': midi_velocity
                     })
                 
+                # Store velocity for potential release event
+                self.last_strum_velocity = midi_velocity
+                
                 self.last_strummed_index = index
                 return {'type': 'strum', 'notes': notes_to_play} if notes_to_play else None
                 
@@ -139,6 +156,7 @@ class Strummer:
         self.last_pressure = 0.0
         self.last_timestamp = 0.0
         self.pressure_velocity = 0.0
+        self.last_strum_velocity = 0
         self.pressure_buffer.clear()
         self.pending_tap_index = -1
 

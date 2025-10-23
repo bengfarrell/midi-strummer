@@ -312,6 +312,24 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
                     # Skip notes with velocity 0 (these would act as note-off in MIDI)
                     if note_data['velocity'] > 0:
                         midi.send_note(note_data['note'], note_data['velocity'], duration)
+            
+            elif strum_result.get('type') == 'release':
+                # Handle strum release - send configured MIDI note
+                strumming_cfg = cfg.get('strumming', {})
+                release_note = strumming_cfg.get('releaseMIDINote')
+                release_channel = strumming_cfg.get('releaseMIDIChannel')
+                release_max_duration = strumming_cfg.get('releaseMaxDuration', 0.25)
+                release_velocity_multiplier = strumming_cfg.get('releaseVelocityMultiplier', 1.0)
+                
+                # Only trigger release note if duration is within the max duration threshold
+                if release_note is not None and duration <= release_max_duration:
+                    # Use the velocity from the strum and apply multiplier
+                    base_velocity = strum_result.get('velocity', 64)
+                    release_velocity = int(base_velocity * release_velocity_multiplier)
+                    # Clamp to MIDI range 1-127
+                    release_velocity = max(1, min(127, release_velocity))
+                    # Send the raw MIDI note on the specified channel
+                    midi.send_raw_note(release_note, release_velocity, release_channel, duration)
     
     return handle_hid_data
 

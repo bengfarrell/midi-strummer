@@ -17,9 +17,9 @@ class Midi(EventEmitter):
         self._current_input_id: Optional[str] = None
         self._notes: List[str] = []
         self._midi_strum_channel: Optional[int] = midi_strum_channel
-        self._active_note_timers: dict = {}  # Track active note-off timers by MIDI note number
+        self._active_note_timers: dict = {}  # Track active note-off timers by (midi_note, channels_tuple)
         self._timer_lock = threading.Lock()  # Thread-safe access to timers
-        self._note_start_times: dict = {}  # Track when each note started (for adaptive duration)
+        self._note_start_times: dict = {}  # Track when each note started by (midi_note, channels_tuple)
 
     @property
     def current_input(self) -> Optional[rtmidi.MidiIn]:
@@ -170,15 +170,16 @@ class Midi(EventEmitter):
         # Convert notes to MIDI note numbers and release them
         for note in notes:
             midi_note = Note.notation_to_midi(note.notation + str(note.octave))
+            note_key = (midi_note, tuple(channels))
             
             # Cancel the timer if it exists
             with self._timer_lock:
-                if midi_note in self._active_note_timers:
-                    timer = self._active_note_timers[midi_note]
+                if note_key in self._active_note_timers:
+                    timer = self._active_note_timers[note_key]
                     timer.cancel()
-                    del self._active_note_timers[midi_note]
-                if midi_note in self._note_start_times:
-                    del self._note_start_times[midi_note]
+                    del self._active_note_timers[note_key]
+                if note_key in self._note_start_times:
+                    del self._note_start_times[note_key]
             
             # Send note-off messages
             for channel in channels:
@@ -198,12 +199,15 @@ class Midi(EventEmitter):
                 # Send on all channels (0-15)
                 channels = list(range(16))
             
+            # Create unique key for this note+channels combination
+            note_key = (midi_note, tuple(channels))
+            
             # Cancel any existing timer for this note to prevent premature note-off
             with self._timer_lock:
-                if midi_note in self._active_note_timers:
-                    old_timer = self._active_note_timers[midi_note]
+                if note_key in self._active_note_timers:
+                    old_timer = self._active_note_timers[note_key]
                     old_timer.cancel()
-                    del self._active_note_timers[midi_note]
+                    del self._active_note_timers[note_key]
             
             # Send note-on messages
             for channel in channels:
@@ -212,7 +216,7 @@ class Midi(EventEmitter):
             
             # Track when this note started
             with self._timer_lock:
-                self._note_start_times[midi_note] = time.time()
+                self._note_start_times[note_key] = time.time()
             
             # Schedule note-off with a timer that can be cancelled
             def send_note_off():
@@ -223,16 +227,80 @@ class Midi(EventEmitter):
                 
                 # Remove this timer from active timers
                 with self._timer_lock:
-                    if midi_note in self._active_note_timers:
-                        del self._active_note_timers[midi_note]
-                    if midi_note in self._note_start_times:
-                        del self._note_start_times[midi_note]
+                    if note_key in self._active_note_timers:
+                        del self._active_note_timers[note_key]
+                    if note_key in self._note_start_times:
+                        del self._note_start_times[note_key]
             
             # Create and store the timer
             timer = threading.Timer(duration, send_note_off)
             timer.daemon = True  # Allow process to exit even if timer is running
             with self._timer_lock:
-                self._active_note_timers[midi_note] = timer
+                self._active_note_timers[note_key] = timer
+            timer.start()
+    
+    def send_raw_note(self, midi_note: int, velocity: int, channel: Optional[int] = None, duration: float = 1.5) -> None:
+        """
+        Send a raw MIDI note number on a specific channel with non-blocking note-off
+        
+        Args:
+            midi_note: MIDI note number (0-127)
+            velocity: MIDI velocity (0-127)
+            channel: MIDI channel (1-16), or None to use strum channel or all channels
+            duration: Duration in seconds before note-off
+        """
+        if self.midi_out:
+            # Determine which channel to send on
+            if channel is not None:
+                # Use provided channel (convert 1-16 to 0-15)
+                channels = [channel - 1]
+            elif self._midi_strum_channel is not None:
+                # Use configured strum channel (convert 1-16 to 0-15)
+                channels = [self._midi_strum_channel - 1]
+            else:
+                # Send on all channels (0-15)
+                channels = list(range(16))
+            
+            # Create unique key for this note+channels combination
+            note_key = (midi_note, tuple(channels))
+            
+            # Cancel any existing timer for this note to prevent premature note-off
+            with self._timer_lock:
+                if note_key in self._active_note_timers:
+                    old_timer = self._active_note_timers[note_key]
+                    old_timer.cancel()
+                    del self._active_note_timers[note_key]
+            
+            # Send note-on messages
+            for ch in channels:
+                note_on_message = [0x90 + ch, midi_note, velocity]
+                self.midi_out.send_message(note_on_message)
+            
+            # Track when this note started
+            with self._timer_lock:
+                self._note_start_times[note_key] = time.time()
+            
+            # Schedule note-off with a timer that can be cancelled
+            def send_note_off():
+                if self.midi_out:
+                    for ch in channels:
+                        note_off_message = [0x80 + ch, midi_note, 0x40]
+                        self.midi_out.send_message(note_off_message)
+                
+                # Remove this timer from active timers
+                with self._timer_lock:
+                    if note_key in self._active_note_timers:
+                        del self._active_note_timers[note_key]
+                    if note_key in self._note_start_times:
+                        del self._note_start_times[note_key]
+            
+            timer = threading.Timer(duration, send_note_off)
+            timer.daemon = True
+            
+            # Store timer to allow cancellation
+            with self._timer_lock:
+                self._active_note_timers[note_key] = timer
+            
             timer.start()
 
     def on_note_down(self, notation: str, octave: int) -> None:

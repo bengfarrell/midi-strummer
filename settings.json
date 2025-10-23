@@ -41,7 +41,11 @@
   "lowerNoteSpread": 3,
   "strumming": {
     "pluckVelocityScale": 4.0,
-    "pressureThreshold": 0.1
+    "pressureThreshold": 0.1,
+    "releaseMaxDuration": 0.25,
+    "releaseVelocityMultiplier": 2,
+    "releaseMIDINote": 38,
+    "releaseMIDIChannel": 11
   },
   "mappings": {
     "status": { "byteIndex": 1, "max": 63, "type": "code", "values": {

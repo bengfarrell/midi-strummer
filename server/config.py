@@ -52,7 +52,11 @@ class Config:
         "lowerNoteSpread": 3,
         "strumming": {
             "pluckVelocityScale": 4.0,
-            "pressureThreshold": 0.1
+            "pressureThreshold": 0.1,
+            "releaseMIDINote": 38,
+            "releaseMIDIChannel": None,
+            "releaseMaxDuration": 0.25,
+            "releaseVelocityMultiplier": 1.0
         },
         "mappings": {
             "status": {
