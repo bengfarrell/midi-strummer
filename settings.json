@@ -8,26 +8,30 @@
   "noteDuration": {
     "min": 0.15,
     "max": 1.5,
+    "default": 1,
     "multiplier": 1.0,
     "curve": 1.0,
-    "spread": "central"
+    "spread": "central",
+    "control": "yaxis"
   },
   "pitchBend": {
     "min": -1.0,
     "max": 1.0,
+    "default": 0,
     "spread": "direct",
     "multiplier": 1.0,
-    "curve": 4.0
+    "curve": 4.0,
+    "control": "tiltXY"
   },
   "noteVelocity": {
     "min": 0,
     "max": 127,
     "spread": "direct",
     "multiplier": 1.0,
-    "curve": 4.0
+    "curve": 4.0,
+    "control": "pressure",
+    "default": 64
   },
-  "verticalEffect": "noteDuration",
-  "tiltEffect": "pitchBend",
 
   "socketServerPort": 8080,
   "midiInputId": "Launchkey MK4 25 MIDI Out",

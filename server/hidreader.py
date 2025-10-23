@@ -6,21 +6,24 @@ and processing the raw data according to configuration mappings.
 """
 
 import time
-from typing import Dict, Any, Union, Callable, Optional
+from typing import Dict, Any, Union, Callable, Optional, TYPE_CHECKING
 
 from datahelpers import parse_code, parse_range_data, parse_wrapped_range_data
+
+if TYPE_CHECKING:
+    from config import Config
 
 
 class HIDReader:
     """Manages HID device reading and data processing"""
     
-    def __init__(self, device, config: Dict[str, Any], data_callback: Callable[[Dict[str, Union[str, int, float]]], None]):
+    def __init__(self, device, config: 'Config', data_callback: Callable[[Dict[str, Union[str, int, float]]], None]):
         """
         Initialize HID reader
         
         Args:
             device: HID device object (from hid library)
-            config: Configuration dictionary with device mappings
+            config: Configuration instance with device mappings
             data_callback: Callback function to handle processed data
         """
         self.device = device

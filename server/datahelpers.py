@@ -1,5 +1,5 @@
 import math
-from typing import List, Union
+from typing import List, Union, Dict, Any
 
 
 def parse_range_data(data: List[int], byte_index: int, min_val: int = 0, max_val: int = 0) -> float:
@@ -133,3 +133,55 @@ def calculate_effect_value(input_value: float, min_val: float, max_val: float,
         # Direct mode: normal mapping (low input = low output)
         curved_value = apply_curve(scaled_input, curve, input_range=(0.0, 1.0))
         return min_val + (curved_value * (max_val - min_val))
+
+
+def apply_effect(effect_config: Dict[str, Any], control_inputs: Dict[str, float], 
+                 effect_name: str = "") -> float:
+    """
+    Apply an effect calculation based on its control configuration.
+    
+    This function looks up which control input should be used for an effect
+    (e.g., 'yaxis', 'pressure', 'tiltX', 'tiltY', 'tiltXY') and applies
+    the effect calculation with the configured parameters. If no control is
+    configured, returns the default value from the effect configuration.
+    
+    Args:
+        effect_config: Effect configuration dictionary containing:
+                      - 'control': Which input to use ('yaxis', 'pressure', 'tiltX', 'tiltY', 'tiltXY')
+                      - 'min': Minimum output value
+                      - 'max': Maximum output value
+                      - 'multiplier': Input multiplier (default: 1.0)
+                      - 'curve': Curve parameter (default: 1.0)
+                      - 'spread': Spread mode ('direct', 'inverse', 'central')
+                      - 'default': Default value when no control is configured
+        control_inputs: Dictionary mapping control names to their normalized values (0-1)
+                       Example: {'yaxis': 0.5, 'pressure': 0.8, 'tiltXY': 0.3}
+        effect_name: Optional name of effect for debugging purposes
+        
+    Returns:
+        Calculated effect value in the range [min, max], or the default value
+        
+    Example:
+        >>> control_inputs = {'yaxis': 0.5, 'pressure': 0.8, 'tiltXY': 0.3}
+        >>> config = {'control': 'pressure', 'min': 0, 'max': 127, 'curve': 2.0, 'default': 64}
+        >>> apply_effect(config, control_inputs, 'velocity')
+        112.5
+    """
+    control_type = effect_config.get('control')
+    
+    # Return default if no control configured or control not available
+    if not control_type or control_type not in control_inputs:
+        return effect_config.get('default', 0.0)
+    
+    # Get the input value for this control type
+    input_value = control_inputs[control_type]
+    
+    # Apply effect calculation
+    return calculate_effect_value(
+        input_value,
+        effect_config.get('min', 0.0),
+        effect_config.get('max', 1.0),
+        effect_config.get('multiplier', 1.0),
+        effect_config.get('curve', 1.0),
+        effect_config.get('spread', 'direct')
+    )

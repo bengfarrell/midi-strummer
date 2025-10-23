@@ -17,7 +17,8 @@ from midievent import MidiNoteEvent, NOTE_EVENT
 from note import Note
 from socketserver import SocketServer
 from hidreader import HIDReader
-from datahelpers import apply_curve, calculate_effect_value
+from datahelpers import apply_effect
+from config import Config
 
 # Global references for cleanup
 _hid_reader = None
@@ -119,33 +120,25 @@ def find_settings_file() -> str:
     return None
 
 
-def load_config() -> Dict[str, Any]:
-    """Load configuration from settings.json"""
+def load_config() -> Config:
+    """Load configuration from settings.json with fallback to defaults"""
     settings_path = find_settings_file()
     
     if settings_path is None:
-        print("Error: settings.json not found")
+        print("Warning: settings.json not found")
         print("\nSearched in:")
         print("  - Application directory")
         print("  - Parent directory")
         print("  - Current working directory")
         print("  - Home directory")
-        print("\nPlease ensure settings.json is in one of these locations.")
-        sys.exit(1)
+        print("\nUsing default configuration.")
+        return Config()
     
-    try:
-        print(f"Loading configuration from: {settings_path}")
-        with open(settings_path, 'r') as f:
-            return json.load(f)
-    except json.JSONDecodeError as e:
-        print(f"Error parsing settings.json: {e}")
-        sys.exit(1)
-    except Exception as e:
-        print(f"Error reading settings.json: {e}")
-        sys.exit(1)
+    print(f"Loading configuration from: {settings_path}")
+    return Config.from_file(settings_path)
 
 
-def on_midi_note_event(event: MidiNoteEvent, cfg: Dict[str, Any], socket_server: Optional[SocketServer] = None):
+def on_midi_note_event(event: MidiNoteEvent, cfg: Config, socket_server: Optional[SocketServer] = None):
     """Handle MIDI note events - defined at module level to avoid garbage collection"""
     # Use notes from the event object instead of accessing midi.notes directly
     midi_notes = [Note.parse_notation(n) for n in event.notes]
@@ -168,7 +161,7 @@ def on_midi_note_event(event: MidiNoteEvent, cfg: Dict[str, Any], socket_server:
             print(f"[SERVER] Error broadcasting to WebSocket: {e}")
 
 
-def setup_midi_and_strummer(cfg: Dict[str, Any], socket_server: Optional[SocketServer] = None) -> Midi:
+def setup_midi_and_strummer(cfg: Config, socket_server: Optional[SocketServer] = None) -> Midi:
     """Setup MIDI connection and strummer configuration"""
     # Initialize strummer with initial notes if provided
     if 'initialNotes' in cfg and cfg['initialNotes']:
@@ -196,7 +189,7 @@ def setup_midi_and_strummer(cfg: Dict[str, Any], socket_server: Optional[SocketS
     return midi
 
 
-def update_config(cfg: Dict[str, Any], updates: Dict[str, Any]) -> None:
+def update_config(cfg: Config, updates: Dict[str, Any]) -> None:
     """
     Update configuration with key-value pairs from incoming messages.
     Supports nested keys using dot notation (e.g., "device.product").
@@ -220,7 +213,7 @@ def update_config(cfg: Dict[str, Any], updates: Dict[str, Any]) -> None:
             print(f'[CONFIG] Updated {key} = {value}')
 
 
-def start_socket_server(port: int, cfg: Dict[str, Any]) -> tuple[SocketServer, asyncio.AbstractEventLoop, threading.Thread]:
+def start_socket_server(port: int, cfg: Config) -> tuple[SocketServer, asyncio.AbstractEventLoop, threading.Thread]:
     """Start socket server in a separate thread with its own event loop"""
     
     # Create message handler that updates config
@@ -252,12 +245,12 @@ def start_socket_server(port: int, cfg: Dict[str, Any]) -> tuple[SocketServer, a
     return socket_server, loop, thread
 
 
-def create_hid_data_handler(cfg: Dict[str, Any], midi: Midi) -> Callable[[Dict[str, Union[str, int, float]]], None]:
+def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Union[str, int, float]]], None]:
     """
     Create a callback function to handle processed HID data
     
     Args:
-        cfg: Configuration dictionary
+        cfg: Configuration instance
         midi: MIDI instance
         
     Returns:
@@ -266,103 +259,52 @@ def create_hid_data_handler(cfg: Dict[str, Any], midi: Midi) -> Callable[[Dict[s
     def handle_hid_data(result: Dict[str, Union[str, int, float]]) -> None:
         """Handle processed HID data - send MIDI messages based on strumming"""
         
-        # Extract data values
+        # Extract raw data values
         x = result.get('x', 0.0)
         y = result.get('y', 0.0)
         pressure = result.get('pressure', 0.0)
         tilt_x = result.get('tiltX', 0.0)
         tilt_y = result.get('tiltY', 0.0)
         
-        # Calculate Y value (vertical position, normalized 0-1)
+        # Calculate all possible input values (normalized 0-1)
         y_val = float(y)
-        
-        # Calculate tilt magnitude (normalized 0-1)
+        pressure_val = float(pressure)
         tilt_x_val = float(tilt_x)
         tilt_y_val = float(tilt_y)
-        tilt_magnitude = math.sqrt(tilt_x_val * tilt_x_val + tilt_y_val * tilt_y_val)
+        tilt_xy_val = math.sqrt(tilt_x_val * tilt_x_val + tilt_y_val * tilt_y_val)
+        
+        # Create mapping of control names to input values
+        control_inputs = {
+            'yaxis': y_val,
+            'pressure': pressure_val,
+            'tiltX': tilt_x_val,
+            'tiltY': tilt_y_val,
+            'tiltXY': tilt_xy_val
+        }
         
         # Get effect configurations
         pitch_bend_cfg = cfg.get('pitchBend', {})
         note_duration_cfg = cfg.get('noteDuration', {})
         note_velocity_cfg = cfg.get('noteVelocity', {})
         
-        # Get effect mappings from config
-        vertical_effect = cfg.get('verticalEffect', 'pitchBend')
-        tilt_effect = cfg.get('tiltEffect', 'noteDuration')
+        # Apply pitch bend effect
+        bend_value = apply_effect(pitch_bend_cfg, control_inputs, 'pitchBend')
+        midi.send_pitch_bend(bend_value)
         
-        # Calculate and apply vertical (Y axis) effect
-        if vertical_effect == 'pitchBend':
-            bend_value = calculate_effect_value(
-                y_val,
-                pitch_bend_cfg.get('min', -1.0),
-                pitch_bend_cfg.get('max', 1.0),
-                pitch_bend_cfg.get('multiplier', 1.0),
-                pitch_bend_cfg.get('curve', 1.0),
-                pitch_bend_cfg.get('spread', 'direct')
-            )
-            midi.send_pitch_bend(bend_value)
-        elif vertical_effect == 'noteDuration':
-            duration = calculate_effect_value(
-                y_val,
-                note_duration_cfg.get('min', 0.15),
-                note_duration_cfg.get('max', 1.5),
-                note_duration_cfg.get('multiplier', 1.0),
-                note_duration_cfg.get('curve', 1.0),
-                note_duration_cfg.get('spread', 'direct')
-            )
+        # Apply note duration and velocity effects
+        duration = apply_effect(note_duration_cfg, control_inputs, 'noteDuration')
+        velocity = apply_effect(note_velocity_cfg, control_inputs, 'noteVelocity')
         
-        # Calculate and apply tilt effect
-        if tilt_effect == 'pitchBend':
-            bend_value = calculate_effect_value(
-                tilt_magnitude,
-                pitch_bend_cfg.get('min', -1.0),
-                pitch_bend_cfg.get('max', 1.0),
-                pitch_bend_cfg.get('multiplier', 1.0),
-                pitch_bend_cfg.get('curve', 1.0),
-                pitch_bend_cfg.get('spread', 'direct')
-            )
-            midi.send_pitch_bend(bend_value)
-        elif tilt_effect == 'noteDuration':
-            duration = calculate_effect_value(
-                tilt_magnitude,
-                note_duration_cfg.get('min', 0.15),
-                note_duration_cfg.get('max', 1.5),
-                note_duration_cfg.get('multiplier', 1.0),
-                note_duration_cfg.get('curve', 1.0),
-                note_duration_cfg.get('spread', 'direct')
-            )
-        
-        # Set default duration if not set by effects above
-        if 'duration' not in locals():
-            duration = 1.0
-        
-        strum_result = strummer.strum(
-            float(x), float(y), float(pressure), float(tilt_x), float(tilt_y)
-        )
+        strum_result = strummer.strum(float(x), float(pressure))
         
         # Handle strum result based on type
         if strum_result:
             if strum_result.get('type') == 'strum':
-                # Use the duration calculated above
                 # Play notes from strum
                 for note_data in strum_result['notes']:
                     # Skip notes with velocity 0 (these would act as note-off in MIDI)
                     if note_data['velocity'] > 0:
-                        # Normalize velocity from 0-127 to 0-1, apply effect calculation
-                        normalized_velocity = float(note_data['velocity']) / 127.0
-                        final_velocity = int(calculate_effect_value(
-                            normalized_velocity,
-                            note_velocity_cfg.get('min', 0),
-                            note_velocity_cfg.get('max', 127),
-                            note_velocity_cfg.get('multiplier', 1.0),
-                            note_velocity_cfg.get('curve', 1.0),
-                            note_velocity_cfg.get('spread', 'direct')
-                        ))
-                        
-                        # Clamp to valid MIDI range
-                        final_velocity = max(0, min(127, final_velocity))
-                        
-                        midi.send_note(note_data['note'], final_velocity, duration)
+                        midi.send_note(note_data['note'], velocity, duration)
     
     return handle_hid_data
 

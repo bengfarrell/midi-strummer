@@ -24,7 +24,7 @@ class Strummer:
         self._notes = notes
         self.update_bounds(self._width, self._height)
 
-    def strum(self, x: float, y: float, pressure: float, tilt_x: float, tilt_y: float) -> Optional[Dict[str, Any]]:
+    def strum(self, x: float, pressure: float) -> Optional[Dict[str, Any]]:
         """Process strumming input and return dict with type and notes/velocities if triggered"""
         if len(self._notes) > 0:
             string_width = self._width / len(self._notes)
