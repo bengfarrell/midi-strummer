@@ -1,47 +1,51 @@
 {
-  "device": {
-    "product": "Deco 640",
-    "usage": 1,
-    "interface": 2,
-    "mappings": {
-      "status": { "byteIndex": 1, "max": 63, "type": "code", "values": {
-        "192": {
-          "state": "none"
-        },
-        "160": {
-          "state": "hover"
-        },
-        "162": {
-          "state": "hover",
-          "secondaryButtonPressed": true
-        },
-        "164": {
-          "state": "hover",
-          "primaryButtonPressed": true
-        },
-        "161": {
-          "state": "contact"
-        },
-        "163": {
-          "state": "contact",
-          "secondaryButtonPressed": true
-        },
-        "165": {
-          "state": "contact",
-          "primaryButtonPressed": true
-        },
-        "240": {
-          "state": "buttons"
-        }
-      }},
-      "x": { "byteIndex": 3, "max": 124, "type": "range" },
-      "y": { "byteIndex": 5, "max": 70, "type": "range" },
-      "pressure": { "byteIndex": 7, "max": 63, "type": "range" },
-      "tiltX": { "byteIndex": 8, "positiveMax": 60, "negativeMin": 256, "negativeMax": 196, "type": "wrapped-range" },
-      "tiltY": { "byteIndex": 9, "positiveMax": 60, "negativeMin": 256, "negativeMax": 196, "type": "wrapped-range" }
-    }
+  "startupConfiguration": {
+    "drawingTablet": {
+      "product": "Deco 640",
+      "usage": 1,
+      "interface": 2,
+      "byteCodeMappings": {
+        "status": { "byteIndex": 1, "max": 63, "type": "code", "values": {
+          "192": {
+            "state": "none"
+          },
+          "160": {
+            "state": "hover"
+          },
+          "162": {
+            "state": "hover",
+            "secondaryButtonPressed": true
+          },
+          "164": {
+            "state": "hover",
+            "primaryButtonPressed": true
+          },
+          "161": {
+            "state": "contact"
+          },
+          "163": {
+            "state": "contact",
+            "secondaryButtonPressed": true
+          },
+          "165": {
+            "state": "contact",
+            "primaryButtonPressed": true
+          },
+          "240": {
+            "state": "buttons"
+          }
+        }},
+        "x": { "byteIndex": 3, "max": 124, "type": "range" },
+        "y": { "byteIndex": 5, "max": 70, "type": "range" },
+        "pressure": { "byteIndex": 7, "max": 63, "type": "range" },
+        "tiltX": { "byteIndex": 8, "positiveMax": 60, "negativeMin": 256, "negativeMax": 196, "type": "wrapped-range" },
+        "tiltY": { "byteIndex": 9, "positiveMax": 60, "negativeMin": 256, "negativeMax": 196, "type": "wrapped-range" }
+      }
+    },
+    "useSocketServer": true,
+    "socketServerPort": 8080,
+    "midiInputId": "Launchkey MK4 25 MIDI Out"
   },
-  "useSocketServer": true,
   "noteDuration": {
     "min": 0.15,
     "max": 1.5,
@@ -69,9 +73,6 @@
     "control": "pressure",
     "default": 64
   },
-
-  "socketServerPort": 8080,
-  "midiInputId": "Launchkey MK4 25 MIDI Out",
   "strumming": {
     "pluckVelocityScale": 4.0,
     "pressureThreshold": 0.1,
@@ -81,9 +82,17 @@
     "lowerNoteSpread": 3
   },
   "noteRepeater": {
-    "active": true,
+    "active": false,
     "pressureMultiplier": 1.0,
     "frequencyMultiplier": 5.0
+  },
+  "transpose": {
+    "active": false,
+    "semitones": 12
+  },
+  "stylusButtons": {
+    "primaryButtonAction": "toggle-transpose",
+    "secondaryButtonAction": "toggle-repeater"
   },
   "strumRelease": {
     "maxDuration": 0.25,

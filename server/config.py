@@ -11,46 +11,50 @@ class Config:
     
     # Default configuration values
     DEFAULTS = {
-        "device": {
-            "product": "Deco 640",
-            "usage": 1,
-            "interface": 2,
-            "mappings": {
-                "status": {
-                    "byteIndex": 1,
-                    "max": 63,
-                    "type": "code",
-                    "values": {
-                        "192": {"state": "none"},
-                        "160": {"state": "hover"},
-                        "162": {"state": "hover", "secondaryButtonPressed": True},
-                        "164": {"state": "hover", "primaryButtonPressed": True},
-                        "161": {"state": "contact"},
-                        "163": {"state": "contact", "secondaryButtonPressed": True},
-                        "165": {"state": "contact", "primaryButtonPressed": True},
-                        "240": {"state": "buttons"}
+        "startupConfiguration": {
+            "drawingTablet": {
+                "product": "Deco 640",
+                "usage": 1,
+                "interface": 2,
+                "byteCodeMappings": {
+                    "status": {
+                        "byteIndex": 1,
+                        "max": 63,
+                        "type": "code",
+                        "values": {
+                            "192": {"state": "none"},
+                            "160": {"state": "hover"},
+                            "162": {"state": "hover", "secondaryButtonPressed": True},
+                            "164": {"state": "hover", "primaryButtonPressed": True},
+                            "161": {"state": "contact"},
+                            "163": {"state": "contact", "secondaryButtonPressed": True},
+                            "165": {"state": "contact", "primaryButtonPressed": True},
+                            "240": {"state": "buttons"}
+                        }
+                    },
+                    "x": {"byteIndex": 3, "max": 124, "type": "range"},
+                    "y": {"byteIndex": 5, "max": 70, "type": "range"},
+                    "pressure": {"byteIndex": 7, "max": 63, "type": "range"},
+                    "tiltX": {
+                        "byteIndex": 8,
+                        "positiveMax": 60,
+                        "negativeMin": 256,
+                        "negativeMax": 196,
+                        "type": "wrapped-range"
+                    },
+                    "tiltY": {
+                        "byteIndex": 9,
+                        "positiveMax": 60,
+                        "negativeMin": 256,
+                        "negativeMax": 196,
+                        "type": "wrapped-range"
                     }
-                },
-                "x": {"byteIndex": 3, "max": 124, "type": "range"},
-                "y": {"byteIndex": 5, "max": 70, "type": "range"},
-                "pressure": {"byteIndex": 7, "max": 63, "type": "range"},
-                "tiltX": {
-                    "byteIndex": 8,
-                    "positiveMax": 60,
-                    "negativeMin": 256,
-                    "negativeMax": 196,
-                    "type": "wrapped-range"
-                },
-                "tiltY": {
-                    "byteIndex": 9,
-                    "positiveMax": 60,
-                    "negativeMin": 256,
-                    "negativeMax": 196,
-                    "type": "wrapped-range"
                 }
-            }
+            },
+            "useSocketServer": True,
+            "socketServerPort": 8080,
+            "midiInputId": None
         },
-        "useSocketServer": True,
         "noteDuration": {
             "min": 0.15,
             "max": 1.5,
@@ -78,8 +82,6 @@ class Config:
             "control": "pressure",
             "default": 64
         },
-        "socketServerPort": 8080,
-        "midiInputId": None,
         "strumming": {
             "pluckVelocityScale": 4.0,
             "pressureThreshold": 0.1,
@@ -92,6 +94,14 @@ class Config:
             "active": False,
             "pressureMultiplier": 1.0,
             "frequencyMultiplier": 1.0
+        },
+        "transpose": {
+            "active": False,
+            "semitones": 12
+        },
+        "stylusButtons": {
+            "primaryButtonAction": "toggle-transpose",
+            "secondaryButtonAction": "toggle-repeater"
         },
         "strumRelease": {
             "midiNote": 38,
@@ -221,23 +231,23 @@ class Config:
     
     @property
     def device(self) -> Dict[str, Any]:
-        """Get device configuration."""
-        return self._config.get('device', {})
+        """Get drawing tablet device configuration."""
+        return self._config.get('startupConfiguration', {}).get('drawingTablet', {})
     
     @property
     def use_socket_server(self) -> bool:
         """Get whether to use socket server."""
-        return self._config.get('useSocketServer', True)
+        return self._config.get('startupConfiguration', {}).get('useSocketServer', True)
     
     @property
     def socket_server_port(self) -> int:
         """Get socket server port."""
-        return self._config.get('socketServerPort', 8080)
+        return self._config.get('startupConfiguration', {}).get('socketServerPort', 8080)
     
     @property
     def midi_input_id(self) -> Optional[str]:
         """Get MIDI input ID."""
-        return self._config.get('midiInputId')
+        return self._config.get('startupConfiguration', {}).get('midiInputId')
     
     @property
     def midi_strum_channel(self) -> Optional[int]:
@@ -276,6 +286,6 @@ class Config:
     
     @property
     def mappings(self) -> Dict[str, Any]:
-        """Get HID data mappings."""
-        return self._config.get('device', {}).get('mappings', {})
+        """Get HID byte code mappings."""
+        return self._config.get('startupConfiguration', {}).get('drawingTablet', {}).get('byteCodeMappings', {})
 

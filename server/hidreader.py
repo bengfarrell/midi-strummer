@@ -2,7 +2,7 @@
 HID Device Reader Module
 
 Handles reading data from HID devices (e.g., graphics tablets)
-and processing the raw data according to configuration mappings.
+and processing the raw data according to configuration byte code mappings.
 """
 
 import time
@@ -23,7 +23,7 @@ class HIDReader:
         
         Args:
             device: HID device object (from hid library)
-            config: Configuration instance with device mappings
+            config: Configuration instance with device byte code mappings
             data_callback: Callback function to handle processed data
         """
         self.device = device
@@ -33,7 +33,7 @@ class HIDReader:
         
     def process_device_data(self, data: bytes) -> Dict[str, Union[str, int, float]]:
         """
-        Process raw device data according to configuration mappings
+        Process raw device data according to configuration byte code mappings
         
         Args:
             data: Raw bytes from HID device
@@ -46,7 +46,7 @@ class HIDReader:
 
         result: Dict[str, Union[str, int, float]] = {}
         
-        # Process each mapping in the configuration
+        # Process each byte code mapping in the configuration
         for key, mapping in self.config.mappings.items():
             mapping_type = mapping.get('type')
             byte_index = mapping.get('byteIndex', 0)

@@ -193,7 +193,7 @@ def setup_midi_and_strummer(cfg: Config, socket_server: Optional[SocketServer] =
     
     # Use Pythonic event handler registration
     midi.on(NOTE_EVENT, handler)
-    midi.refresh_connection(cfg.get('midiInputId'))
+    midi.refresh_connection(cfg.midi_input_id)
     
     return midi
 
@@ -272,6 +272,12 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
         'is_holding': False
     }
     
+    # Track button press states to detect button down events
+    button_state = {
+        'primaryButtonPressed': False,
+        'secondaryButtonPressed': False
+    }
+    
     def handle_hid_data(result: Dict[str, Union[str, int, float]]) -> None:
         """Handle processed HID data - send MIDI messages based on strumming"""
         
@@ -281,6 +287,50 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
         pressure = result.get('pressure', 0.0)
         tilt_x = result.get('tiltX', 0.0)
         tilt_y = result.get('tiltY', 0.0)
+        
+        # Handle stylus button presses
+        primary_pressed = result.get('primaryButtonPressed', False)
+        secondary_pressed = result.get('secondaryButtonPressed', False)
+        
+        # Get stylus button configuration
+        stylus_buttons_cfg = cfg.get('stylusButtons', {})
+        
+        # Detect button down events (transition from not pressed to pressed)
+        if primary_pressed and not button_state['primaryButtonPressed']:
+            # Primary button just pressed
+            action = stylus_buttons_cfg.get('primaryButtonAction')
+            if action == 'toggle-repeater':
+                # Toggle the noteRepeater active state
+                note_repeater_cfg = cfg.get('noteRepeater', {})
+                current_active = note_repeater_cfg.get('active', False)
+                note_repeater_cfg['active'] = not current_active
+                print(f"[STYLUS] Primary button toggled repeater: {'ON' if not current_active else 'OFF'}")
+            elif action == 'toggle-transpose':
+                # Toggle the transpose active state
+                transpose_cfg = cfg.get('transpose', {})
+                current_active = transpose_cfg.get('active', False)
+                transpose_cfg['active'] = not current_active
+                print(f"[STYLUS] Primary button toggled transpose: {'ON' if not current_active else 'OFF'}")
+        
+        if secondary_pressed and not button_state['secondaryButtonPressed']:
+            # Secondary button just pressed
+            action = stylus_buttons_cfg.get('secondaryButtonAction')
+            if action == 'toggle-repeater':
+                # Toggle the noteRepeater active state
+                note_repeater_cfg = cfg.get('noteRepeater', {})
+                current_active = note_repeater_cfg.get('active', False)
+                note_repeater_cfg['active'] = not current_active
+                print(f"[STYLUS] Secondary button toggled repeater: {'ON' if not current_active else 'OFF'}")
+            elif action == 'toggle-transpose':
+                # Toggle the transpose active state
+                transpose_cfg = cfg.get('transpose', {})
+                current_active = transpose_cfg.get('active', False)
+                transpose_cfg['active'] = not current_active
+                print(f"[STYLUS] Secondary button toggled transpose: {'ON' if not current_active else 'OFF'}")
+        
+        # Update button states
+        button_state['primaryButtonPressed'] = primary_pressed
+        button_state['secondaryButtonPressed'] = secondary_pressed
         
         # Calculate all possible input values (normalized 0-1)
         y_val = float(y)
@@ -319,6 +369,11 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
         pressure_multiplier = note_repeater_cfg.get('pressureMultiplier', 1.0)
         frequency_multiplier = note_repeater_cfg.get('frequencyMultiplier', 1.0)
         
+        # Get transpose configuration
+        transpose_cfg = cfg.get('transpose', {})
+        transpose_enabled = transpose_cfg.get('active', False)
+        transpose_semitones = transpose_cfg.get('semitones', 0)
+        
         # Handle strum result based on type
         if strum_result:
             if strum_result.get('type') == 'strum':
@@ -331,7 +386,11 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
                 for note_data in strum_result['notes']:
                     # Skip notes with velocity 0 (these would act as note-off in MIDI)
                     if note_data['velocity'] > 0:
-                        midi.send_note(note_data['note'], note_data['velocity'], duration)
+                        # Apply transpose if enabled
+                        note_to_play = note_data['note']
+                        if transpose_enabled:
+                            note_to_play = note_to_play.transpose(transpose_semitones)
+                        midi.send_note(note_to_play, note_data['velocity'], duration)
             
             elif strum_result.get('type') == 'release':
                 # Stop holding - no more repeats
@@ -372,7 +431,11 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
                 
                 for note_data in repeater_state['notes']:
                     if repeat_velocity > 0:
-                        midi.send_note(note_data['note'], repeat_velocity, duration)
+                        # Apply transpose if enabled
+                        note_to_play = note_data['note']
+                        if transpose_enabled:
+                            note_to_play = note_to_play.transpose(transpose_semitones)
+                        midi.send_note(note_to_play, repeat_velocity, duration)
                 
                 repeater_state['last_repeat_time'] = current_time
     
@@ -390,8 +453,8 @@ def main():
     cfg = load_config()
     
     # Optionally start socket server
-    if cfg.get('useSocketServer', False):
-        port = cfg.get('socketServerPort', 8080)
+    if cfg.use_socket_server:
+        port = cfg.socket_server_port
         print(f"[SERVER] Starting WebSocket server on port {port}...")
         try:
             _socket_server, _event_loop, _loop_thread = start_socket_server(port, cfg)
@@ -406,8 +469,10 @@ def main():
     _midi = setup_midi_and_strummer(cfg, _socket_server)
     
     # Get tablet device (optional)
-    # Extract only device identification keys, not mappings
-    device_filter = {k: v for k, v in cfg['device'].items() if k != 'mappings'}
+    # Extract only device identification keys, not byte code mappings
+    startup_cfg = cfg.get('startupConfiguration', {})
+    drawing_tablet_cfg = startup_cfg.get('drawingTablet', {})
+    device_filter = {k: v for k, v in drawing_tablet_cfg.items() if k != 'byteCodeMappings'}
     device = get_tablet_device(device_filter)
     if not device:
         print("HID device not available - continuing with MIDI-only mode")
