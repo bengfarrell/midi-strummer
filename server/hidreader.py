@@ -47,7 +47,7 @@ class HIDReader:
         result: Dict[str, Union[str, int, float]] = {}
         
         # Process each mapping in the configuration
-        for key, mapping in self.config['mappings'].items():
+        for key, mapping in self.config.mappings.items():
             mapping_type = mapping.get('type')
             byte_index = mapping.get('byteIndex', 0)
             

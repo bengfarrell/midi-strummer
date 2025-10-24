@@ -142,10 +142,11 @@ def on_midi_note_event(event: MidiNoteEvent, cfg: Config, socket_server: Optiona
     """Handle MIDI note events - defined at module level to avoid garbage collection"""
     # Use notes from the event object instead of accessing midi.notes directly
     midi_notes = [Note.parse_notation(n) for n in event.notes]
+    strumming_cfg = cfg.get('strumming', {})
     strummer.notes = Note.fill_note_spread(
         midi_notes,
-        cfg.get('lowerNoteSpread', 0),
-        cfg.get('upperNoteSpread', 0)
+        strumming_cfg.get('lowerNoteSpread', 0),
+        strumming_cfg.get('upperNoteSpread', 0)
     )
     
     # Broadcast notes to socket server if enabled
@@ -171,16 +172,17 @@ def setup_midi_and_strummer(cfg: Config, socket_server: Optional[SocketServer] =
     )
     
     # Initialize strummer with initial notes if provided
-    if 'initialNotes' in cfg and cfg['initialNotes']:
-        initial_notes = [Note.parse_notation(n) for n in cfg['initialNotes']]
+    strumming_cfg = cfg.get('strumming', {})
+    if 'initialNotes' in strumming_cfg and strumming_cfg['initialNotes']:
+        initial_notes = [Note.parse_notation(n) for n in strumming_cfg['initialNotes']]
         strummer.notes = Note.fill_note_spread(
             initial_notes, 
-            cfg.get('lowerNoteSpread', 0), 
-            cfg.get('upperNoteSpread', 0)
+            strumming_cfg.get('lowerNoteSpread', 0), 
+            strumming_cfg.get('upperNoteSpread', 0)
         )
     
     # Setup MIDI
-    midi = Midi(midi_strum_channel=cfg.get('midiStrumChannel'))
+    midi = Midi(midi_strum_channel=cfg.get('strumming', {}).get('midiChannel'))
     
     # Create a lambda that captures cfg and socket_server
     def handler(event):
@@ -263,6 +265,13 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
     Returns:
         Callback function that processes HID data and sends MIDI messages
     """
+    # Storage for note repeater feature
+    repeater_state = {
+        'notes': [],
+        'last_repeat_time': 0,
+        'is_holding': False
+    }
+    
     def handle_hid_data(result: Dict[str, Union[str, int, float]]) -> None:
         """Handle processed HID data - send MIDI messages based on strumming"""
         
@@ -304,9 +313,20 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
         
         strum_result = strummer.strum(float(x), float(pressure))
         
+        # Get note repeater configuration
+        note_repeater_cfg = cfg.get('noteRepeater', {})
+        note_repeater_enabled = note_repeater_cfg.get('active', False)
+        pressure_multiplier = note_repeater_cfg.get('pressureMultiplier', 1.0)
+        frequency_multiplier = note_repeater_cfg.get('frequencyMultiplier', 1.0)
+        
         # Handle strum result based on type
         if strum_result:
             if strum_result.get('type') == 'strum':
+                # Store notes for repeater and mark as holding
+                repeater_state['notes'] = strum_result['notes']
+                repeater_state['is_holding'] = True
+                repeater_state['last_repeat_time'] = time.time()
+                
                 # Play notes from strum
                 for note_data in strum_result['notes']:
                     # Skip notes with velocity 0 (these would act as note-off in MIDI)
@@ -314,12 +334,16 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
                         midi.send_note(note_data['note'], note_data['velocity'], duration)
             
             elif strum_result.get('type') == 'release':
+                # Stop holding - no more repeats
+                repeater_state['is_holding'] = False
+                repeater_state['notes'] = []
+                
                 # Handle strum release - send configured MIDI note
-                strumming_cfg = cfg.get('strumming', {})
-                release_note = strumming_cfg.get('releaseMIDINote')
-                release_channel = strumming_cfg.get('releaseMIDIChannel')
-                release_max_duration = strumming_cfg.get('releaseMaxDuration', 0.25)
-                release_velocity_multiplier = strumming_cfg.get('releaseVelocityMultiplier', 1.0)
+                strum_release_cfg = cfg.get('strumRelease', {})
+                release_note = strum_release_cfg.get('midiNote')
+                release_channel = strum_release_cfg.get('midiChannel')
+                release_max_duration = strum_release_cfg.get('maxDuration', 0.25)
+                release_velocity_multiplier = strum_release_cfg.get('velocityMultiplier', 1.0)
                 
                 # Only trigger release note if duration is within the max duration threshold
                 if release_note is not None and duration <= release_max_duration:
@@ -330,6 +354,27 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
                     release_velocity = max(1, min(127, release_velocity))
                     # Send the raw MIDI note on the specified channel
                     midi.send_raw_note(release_note, release_velocity, release_channel, duration)
+        
+        # Handle note repeater - fire repeatedly while holding
+        if note_repeater_enabled and repeater_state['is_holding'] and repeater_state['notes']:
+            current_time = time.time()
+            time_since_last_repeat = current_time - repeater_state['last_repeat_time']
+            
+            # Apply frequency multiplier to duration (higher = faster repeats)
+            repeat_interval = duration / frequency_multiplier if frequency_multiplier > 0 else duration
+            
+            # Check if it's time for another repeat
+            if time_since_last_repeat >= repeat_interval:
+                # Apply pressure multiplier to velocity
+                repeat_velocity = int(velocity * pressure_multiplier)
+                # Clamp to MIDI range 1-127
+                repeat_velocity = max(1, min(127, repeat_velocity))
+                
+                for note_data in repeater_state['notes']:
+                    if repeat_velocity > 0:
+                        midi.send_note(note_data['note'], repeat_velocity, duration)
+                
+                repeater_state['last_repeat_time'] = current_time
     
     return handle_hid_data
 
@@ -361,7 +406,9 @@ def main():
     _midi = setup_midi_and_strummer(cfg, _socket_server)
     
     # Get tablet device (optional)
-    device = get_tablet_device(cfg['device'])
+    # Extract only device identification keys, not mappings
+    device_filter = {k: v for k, v in cfg['device'].items() if k != 'mappings'}
+    device = get_tablet_device(device_filter)
     if not device:
         print("HID device not available - continuing with MIDI-only mode")
         print("MIDI Strummer server started (MIDI-only mode). Press Ctrl+C to exit.")

@@ -14,7 +14,41 @@ class Config:
         "device": {
             "product": "Deco 640",
             "usage": 1,
-            "interface": 2
+            "interface": 2,
+            "mappings": {
+                "status": {
+                    "byteIndex": 1,
+                    "max": 63,
+                    "type": "code",
+                    "values": {
+                        "192": {"state": "none"},
+                        "160": {"state": "hover"},
+                        "162": {"state": "hover", "secondaryButtonPressed": True},
+                        "164": {"state": "hover", "primaryButtonPressed": True},
+                        "161": {"state": "contact"},
+                        "163": {"state": "contact", "secondaryButtonPressed": True},
+                        "165": {"state": "contact", "primaryButtonPressed": True},
+                        "240": {"state": "buttons"}
+                    }
+                },
+                "x": {"byteIndex": 3, "max": 124, "type": "range"},
+                "y": {"byteIndex": 5, "max": 70, "type": "range"},
+                "pressure": {"byteIndex": 7, "max": 63, "type": "range"},
+                "tiltX": {
+                    "byteIndex": 8,
+                    "positiveMax": 60,
+                    "negativeMin": 256,
+                    "negativeMax": 196,
+                    "type": "wrapped-range"
+                },
+                "tiltY": {
+                    "byteIndex": 9,
+                    "positiveMax": 60,
+                    "negativeMin": 256,
+                    "negativeMax": 196,
+                    "type": "wrapped-range"
+                }
+            }
         },
         "useSocketServer": True,
         "noteDuration": {
@@ -46,51 +80,24 @@ class Config:
         },
         "socketServerPort": 8080,
         "midiInputId": None,
-        "midiStrumChannel": None,
-        "initialNotes": ["C4", "E4", "G4"],
-        "upperNoteSpread": 3,
-        "lowerNoteSpread": 3,
         "strumming": {
             "pluckVelocityScale": 4.0,
             "pressureThreshold": 0.1,
-            "releaseMIDINote": 38,
-            "releaseMIDIChannel": None,
-            "releaseMaxDuration": 0.25,
-            "releaseVelocityMultiplier": 1.0
+            "midiChannel": None,
+            "initialNotes": ["C4", "E4", "G4"],
+            "upperNoteSpread": 3,
+            "lowerNoteSpread": 3
         },
-        "mappings": {
-            "status": {
-                "byteIndex": 1,
-                "max": 63,
-                "type": "code",
-                "values": {
-                    "192": {"state": "none"},
-                    "160": {"state": "hover"},
-                    "162": {"state": "hover", "secondaryButtonPressed": True},
-                    "164": {"state": "hover", "primaryButtonPressed": True},
-                    "161": {"state": "contact"},
-                    "163": {"state": "contact", "secondaryButtonPressed": True},
-                    "165": {"state": "contact", "primaryButtonPressed": True},
-                    "240": {"state": "buttons"}
-                }
-            },
-            "x": {"byteIndex": 3, "max": 124, "type": "range"},
-            "y": {"byteIndex": 5, "max": 70, "type": "range"},
-            "pressure": {"byteIndex": 7, "max": 63, "type": "range"},
-            "tiltX": {
-                "byteIndex": 8,
-                "positiveMax": 60,
-                "negativeMin": 256,
-                "negativeMax": 196,
-                "type": "wrapped-range"
-            },
-            "tiltY": {
-                "byteIndex": 9,
-                "positiveMax": 60,
-                "negativeMin": 256,
-                "negativeMax": 196,
-                "type": "wrapped-range"
-            }
+        "noteRepeater": {
+            "active": False,
+            "pressureMultiplier": 1.0,
+            "frequencyMultiplier": 1.0
+        },
+        "strumRelease": {
+            "midiNote": 38,
+            "midiChannel": None,
+            "maxDuration": 0.25,
+            "velocityMultiplier": 1.0
         }
     }
     
@@ -235,22 +242,22 @@ class Config:
     @property
     def midi_strum_channel(self) -> Optional[int]:
         """Get MIDI strum channel."""
-        return self._config.get('midiStrumChannel')
+        return self._config.get('strumming', {}).get('midiChannel')
     
     @property
     def initial_notes(self) -> list:
         """Get initial notes."""
-        return self._config.get('initialNotes', ["C4", "E4", "G4"])
+        return self._config.get('strumming', {}).get('initialNotes', ["C4", "E4", "G4"])
     
     @property
     def upper_note_spread(self) -> int:
         """Get upper note spread."""
-        return self._config.get('upperNoteSpread', 3)
+        return self._config.get('strumming', {}).get('upperNoteSpread', 3)
     
     @property
     def lower_note_spread(self) -> int:
         """Get lower note spread."""
-        return self._config.get('lowerNoteSpread', 3)
+        return self._config.get('strumming', {}).get('lowerNoteSpread', 3)
     
     @property
     def note_duration(self) -> Dict[str, Any]:
@@ -270,5 +277,5 @@ class Config:
     @property
     def mappings(self) -> Dict[str, Any]:
         """Get HID data mappings."""
-        return self._config.get('mappings', {})
+        return self._config.get('device', {}).get('mappings', {})
 

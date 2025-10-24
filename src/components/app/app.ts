@@ -58,14 +58,14 @@ export class StrummerApp extends LitElement {
 
                 case 'config':
                     const config = data.config;
-                    if (config.upperNoteSpread) {
-                        this.upperNoteSpread = config.upperNoteSpread;
+                    if (config.strumming?.upperNoteSpread !== undefined) {
+                        this.upperNoteSpread = config.strumming.upperNoteSpread;
                     }
-                    if (config.lowerNoteSpread) {
-                        this.lowerNoteSpread = config.lowerNoteSpread;
+                    if (config.strumming?.lowerNoteSpread !== undefined) {
+                        this.lowerNoteSpread = config.strumming.lowerNoteSpread;
                     }
-                    if (config.midiStrumChannel) {
-                        this.midiStrumChannel = config.midiStrumChannel;
+                    if (config.strumming?.midiChannel !== undefined) {
+                        this.midiStrumChannel = config.strumming.midiChannel;
                     }
                     if (config.allowPitchBend) {
                         this.allowPitchBend = config.allowPitchBend;
@@ -109,7 +109,7 @@ export class StrummerApp extends LitElement {
                 <sp-field-label>Octave Spread Lower</sp-field-label>
                 <sp-number-field 
                     @input=${(ev: InputEvent) => {
-                        this.updateServerConfig( { lowerNoteSpread: Number((ev.target as HTMLInputElement).value) });
+                        this.updateServerConfig( { "strumming.lowerNoteSpread": Number((ev.target as HTMLInputElement).value) });
                     }}
                     label="Octave Spread Lower"
                     value=${this.lowerNoteSpread} 
@@ -118,7 +118,7 @@ export class StrummerApp extends LitElement {
                 <sp-field-label>Octave Spread Higher</sp-field-label>
                 <sp-number-field
                     @input=${(ev: InputEvent) => {
-                        this.updateServerConfig( { upperNoteSpread: Number((ev.target as HTMLInputElement).value) });
+                        this.updateServerConfig( { "strumming.upperNoteSpread": Number((ev.target as HTMLInputElement).value) });
                     }}
                     label="Octave Spread Higher" 
                     value=${this.upperNoteSpread} 
@@ -128,7 +128,7 @@ export class StrummerApp extends LitElement {
                 <sp-field-label>Strum Channel</sp-field-label>
                 <sp-picker value=${this.midiStrumChannel} @change=${(ev: InputEvent) => {
                     const val = Number((ev.target as HTMLInputElement).value);
-                            this.updateServerConfig( { midiStrumChannel: val === -1 ? undefined : val });
+                            this.updateServerConfig( { "strumming.midiChannel": val === -1 ? undefined : val });
                         }}>
                         <sp-menu-item value=-1>Send on all channels</sp-menu-item>
                         ${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].map(channel => (
