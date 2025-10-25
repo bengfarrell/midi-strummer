@@ -19,6 +19,7 @@ from socketserver import SocketServer
 from hidreader import HIDReader
 from datahelpers import apply_effect
 from config import Config
+from actions import Actions
 
 # Global references for cleanup
 _hid_reader = None
@@ -289,6 +290,9 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
     Returns:
         Callback function that processes HID data and sends MIDI messages
     """
+    # Create actions handler
+    actions = Actions(cfg)
+    
     # Storage for note repeater feature
     repeater_state = {
         'notes': [],
@@ -301,6 +305,9 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
         'primaryButtonPressed': False,
         'secondaryButtonPressed': False
     }
+    
+    # Track tablet button states (buttons 1-8)
+    tablet_button_state = {f'button{i}': False for i in range(1, 9)}
     
     def handle_hid_data(result: Dict[str, Union[str, int, float]]) -> None:
         """Handle processed HID data - send MIDI messages based on strumming"""
@@ -323,38 +330,32 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
         if primary_pressed and not button_state['primaryButtonPressed']:
             # Primary button just pressed
             action = stylus_buttons_cfg.get('primaryButtonAction')
-            if action == 'toggle-repeater':
-                # Toggle the noteRepeater active state
-                note_repeater_cfg = cfg.get('noteRepeater', {})
-                current_active = note_repeater_cfg.get('active', False)
-                note_repeater_cfg['active'] = not current_active
-                print(f"[STYLUS] Primary button toggled repeater: {'ON' if not current_active else 'OFF'}")
-            elif action == 'toggle-transpose':
-                # Toggle the transpose active state
-                transpose_cfg = cfg.get('transpose', {})
-                current_active = transpose_cfg.get('active', False)
-                transpose_cfg['active'] = not current_active
-                print(f"[STYLUS] Primary button toggled transpose: {'ON' if not current_active else 'OFF'}")
+            actions.execute(action, context={'button': 'Primary'})
         
         if secondary_pressed and not button_state['secondaryButtonPressed']:
             # Secondary button just pressed
             action = stylus_buttons_cfg.get('secondaryButtonAction')
-            if action == 'toggle-repeater':
-                # Toggle the noteRepeater active state
-                note_repeater_cfg = cfg.get('noteRepeater', {})
-                current_active = note_repeater_cfg.get('active', False)
-                note_repeater_cfg['active'] = not current_active
-                print(f"[STYLUS] Secondary button toggled repeater: {'ON' if not current_active else 'OFF'}")
-            elif action == 'toggle-transpose':
-                # Toggle the transpose active state
-                transpose_cfg = cfg.get('transpose', {})
-                current_active = transpose_cfg.get('active', False)
-                transpose_cfg['active'] = not current_active
-                print(f"[STYLUS] Secondary button toggled transpose: {'ON' if not current_active else 'OFF'}")
+            actions.execute(action, context={'button': 'Secondary'})
         
         # Update button states
         button_state['primaryButtonPressed'] = primary_pressed
         button_state['secondaryButtonPressed'] = secondary_pressed
+        
+        # Handle tablet button presses (buttons 1-8)
+        tablet_buttons_cfg = cfg.get('tabletButtons', {})
+        for i in range(1, 9):
+            button_key = f'button{i}'
+            button_pressed = result.get(button_key, False)
+            
+            # Detect button down event (transition from not pressed to pressed)
+            if button_pressed and not tablet_button_state[button_key]:
+                # Button just pressed - execute configured action
+                action = tablet_buttons_cfg.get(str(i))
+                if action:
+                    actions.execute(action, context={'button': f'Tablet{i}'})
+            
+            # Update tablet button state
+            tablet_button_state[button_key] = button_pressed
         
         # Calculate all possible input values (normalized 0-1)
         y_val = float(y)
@@ -393,10 +394,9 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
         pressure_multiplier = note_repeater_cfg.get('pressureMultiplier', 1.0)
         frequency_multiplier = note_repeater_cfg.get('frequencyMultiplier', 1.0)
         
-        # Get transpose configuration
-        transpose_cfg = cfg.get('transpose', {})
-        transpose_enabled = transpose_cfg.get('active', False)
-        transpose_semitones = transpose_cfg.get('semitones', 0)
+        # Get transpose state from actions
+        transpose_enabled = actions.is_transpose_active()
+        transpose_semitones = actions.get_transpose_semitones()
         
         # Handle strum result based on type
         if strum_result:

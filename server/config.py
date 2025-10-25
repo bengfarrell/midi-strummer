@@ -122,6 +122,8 @@ class Config:
         """
         # Process device driver profiles before merging
         processed_config = self._process_device_drivers(config_dict or {})
+        # Expand chord progression presets for tabletButtons
+        processed_config = self._expand_chord_progressions(processed_config)
         self._config = self._deep_merge(self.DEFAULTS.copy(), processed_config)
     
     @classmethod
@@ -303,6 +305,54 @@ class Config:
                     print(f"[Config] Failed to load driver '{driver_name}', using defaults")
                     # Remove the invalid reference
                     del processed['startupConfiguration']['drawingTablet']
+        
+        return processed
+    
+    def _expand_chord_progressions(self, config_dict: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Expand chord progression preset references in tabletButtons configuration.
+        
+        If tabletButtons is a string (progression name), expand it to individual button actions.
+        Otherwise, leave as-is to support custom button configurations.
+        
+        Args:
+            config_dict: Configuration dictionary to process
+            
+        Returns:
+            Processed configuration with progressions expanded
+        """
+        # Import here to avoid circular dependency
+        from note import Note
+        
+        # Load chord progressions if not already loaded
+        Note.load_chord_progressions()
+        
+        # Create a copy to avoid modifying the original
+        processed = config_dict.copy()
+        
+        # Check if tabletButtons exists and is a string
+        if 'tabletButtons' in processed and isinstance(processed['tabletButtons'], str):
+            progression_name = processed['tabletButtons']
+            
+            # Look up the progression
+            if progression_name in Note.chord_progressions:
+                chords = Note.chord_progressions[progression_name]
+                print(f"[Config] Loading chord progression preset: {progression_name}")
+                
+                # Expand to individual button actions (8 buttons)
+                # Wrap around if there are fewer chords than buttons
+                num_buttons = 8
+                expanded = {}
+                for i in range(1, num_buttons + 1):
+                    # Use modulo to wrap around to the beginning of the chord list
+                    chord_index = (i - 1) % len(chords)
+                    expanded[str(i)] = ["set-strum-chord", chords[chord_index]]
+                
+                processed['tabletButtons'] = expanded
+            else:
+                print(f"[Config] Unknown chord progression '{progression_name}', ignoring")
+                # Remove invalid reference
+                del processed['tabletButtons']
         
         return processed
     

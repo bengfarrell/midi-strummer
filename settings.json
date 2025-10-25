@@ -45,14 +45,11 @@
     "pressureMultiplier": 1.0,
     "frequencyMultiplier": 5.0
   },
-  "transpose": {
-    "active": false,
-    "semitones": 12
-  },
   "stylusButtons": {
-    "primaryButtonAction": "toggle-transpose",
-    "secondaryButtonAction": "toggle-repeater"
+    "primaryButtonAction": ["transpose", 12],
+    "secondaryButtonAction": ["toggle-repeater"]
   },
+  "tabletButtons": "c-major-pop",
   "strumRelease": {
     "maxDuration": 0.25,
     "velocityMultiplier": 2,

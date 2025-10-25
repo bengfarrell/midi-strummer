@@ -1,6 +1,8 @@
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 import math
+import json
+import os
 
 
 @dataclass
@@ -63,7 +65,51 @@ class Note:
     
     # Corrected notations
     corrected_notations = ["C", "C", "F", "F"]
+    
+    # Chord progression presets (loaded from JSON file)
+    chord_progressions: Dict[str, List[str]] = {}
+    
+    # Track if progressions have been loaded
+    _progressions_loaded = False
 
+    @classmethod
+    def load_chord_progressions(cls) -> None:
+        """
+        Load chord progressions from JSON file.
+        Called automatically on first access, but can be called manually.
+        """
+        if cls._progressions_loaded:
+            return
+        
+        # Find the chord_progressions.json file
+        # Check in the same directory as this file
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        progressions_file = os.path.join(current_dir, 'chord_progressions.json')
+        
+        if not os.path.exists(progressions_file):
+            print(f"[NOTE] Warning: chord_progressions.json not found at {progressions_file}")
+            print("[NOTE] Chord progression presets will not be available")
+            cls._progressions_loaded = True
+            return
+        
+        try:
+            with open(progressions_file, 'r') as f:
+                progressions_data = json.load(f)
+            
+            # Flatten the nested structure (categories -> progressions)
+            for category, progressions in progressions_data.items():
+                cls.chord_progressions.update(progressions)
+            
+            cls._progressions_loaded = True
+            print(f"[NOTE] Loaded {len(cls.chord_progressions)} chord progression presets")
+            
+        except json.JSONDecodeError as e:
+            print(f"[NOTE] Error parsing chord_progressions.json: {e}")
+            cls._progressions_loaded = True
+        except Exception as e:
+            print(f"[NOTE] Error loading chord_progressions.json: {e}")
+            cls._progressions_loaded = True
+    
     @classmethod
     def index_of_notation(cls, notation: str) -> int:
         """Get notation index when notation is either flat or sharp"""
@@ -218,6 +264,85 @@ class Note:
             cls.keys[key] = cls.notes_in_key_signature(key, True)
             cls.keys[key + 'm'] = cls.notes_in_key_signature(key, False)
 
+    @classmethod
+    def parse_chord(cls, chord_notation: str, octave: int = 4) -> List[NoteObject]:
+        """
+        Parse a chord notation into a list of notes.
+        
+        Args:
+            chord_notation: Chord notation (e.g., "C", "Gm", "Am7", "Fmaj7", "Ddim", "Esus4")
+            octave: Base octave for the root note (default: 4)
+            
+        Returns:
+            List of NoteObject instances representing the chord
+        """
+        # Define chord intervals (semitones from root)
+        chord_intervals = {
+            # Triads
+            'maj': [0, 4, 7],           # Major triad
+            'min': [0, 3, 7],           # Minor triad
+            'm': [0, 3, 7],             # Minor triad (short form)
+            'dim': [0, 3, 6],           # Diminished triad
+            'aug': [0, 4, 8],           # Augmented triad
+            'sus2': [0, 2, 7],          # Suspended 2nd
+            'sus4': [0, 5, 7],          # Suspended 4th
+            '5': [0, 7],                # Power chord (root + fifth)
+            
+            # Seventh chords
+            '7': [0, 4, 7, 10],         # Dominant 7th
+            'maj7': [0, 4, 7, 11],      # Major 7th
+            'min7': [0, 3, 7, 10],      # Minor 7th
+            'm7': [0, 3, 7, 10],        # Minor 7th (short form)
+            'dim7': [0, 3, 6, 9],       # Diminished 7th
+            'aug7': [0, 4, 8, 10],      # Augmented 7th
+            'maj9': [0, 4, 7, 11, 14],  # Major 9th
+            'min9': [0, 3, 7, 10, 14],  # Minor 9th
+            'm9': [0, 3, 7, 10, 14],    # Minor 9th (short form)
+            '9': [0, 4, 7, 10, 14],     # Dominant 9th
+            
+            # Extended chords
+            'add9': [0, 4, 7, 14],      # Major add 9
+            '6': [0, 4, 7, 9],          # Major 6th
+            'min6': [0, 3, 7, 9],       # Minor 6th
+            'm6': [0, 3, 7, 9],         # Minor 6th (short form)
+        }
+        
+        # Parse the root note and chord type
+        # Extract root note (first 1-2 characters)
+        if len(chord_notation) >= 2 and chord_notation[1] in ['#', 'b']:
+            root = chord_notation[:2]
+            chord_type = chord_notation[2:]
+        else:
+            root = chord_notation[0]
+            chord_type = chord_notation[1:]
+        
+        # Default to major triad if no chord type specified
+        if not chord_type:
+            chord_type = 'maj'
+        
+        # Get the intervals for this chord type
+        intervals = chord_intervals.get(chord_type)
+        if intervals is None:
+            # Unknown chord type, default to major triad
+            print(f"[NOTE] Unknown chord type '{chord_type}', defaulting to major triad")
+            intervals = chord_intervals['maj']
+        
+        # Parse the root note
+        root_note = cls.parse_notation(root + str(octave))
+        root_index = cls.index_of_notation(root_note.notation)
+        
+        # Build the chord notes
+        chord_notes = []
+        for interval in intervals:
+            note_index = (root_index + interval) % 12
+            # Calculate which octave this note should be in
+            note_octave = octave + (root_index + interval) // 12
+            
+            notation = cls.sharp_notations[note_index]
+            chord_notes.append(NoteObject(notation=notation, octave=note_octave))
+        
+        return chord_notes
+    
     @classmethod
     def fill_note_spread(cls, notes: List[NoteObject], lower_spread: int = 0, upper_spread: int = 0) -> List[NoteObject]:
         """Fill note spread with upper and lower notes"""
