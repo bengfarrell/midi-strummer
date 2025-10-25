@@ -1,9 +1,134 @@
 import sys
-from typing import Dict, Optional, Any
+import time
+import threading
+from typing import Dict, Optional, Any, List, Tuple, Callable
 
 import hid
 
 DEBUG = False
+
+
+def _normalize_filter_key(filter_key: str) -> str:
+    """Convert filter key to HID device info key."""
+    key_mapping = {
+        'vendorId': 'vendor_id',
+        'productId': 'product_id',
+        'product': 'product_string',
+        'usage': 'usage',
+        'interface': 'interface_number'
+    }
+    return key_mapping.get(filter_key, filter_key)
+
+
+def _device_matches_filter(device_info: Dict[str, Any], filter_values: Dict[str, Any]) -> bool:
+    """
+    Check if a device matches the given filter criteria.
+    
+    Args:
+        device_info: HID device information
+        filter_values: Filter criteria to match against
+        
+    Returns:
+        True if device matches all filter criteria
+    """
+    for filter_key, filter_value in filter_values.items():
+        device_key = _normalize_filter_key(filter_key)
+        
+        if device_key not in device_info:
+            return False
+        
+        device_value = device_info[device_key]
+        
+        # Handle hex string values (e.g., "0x28bd")
+        if isinstance(filter_value, str) and filter_value.startswith('0x'):
+            try:
+                filter_int = int(filter_value, 16)
+                if device_value != filter_int:
+                    return False
+            except ValueError:
+                return False
+        # Handle integer comparisons
+        elif isinstance(device_value, int) and isinstance(filter_value, str) and filter_value.isdigit():
+            if device_value != int(filter_value):
+                return False
+        elif isinstance(device_value, int) and isinstance(filter_value, int):
+            if device_value != filter_value:
+                return False
+        # Handle string comparisons
+        elif str(device_value) != str(filter_value):
+            return False
+    
+    return True
+
+
+def find_and_open_device(tablet_config: Dict[str, Any]) -> Optional[Any]:
+    """
+    Find and open a tablet device based on config.
+    Handles filtering out byteCodeMappings and metadata automatically.
+    
+    Args:
+        tablet_config: Drawing tablet configuration (from startupConfiguration.drawingTablet)
+        
+    Returns:
+        Opened HID device, or None if not found
+    """
+    if not tablet_config:
+        print("[FindDevice] No tablet configuration provided")
+        return None
+    
+    # Extract only device identification keys, not byte code mappings or metadata
+    device_filter = {k: v for k, v in tablet_config.items() 
+                    if k not in ['byteCodeMappings', '_driverName', '_driverInfo']}
+    
+    if not device_filter:
+        print("[FindDevice] No device filter criteria found in config")
+        return None
+    
+    return get_tablet_device(device_filter)
+
+
+def auto_detect_device(driver_profiles: List[Tuple[str, Dict[str, Any]]]) -> Optional[str]:
+    """
+    Auto-detect which driver profile matches a connected HID device.
+    
+    Args:
+        driver_profiles: List of (driver_name, driver_config) tuples
+        
+    Returns:
+        Driver name if a match is found, None otherwise
+    """
+    if not driver_profiles:
+        print("[FindDevice] No driver profiles provided for auto-detection")
+        return None
+    
+    print(f"[FindDevice] Auto-detecting device...")
+    
+    # Get all connected HID devices
+    try:
+        devices = hid.enumerate()
+        print(f"[FindDevice] Found {len(devices)} HID devices")
+    except Exception as e:
+        print(f"[FindDevice] Error enumerating HID devices: {e}")
+        return None
+    
+    print(f"[FindDevice] Checking against {len(driver_profiles)} driver profiles...")
+    
+    # Try to match each device against each driver
+    for device_info in devices:
+        for driver_name, driver_config in driver_profiles:
+            # Get deviceInfo filter from driver config
+            if 'deviceInfo' not in driver_config:
+                continue
+            
+            device_filter = driver_config['deviceInfo']
+            
+            if _device_matches_filter(device_info, device_filter):
+                device_name = driver_config.get('name', driver_name)
+                print(f"[FindDevice] ✓ Auto-detected: {device_name} (driver: {driver_name})")
+                return driver_name
+    
+    print("[FindDevice] No matching driver profile found for connected devices")
+    return None
 
 def get_tablet_device(filter_values: Dict[str, str]) -> Optional[Any]:
     try:
@@ -25,61 +150,14 @@ def get_tablet_device(filter_values: Dict[str, str]) -> Optional[Any]:
     except Exception as e:
         print(f'Error enumerating HID devices: {e}')
         return None
-
-    print(f"Looking for device with filters: {filter_values}")
     
     # Filter devices based on the provided criteria
     matching_devices = []
     for i, device_info in enumerate(devices):
-        matches = True
         if DEBUG:
             print(f"\nChecking device {i}: {device_info.get('product_string', 'Unknown')}")
         
-        for filter_key, filter_value in filter_values.items():
-            # Convert filter_key to match HID device info keys
-            device_key = filter_key
-            if filter_key == 'vendorId':
-                device_key = 'vendor_id'
-            elif filter_key == 'productId':
-                device_key = 'product_id'
-            elif filter_key == 'product':
-                device_key = 'product_string'
-            elif filter_key == 'usage':
-                device_key = 'usage'
-            elif filter_key == 'interface':
-                device_key = 'interface_number'
-            # usage and interface are also valid keys in HID device info
-            
-            if device_key in device_info:
-                # Handle both string and integer comparisons
-                device_value = device_info[device_key]
-
-                # Handle hex string values (common in settings.json)
-                if isinstance(filter_value, str) and filter_value.startswith('0x'):
-                    try:
-                        filter_int = int(filter_value, 16)
-                        if device_value != filter_int:
-                            matches = False
-                            break
-                    except ValueError:
-                        matches = False
-                        break
-                elif isinstance(device_value, int) and isinstance(filter_value, str) and filter_value.isdigit():
-                    if device_value != int(filter_value):
-                        matches = False
-                        break
-                elif isinstance(device_value, int) and isinstance(filter_value, int):
-                    if device_value != filter_value:
-                        matches = False
-                        break
-                elif str(device_value) != str(filter_value):
-                    matches = False
-                    break
-            else:
-                matches = False
-                break
-        
-        if matches:
+        if _device_matches_filter(device_info, filter_values):
             matching_devices.append(device_info)
 
     if not matching_devices:
@@ -130,4 +208,119 @@ def get_tablet_device(filter_values: Dict[str, str]) -> Optional[Any]:
             return None
     
     return None
+
+
+class HotplugMonitor:
+    """
+    Monitors for USB device hotplug events and notifies when a matching device is connected.
+    """
+    
+    def __init__(self, driver_profiles: List[Tuple[str, Dict[str, Any]]], 
+                 on_device_connected: Callable[[str, Dict[str, Any], Any], None],
+                 check_interval: float = 2.0):
+        """
+        Initialize hotplug monitor.
+        
+        Args:
+            driver_profiles: List of (driver_name, driver_config) tuples to match against
+            on_device_connected: Callback(driver_name, driver_config, device) when device is found
+            check_interval: How often to check for new devices (seconds)
+        """
+        self.driver_profiles = driver_profiles
+        self.on_device_connected = on_device_connected
+        self.check_interval = check_interval
+        self._running = False
+        self._thread = None
+        self._known_devices = set()
+        
+        print(f"[Hotplug] Monitor initialized, checking every {check_interval}s")
+    
+    def start(self):
+        """Start monitoring for device connections."""
+        if self._running:
+            print("[Hotplug] Monitor already running")
+            return
+        
+        self._running = True
+        self._thread = threading.Thread(target=self._monitor_loop, daemon=True)
+        self._thread.start()
+        print("[Hotplug] Monitor started")
+    
+    def stop(self):
+        """Stop monitoring for device connections."""
+        if not self._running:
+            return
+        
+        print("[Hotplug] Stopping monitor...")
+        self._running = False
+        if self._thread:
+            self._thread.join(timeout=self.check_interval + 1.0)
+        print("[Hotplug] Monitor stopped")
+    
+    def _get_device_id(self, device_info: Dict[str, Any]) -> str:
+        """Generate a unique ID for a device."""
+        # Use path if available, otherwise use vendor/product/interface
+        if 'path' in device_info and device_info['path']:
+            return device_info['path'].decode('utf-8') if isinstance(device_info['path'], bytes) else str(device_info['path'])
+        
+        return f"{device_info.get('vendor_id', 0)}:{device_info.get('product_id', 0)}:{device_info.get('interface_number', -1)}"
+    
+    def _monitor_loop(self):
+        """Main monitoring loop running in background thread."""
+        # Initial scan to populate known devices
+        try:
+            devices = hid.enumerate()
+            for device_info in devices:
+                device_id = self._get_device_id(device_info)
+                self._known_devices.add(device_id)
+        except Exception as e:
+            print(f"[Hotplug] Error during initial scan: {e}")
+        
+        while self._running:
+            try:
+                # Check for new devices
+                current_devices = hid.enumerate()
+                current_device_ids = set()
+                
+                for device_info in current_devices:
+                    device_id = self._get_device_id(device_info)
+                    current_device_ids.add(device_id)
+                    
+                    # Check if this is a newly connected device
+                    if device_id not in self._known_devices:
+                        print(f"[Hotplug] New device detected: {device_info.get('product_string', 'Unknown')}")
+                        
+                        # Check if it matches any driver profile
+                        for driver_name, driver_config in self.driver_profiles:
+                            if 'deviceInfo' not in driver_config:
+                                continue
+                            
+                            device_filter = driver_config['deviceInfo']
+                            if _device_matches_filter(device_info, device_filter):
+                                device_name = driver_config.get('name', driver_name)
+                                print(f"[Hotplug] ✓ Matched driver: {device_name}")
+                                
+                                # Try to open the device
+                                try:
+                                    device = hid.device()
+                                    if 'path' in device_info and device_info['path']:
+                                        device.open_path(device_info['path'])
+                                    else:
+                                        device.open(device_info['vendor_id'], device_info['product_id'])
+                                    
+                                    # Notify callback
+                                    self.on_device_connected(driver_name, driver_config, device)
+                                    break  # Stop checking other profiles for this device
+                                    
+                                except Exception as e:
+                                    print(f"[Hotplug] Error opening device: {e}")
+                
+                # Update known devices
+                self._known_devices = current_device_ids
+                
+            except Exception as e:
+                print(f"[Hotplug] Error during monitoring: {e}")
+            
+            # Wait before next check
+            time.sleep(self.check_interval)
 

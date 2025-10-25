@@ -10,10 +10,48 @@ def parse_range_data(data: List[int], byte_index: int, min_val: int = 0, max_val
     return (value - min_val) / (max_val - min_val)
 
 
-def parse_wrapped_range_data(data: List[int], byte_index: int, 
+def parse_multi_byte_range_data(data: List[int], byte_indices: List[int], 
+                                 min_val: int = 0, max_val: int = 0) -> float:
+    """
+    Parse multi-byte range data from byte array.
+    
+    Combines multiple bytes (typically low byte + high byte) into a single value.
+    For example, for 14-bit pressure: value = low_byte + (high_byte << 8)
+    
+    Args:
+        data: List of byte values
+        byte_indices: List of byte indices to combine [low_byte_index, high_byte_index, ...]
+        min_val: Minimum value in the combined range
+        max_val: Maximum value in the combined range
+        
+    Returns:
+        Normalized float value (0.0 to 1.0)
+    """
+    if not byte_indices:
+        return 0.0
+    
+    # Combine bytes: each subsequent byte is shifted by 8 bits more
+    value = 0
+    for i, byte_idx in enumerate(byte_indices):
+        if byte_idx < len(data):
+            value += data[byte_idx] << (8 * i)
+    
+    if max_val == min_val:
+        return 0.0
+    
+    return (value - min_val) / (max_val - min_val)
+
+
+def parse_bipolar_range_data(data: List[int], byte_index: int, 
                            pos_min: int = 0, pos_max: int = 0, 
                            neg_min: int = 0, neg_max: int = 0) -> float:
-    """Parse wrapped range data from byte array"""
+    """
+    Parse bipolar range data from byte array.
+    
+    Handles values that have both positive and negative ranges where byte values
+    "wrap around" at the byte boundary (e.g., 0-60 = positive, 196-255 = negative).
+    Common for tilt sensors and other bipolar controls.
+    """
     value = data[byte_index]
     if value < neg_max:
         if pos_max == pos_min:
@@ -41,6 +79,35 @@ def parse_code(data: List[int], byte_index: int, values) -> Union[int, float, di
         return values[code]
     
     return 0
+
+
+def parse_bit_flags(data: List[int], byte_index: int, button_count: int = 8) -> Dict[str, bool]:
+    """
+    Parse bit flags from a byte into individual button states.
+    
+    Each bit represents a button (0=released, 1=pressed).
+    For example, byte value 5 (binary 0b00000101) means buttons 1 and 3 are pressed.
+    
+    Args:
+        data: List of byte values
+        byte_index: Index of the byte containing button flags
+        button_count: Number of buttons to parse (default: 8)
+        
+    Returns:
+        Dictionary with button states: {'button1': True, 'button2': False, ...}
+    """
+    if byte_index >= len(data):
+        return {}
+    
+    flags = data[byte_index]
+    result = {}
+    
+    for i in range(button_count):
+        button_key = f'button{i + 1}'
+        # Check if bit i is set (button is pressed)
+        result[button_key] = bool(flags & (1 << i))
+    
+    return result
 
 
 def apply_curve(value: float, curve: float = 1.0, input_range: tuple = (0.0, 1.0)) -> float:

@@ -10,7 +10,7 @@ import math
 from typing import Dict, Any, Union, Optional, Callable
 from dataclasses import asdict
 
-from finddevice import get_tablet_device
+from finddevice import find_and_open_device, HotplugMonitor
 from strummer import strummer
 from midi import Midi
 from midievent import MidiNoteEvent, NOTE_EVENT
@@ -26,13 +26,23 @@ _midi = None
 _socket_server = None
 _event_loop = None
 _loop_thread = None
+_hotplug_monitor = None
 
 
 def cleanup_resources():
     """Clean up device and MIDI resources"""
-    global _hid_reader, _midi, _socket_server, _event_loop, _loop_thread
+    global _hid_reader, _midi, _socket_server, _event_loop, _loop_thread, _hotplug_monitor
     
     print("\nCleaning up resources...")
+    
+    # Stop hotplug monitor first
+    if _hotplug_monitor is not None:
+        try:
+            _hotplug_monitor.stop()
+            _hotplug_monitor = None
+        except Exception as e:
+            print(f"Error stopping hotplug monitor: {e}")
+            _hotplug_monitor = None
     
     # Close socket server first
     if _socket_server is not None:
@@ -138,6 +148,26 @@ def load_config() -> Config:
     return Config.from_file(settings_path)
 
 
+def broadcast_to_socket(socket_server: Optional[SocketServer], message_type: str, data: Dict[str, Any]) -> None:
+    """
+    Broadcast a typed message to the WebSocket server.
+    
+    Args:
+        socket_server: Socket server instance (or None)
+        message_type: Message type (e.g., 'notes', 'warning', 'config')
+        data: Message data payload
+    """
+    if socket_server is not None:
+        try:
+            message = json.dumps({
+                'type': message_type,
+                **data
+            })
+            socket_server.send_message_sync(message)
+        except Exception as e:
+            print(f"[SERVER] Error broadcasting to WebSocket: {e}")
+
+
 def on_midi_note_event(event: MidiNoteEvent, cfg: Config, socket_server: Optional[SocketServer] = None):
     """Handle MIDI note events - defined at module level to avoid garbage collection"""
     # Use notes from the event object instead of accessing midi.notes directly
@@ -150,16 +180,10 @@ def on_midi_note_event(event: MidiNoteEvent, cfg: Config, socket_server: Optiona
     )
     
     # Broadcast notes to socket server if enabled
-    if socket_server is not None:
-        try:
-            message = json.dumps({
-                'type': 'notes',
-                'notes': [asdict(note) for note in strummer.notes],
-                'timestamp': time.time()
-            })
-            socket_server.send_message_sync(message)
-        except Exception as e:
-            print(f"[SERVER] Error broadcasting to WebSocket: {e}")
+    broadcast_to_socket(socket_server, 'notes', {
+        'notes': [asdict(note) for note in strummer.notes],
+        'timestamp': time.time()
+    })
 
 
 def setup_midi_and_strummer(cfg: Config, socket_server: Optional[SocketServer] = None) -> Midi:
@@ -444,7 +468,7 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
 
 def main():
     """Main application entry point"""
-    global _hid_reader, _midi, _socket_server, _event_loop, _loop_thread
+    global _hid_reader, _midi, _socket_server, _event_loop, _loop_thread, _hotplug_monitor
     
     # Register cleanup function to run on exit
     atexit.register(cleanup_resources)
@@ -468,20 +492,107 @@ def main():
     # Setup MIDI and strummer
     _midi = setup_midi_and_strummer(cfg, _socket_server)
     
+    # Create callback for hotplug device connection
+    def on_device_plugged_in(driver_name: str, driver_config: Dict[str, Any], device):
+        """Handle device connection from hotplug monitor"""
+        global _hid_reader
+        
+        device_name = driver_config.get('name', driver_name)
+        print(f"\n[Hotplug] Device connected: {device_name}")
+        
+        # Notify via websocket
+        broadcast_to_socket(_socket_server, 'device_connected', {
+            'device': device_name,
+            'driver': driver_name
+        })
+        
+        # Stop existing HID reader if any
+        if _hid_reader is not None:
+            try:
+                _hid_reader.stop()
+                _hid_reader.close()
+            except:
+                pass
+        
+        # Update config with new device configuration
+        startup_cfg = cfg.get('startupConfiguration', {})
+        
+        # Merge device info and byte mappings into drawing tablet config
+        tablet_config = {}
+        if 'deviceInfo' in driver_config:
+            tablet_config.update(driver_config['deviceInfo'])
+        if 'byteCodeMappings' in driver_config:
+            tablet_config['byteCodeMappings'] = driver_config['byteCodeMappings']
+        tablet_config['_driverName'] = driver_name
+        tablet_config['_driverInfo'] = {
+            'name': driver_config.get('name'),
+            'manufacturer': driver_config.get('manufacturer'),
+            'model': driver_config.get('model')
+        }
+        
+        startup_cfg['drawingTablet'] = tablet_config
+        
+        # Create HID reader with the new device
+        data_handler = create_hid_data_handler(cfg, _midi)
+        _hid_reader = HIDReader(
+            device, 
+            cfg, 
+            data_handler, 
+            warning_callback=lambda msg: broadcast_to_socket(_socket_server, 'warning', {'message': msg})
+        )
+        
+        # Start reading in a background thread
+        import threading
+        def start_reading():
+            try:
+                _hid_reader.start_reading()
+            except Exception as e:
+                print(f"[Hotplug] Error starting HID reader: {e}")
+        
+        read_thread = threading.Thread(target=start_reading, daemon=True)
+        read_thread.start()
+        
+        print(f"[Hotplug] Now using {device_name} for input")
+    
     # Get tablet device (optional)
-    # Extract only device identification keys, not byte code mappings
     startup_cfg = cfg.get('startupConfiguration', {})
     drawing_tablet_cfg = startup_cfg.get('drawingTablet', {})
-    device_filter = {k: v for k, v in drawing_tablet_cfg.items() if k != 'byteCodeMappings'}
-    device = get_tablet_device(device_filter)
+    device = find_and_open_device(drawing_tablet_cfg)
     if not device:
         print("HID device not available - continuing with MIDI-only mode")
+        
+        # Start hotplug monitor to detect when device is connected
+        try:
+            # Get available driver profiles for monitoring
+            from config import Config
+            temp_cfg = Config()
+            driver_profiles = temp_cfg._get_available_drivers()
+            
+            if driver_profiles:
+                _hotplug_monitor = HotplugMonitor(
+                    driver_profiles=driver_profiles,
+                    on_device_connected=on_device_plugged_in,
+                    check_interval=2.0
+                )
+                _hotplug_monitor.start()
+                print("Waiting for compatible device to be plugged in...")
+            else:
+                print("No driver profiles available for hotplug detection")
+        except Exception as e:
+            print(f"[Hotplug] Could not start hotplug monitor: {e}")
+        
         print("MIDI Strummer server started (MIDI-only mode). Press Ctrl+C to exit.")
     else:
         print("MIDI Strummer server started with HID device. Press Ctrl+C to exit.")
-        # Create HID reader with callback
+        
+        # Create HID reader with callbacks
         data_handler = create_hid_data_handler(cfg, _midi)
-        _hid_reader = HIDReader(device, cfg, data_handler)
+        _hid_reader = HIDReader(
+            device, 
+            cfg, 
+            data_handler, 
+            warning_callback=lambda msg: broadcast_to_socket(_socket_server, 'warning', {'message': msg})
+        )
     
     # Setup signal handler for graceful shutdown
     def signal_handler(sig, frame):

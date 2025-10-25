@@ -1,5 +1,7 @@
 import json
-from typing import Dict, Any, Optional
+import os
+import glob
+from typing import Dict, Any, Optional, Union, List, Tuple
 from pathlib import Path
 
 
@@ -40,14 +42,14 @@ class Config:
                         "positiveMax": 60,
                         "negativeMin": 256,
                         "negativeMax": 196,
-                        "type": "wrapped-range"
+                        "type": "bipolar-range"
                     },
                     "tiltY": {
                         "byteIndex": 9,
                         "positiveMax": 60,
                         "negativeMin": 256,
                         "negativeMax": 196,
-                        "type": "wrapped-range"
+                        "type": "bipolar-range"
                     }
                 }
             },
@@ -118,7 +120,9 @@ class Config:
         Args:
             config_dict: Optional dictionary to override defaults
         """
-        self._config = self._deep_merge(self.DEFAULTS.copy(), config_dict or {})
+        # Process device driver profiles before merging
+        processed_config = self._process_device_drivers(config_dict or {})
+        self._config = self._deep_merge(self.DEFAULTS.copy(), processed_config)
     
     @classmethod
     def from_file(cls, file_path: str) -> 'Config':
@@ -149,6 +153,158 @@ class Config:
             print(f"Error loading config file '{file_path}': {e}")
             print("Using default configuration.")
             return cls()
+    
+    @staticmethod
+    def _load_device_driver(driver_name: str) -> Optional[Dict[str, Any]]:
+        """
+        Load a device driver profile from the drivers directory.
+        
+        Args:
+            driver_name: Name of the driver file (without .json extension)
+            
+        Returns:
+            Driver configuration dictionary, or None if not found
+        """
+        # Get the directory where this config.py file is located
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        drivers_dir = os.path.join(current_dir, 'drivers')
+        driver_path = os.path.join(drivers_dir, f'{driver_name}.json')
+        
+        try:
+            with open(driver_path, 'r') as f:
+                driver_config = json.load(f)
+                print(f"[Config] Loaded device driver: {driver_config.get('name', driver_name)}")
+                return driver_config
+        except FileNotFoundError:
+            print(f"[Config] Warning: Device driver '{driver_name}' not found at {driver_path}")
+            return None
+        except json.JSONDecodeError as e:
+            print(f"[Config] Error parsing device driver '{driver_name}': {e}")
+            return None
+        except Exception as e:
+            print(f"[Config] Error loading device driver '{driver_name}': {e}")
+            return None
+    
+    def _get_available_drivers(self) -> List[Tuple[str, Dict[str, Any]]]:
+        """
+        Get a list of all available device driver profiles.
+        
+        Returns:
+            List of tuples: (driver_name, driver_config)
+        """
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        drivers_dir = os.path.join(current_dir, 'drivers')
+        
+        if not os.path.exists(drivers_dir):
+            return []
+        
+        drivers = []
+        driver_files = glob.glob(os.path.join(drivers_dir, '*.json'))
+        
+        for driver_path in driver_files:
+            driver_name = os.path.splitext(os.path.basename(driver_path))[0]
+            try:
+                with open(driver_path, 'r') as f:
+                    driver_config = json.load(f)
+                    drivers.append((driver_name, driver_config))
+            except Exception as e:
+                print(f"[Config] Warning: Could not load driver '{driver_name}': {e}")
+                continue
+        
+        return drivers
+    
+    def _auto_detect_driver(self) -> Optional[str]:
+        """
+        Auto-detect which driver profile matches a connected HID device.
+        
+        Returns:
+            Driver name if a match is found, None otherwise
+        """
+        # Import here to avoid circular dependency
+        try:
+            from finddevice import auto_detect_device
+        except ImportError:
+            print("[Config] Error: Could not import finddevice module")
+            return None
+        
+        # Get all available driver profiles
+        available_drivers = self._get_available_drivers()
+        
+        if not available_drivers:
+            print("[Config] No driver profiles found in drivers/ folder")
+            return None
+        
+        # Delegate to finddevice module
+        return auto_detect_device(available_drivers)
+    
+    def _process_device_drivers(self, config_dict: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Process device driver references in the configuration.
+        
+        If drawingTablet is a string, load the corresponding driver profile.
+        Supports "auto-detect" to automatically find matching driver.
+        Otherwise, use the inline configuration.
+        
+        Args:
+            config_dict: Configuration dictionary to process
+            
+        Returns:
+            Processed configuration with driver profiles loaded
+        """
+        # Create a copy to avoid modifying the original
+        processed = config_dict.copy()
+        
+        # Check if startupConfiguration exists
+        if 'startupConfiguration' in processed:
+            startup = processed['startupConfiguration']
+            
+            # Check if drawingTablet is a string (driver reference)
+            if 'drawingTablet' in startup and isinstance(startup['drawingTablet'], str):
+                driver_name = startup['drawingTablet']
+                
+                # Handle auto-detection
+                if driver_name == 'auto-detect':
+                    detected_driver = self._auto_detect_driver()
+                    if detected_driver:
+                        driver_name = detected_driver
+                    else:
+                        print(f"[Config] Auto-detection failed, using defaults")
+                        del processed['startupConfiguration']['drawingTablet']
+                        return processed
+                else:
+                    print(f"[Config] Loading device driver profile: {driver_name}")
+                
+                # Load the driver
+                driver_config = self._load_device_driver(driver_name)
+                
+                if driver_config:
+                    # Extract the relevant parts from the driver
+                    tablet_config = {}
+                    
+                    # Copy device identification info
+                    if 'deviceInfo' in driver_config:
+                        tablet_config.update(driver_config['deviceInfo'])
+                    
+                    # Copy byte code mappings
+                    if 'byteCodeMappings' in driver_config:
+                        tablet_config['byteCodeMappings'] = driver_config['byteCodeMappings']
+                    
+                    # Store driver metadata for reference
+                    tablet_config['_driverName'] = driver_name
+                    tablet_config['_driverInfo'] = {
+                        'name': driver_config.get('name'),
+                        'manufacturer': driver_config.get('manufacturer'),
+                        'model': driver_config.get('model')
+                    }
+                    
+                    # Replace the string reference with the loaded config
+                    processed['startupConfiguration']['drawingTablet'] = tablet_config
+                else:
+                    print(f"[Config] Failed to load driver '{driver_name}', using defaults")
+                    # Remove the invalid reference
+                    del processed['startupConfiguration']['drawingTablet']
+        
+        return processed
     
     def _deep_merge(self, base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
         """
