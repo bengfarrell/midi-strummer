@@ -23,10 +23,16 @@ export const styles = css`
         pointer-events: none;
     }
     
+    dashboard-panel {
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    
     .controls {
         display: flex;
         width: 100%;
         flex-wrap: wrap;
         gap: 16px;
+        margin-top: 20px;
     }
 `;
