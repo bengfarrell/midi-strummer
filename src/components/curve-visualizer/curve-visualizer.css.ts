@@ -8,18 +8,32 @@ export const styles = css`
     .curve-container {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 12px;
         background-color: rgba(255, 255, 255, 0.03);
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 8px;
         padding: 16px;
     }
 
+    .graph-container {
+        width: 100%;
+    }
+
+    .graph-container svg {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+
+    .controls-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px 16px;
+    }
+
     .control-selector-top {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        justify-content: center;
         gap: 4px;
     }
 
@@ -30,13 +44,7 @@ export const styles = css`
     }
 
     .control-selector-top sp-picker {
-        width: 130px;
-    }
-
-    .range-inputs {
-        display: flex;
-        gap: 12px;
-        justify-content: center;
+        width: 100%;
     }
 
     .range-field {
@@ -51,21 +59,9 @@ export const styles = css`
         font-weight: 500;
     }
 
-    .range-inputs sp-number-field {
-        width: 65px;
-    }
-
-    .range-inputs sp-picker {
-        width: 65px;
-    }
-
-    .spread-control {
-        display: flex;
-        justify-content: center;
-    }
-
-    .spread-control sp-picker {
-        width: 130px;
+    .range-field sp-number-field,
+    .range-field sp-picker {
+        width: 100%;
     }
 
     .graph-title {

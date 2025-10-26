@@ -38,6 +38,15 @@ export class TabletVisualizer extends LitElement {
     @state()
     private secondaryButtonPressed: boolean = false;
 
+    @state()
+    private hoveredString: number | null = null;
+
+    @state()
+    private lastHoveredString: number | null = null;
+
+    @state()
+    private lastPressedButton: number | null = null;
+
     // Dummy hardware config - will be replaced with actual config later
     private hardwareConfig = {
         buttonCount: 8
@@ -67,13 +76,28 @@ export class TabletVisualizer extends LitElement {
     @property({ type: String })
     mode: 'both' | 'tablet' | 'tilt' = 'both';
 
+    @property({ type: Number })
+    stringCount: number = 6;
+
     private handleTabletMouseMove(e: MouseEvent) {
         // Update click position if pressing
         if (this.isPressingTablet) {
-            const svg = e.currentTarget as SVGSVGElement;
+            const rectElement = e.currentTarget as SVGRectElement;
+            const svg = rectElement.ownerSVGElement as SVGSVGElement;
             const rect = svg.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            
+            // Get SVG's viewBox dimensions
+            const viewBox = svg.viewBox.baseVal;
+            const viewBoxWidth = viewBox.width;
+            const viewBoxHeight = viewBox.height;
+            
+            // Convert screen coordinates to SVG viewBox coordinates
+            const scaleX = viewBoxWidth / rect.width;
+            const scaleY = viewBoxHeight / rect.height;
+            
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+            
             this.clickPosition = { x, y };
         }
     }
@@ -83,10 +107,21 @@ export class TabletVisualizer extends LitElement {
     }
 
     private handleTabletMouseDown(e: MouseEvent) {
-        const svg = e.currentTarget as SVGSVGElement;
+        const rectElement = e.currentTarget as SVGRectElement;
+        const svg = rectElement.ownerSVGElement as SVGSVGElement;
         const rect = svg.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        
+        // Get SVG's viewBox dimensions
+        const viewBox = svg.viewBox.baseVal;
+        const viewBoxWidth = viewBox.width;
+        const viewBoxHeight = viewBox.height;
+        
+        // Convert screen coordinates to SVG viewBox coordinates
+        const scaleX = viewBoxWidth / rect.width;
+        const scaleY = viewBoxHeight / rect.height;
+        
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
         
         this.isPressingTablet = true;
         this.clickPosition = { x, y };
@@ -173,6 +208,7 @@ export class TabletVisualizer extends LitElement {
     private handleButtonMouseDown(buttonIndex: number, e: MouseEvent) {
         e.stopPropagation(); // Prevent tablet events
         this.pressedButtons = new Set(this.pressedButtons).add(buttonIndex);
+        this.lastPressedButton = buttonIndex;
     }
 
     private handleButtonMouseUp(buttonIndex: number, e: MouseEvent) {
@@ -237,38 +273,93 @@ export class TabletVisualizer extends LitElement {
         }
     }
 
-    private renderButtons(tabletWidth: number, buttonAreaY: number) {
+    private renderStrings(activeAreaWidth: number, activeAreaHeight: number, activeAreaX: number, activeAreaY: number) {
+        if (this.stringCount === 0) return svg``;
+        
+        const stringSpacing = activeAreaWidth / (this.stringCount + 1);
+        
+        // Button area dimensions (from renderButtons)
+        const buttonRadius = 8;
+        const verticalPadding = 20;
+        const buttonCenterY = activeAreaY + verticalPadding + buttonRadius;
+        const buttonMargin = 5; // Extra margin around buttons
+        const stringStartY = buttonCenterY + buttonRadius + buttonMargin;
+        
+        return svg`
+            ${Array.from({ length: this.stringCount }, (_, i) => {
+                const stringX = activeAreaX + stringSpacing * (i + 1);
+                const isHovered = this.hoveredString === i;
+                
+                return svg`
+                    <!-- Invisible wider hitbox for easier hovering -->
+                    <line 
+                        x1="${stringX}" 
+                        y1="${stringStartY}" 
+                        x2="${stringX}" 
+                        y2="${activeAreaY + activeAreaHeight}"
+                        stroke="transparent"
+                        stroke-width="8"
+                        class="string-hitbox"
+                        @mouseenter=${() => {
+                            this.hoveredString = i;
+                            this.lastHoveredString = i;
+                        }}
+                        @mouseleave=${() => this.hoveredString = null} />
+                    
+                    <!-- Visible string -->
+                    <line 
+                        x1="${stringX}" 
+                        y1="${stringStartY}" 
+                        x2="${stringX}" 
+                        y2="${activeAreaY + activeAreaHeight}"
+                        stroke="${isHovered ? '#adb5bd' : '#6c757d'}"
+                        stroke-width="${isHovered ? '2' : '1'}"
+                        opacity="${isHovered ? '0.8' : '0.5'}"
+                        pointer-events="none" />
+                `;
+            })}
+        `;
+    }
+
+    private renderButtons(activeAreaWidth: number, activeAreaX: number, activeAreaY: number) {
         const buttonCount = this.hardwareConfig.buttonCount;
         if (buttonCount === 0) return svg``;
         
-        const buttonWidth = 18;
-        const buttonHeight = 30;
-        const buttonGap = 6;
-        const totalButtonsWidth = (buttonWidth * buttonCount) + (buttonGap * (buttonCount - 1));
-        const startX = (tabletWidth - totalButtonsWidth) / 2;
+        // Smaller buttons to fit within active area with padding
+        const buttonRadius = 8;
+        const buttonGap = 6; // Reduced gap to fit all buttons
+        const horizontalPadding = 10; // Padding from left/right edges
+        const verticalPadding = 20; // Padding from top edge
+        
+        const totalButtonsWidth = (buttonRadius * 2 * buttonCount) + (buttonGap * (buttonCount - 1));
+        // For 8 buttons: (8*2*8) + (6*7) = 128 + 42 = 170px, fits in 200px - 20px padding = 180px
+        
+        // Center within the active area, accounting for horizontal padding
+        const availableWidth = activeAreaWidth - (horizontalPadding * 2);
+        const startX = activeAreaX + horizontalPadding + (availableWidth - totalButtonsWidth) / 2;
+        const buttonY = activeAreaY + verticalPadding + buttonRadius;
         
         return svg`
             ${Array.from({ length: buttonCount }, (_, i) => {
-                const buttonX = startX + (i * (buttonWidth + buttonGap));
+                const buttonCx = startX + buttonRadius + (i * (buttonRadius * 2 + buttonGap));
                 const isPressed = this.pressedButtons.has(i);
                 
                 return svg`
                     <g class="tablet-button">
-                        <!-- Button background -->
-                        <rect x="${buttonX}" y="${buttonAreaY}" 
-                              width="${buttonWidth}" height="${buttonHeight}"
-                              rx="3"
+                        <!-- Circular button -->
+                        <circle cx="${buttonCx}" cy="${buttonY}" 
+                              r="${buttonRadius}"
                               fill="${isPressed ? '#51cf66' : '#495057'}"
                               stroke="#adb5bd"
-                              stroke-width="1"
+                              stroke-width="1.5"
                               @mousedown=${(e: MouseEvent) => this.handleButtonMouseDown(i, e)}
                               @mouseup=${(e: MouseEvent) => this.handleButtonMouseUp(i, e)}
                               class="button-rect" />
                         
                         <!-- Button number label -->
-                        <text x="${buttonX + buttonWidth / 2}" y="${buttonAreaY + buttonHeight / 2 + 4}"
+                        <text x="${buttonCx}" y="${buttonY + 4}"
                               text-anchor="middle"
-                              font-size="10"
+                              font-size="11"
                               fill="${isPressed ? '#000' : '#f8f9fa'}"
                               font-weight="600"
                               pointer-events="none">
@@ -283,33 +374,42 @@ export class TabletVisualizer extends LitElement {
     private renderTablet() {
         const tabletWidth = 240;
         const tabletHeight = 200;
-        const tabletX = 0;
-        const tabletY = 60; // Increased to make room for buttons
-        const buttonAreaY = 20;
+        const tabletX = 20;
+        const tabletY = 20;
+        const activeAreaX = tabletX + 20;
+        const activeAreaY = tabletY + 20;
+        const activeAreaWidth = tabletWidth - 40;
+        const activeAreaHeight = tabletHeight - 40;
         
-        return svg`
-            <svg width="${tabletWidth}" height="${tabletHeight + 100}" 
+        const stringLabel = this.lastHoveredString !== null ? `String ${this.lastHoveredString + 1}` : '—';
+        const buttonLabel = this.lastPressedButton !== null ? `Button ${this.lastPressedButton + 1}` : '—';
+        
+        return html`
+            <div class="tablet-container">
+                <svg width="100%" height="100%" 
+                     viewBox="0 0 ${tabletWidth + 40} ${tabletHeight + 40}"
+                     preserveAspectRatio="xMidYMid meet"
                  xmlns="http://www.w3.org/2000/svg"
-                 class="tablet-svg">
-                
-                <!-- Title -->
-                <text x="${tabletWidth / 2}" y="15" class="tablet-label" text-anchor="middle">Drawing Tablet</text>
-                
-                <!-- Buttons at the top -->
-                ${this.renderButtons(tabletWidth, buttonAreaY)}
+                     class="tablet-svg">
                 
                 <!-- Tablet body (with pointer events for the main area) -->
-                <rect x="${tabletX + 20}" y="${tabletY}" width="${tabletWidth - 40}" height="${tabletHeight}" 
+                <rect x="${tabletX}" y="${tabletY}" width="${tabletWidth}" height="${tabletHeight}" 
                     class="tablet-body" rx="15"
-                    @mousemove=${this.handleTabletMouseMove}
-                    @mouseleave=${this.handleTabletMouseLeave}
-                    @mousedown=${this.handleTabletMouseDown}
+                 @mousemove=${this.handleTabletMouseMove}
+                 @mouseleave=${this.handleTabletMouseLeave}
+                 @mousedown=${this.handleTabletMouseDown}
                     @mouseup=${this.handleTabletMouseUp} />
                 
-                <!-- Active area -->
-                <rect x="${tabletX + 40}" y="${tabletY + 20}" width="${tabletWidth - 80}" height="${tabletHeight - 40}" 
+                <!-- Active area (darker rectangle) -->
+                <rect x="${activeAreaX}" y="${activeAreaY}" width="${activeAreaWidth}" height="${activeAreaHeight}" 
                     class="tablet-surface" rx="8"
                     pointer-events="none" />
+                
+                <!-- Strings (vertical lines) -->
+                ${this.renderStrings(activeAreaWidth, activeAreaHeight, activeAreaX, activeAreaY)}
+                
+                <!-- Buttons rendered AFTER strings to appear on top -->
+                ${this.renderButtons(activeAreaWidth, activeAreaX, activeAreaY)}
                 
                 ${this.clickPosition && this.isPressingTablet ? svg`
                     <!-- Pressure indicator dot -->
@@ -320,39 +420,47 @@ export class TabletVisualizer extends LitElement {
                             opacity="${this.pressure}"
                             pointer-events="none" />
                 ` : ''}
-                
-                <!-- Bottom/Top labels -->
-                <text x="${tabletWidth / 2}" y="${tabletY + tabletHeight + 20}" class="axis-label" text-anchor="middle">Bottom → Top</text>
-            </svg>
+                </svg>
+                <div class="tablet-label-container">
+                    <span class="tablet-info-label">Last String: <strong>${stringLabel}</strong></span>
+                    <span class="tablet-info-separator">|</span>
+                    <span class="tablet-info-label">Last Button: <strong>${buttonLabel}</strong></span>
+                </div>
+            </div>
         `;
     }
 
     private renderStylusButtons(svgWidth: number, yPosition: number) {
         const penWidth = 15;
-        const penLength = 100;
+        const penLength = 220; // Increased from 100 to fill more horizontal space
         const centerX = svgWidth / 2;
         const centerY = yPosition + 20;
         
         // Button dimensions
-        const buttonWidth = 12;
+        const buttonWidth = 8; // Reduced from 12 to inset from pen edges
         const buttonHeight = 18;
         const buttonSpacing = 8;
         
         // Position buttons on the pen body (before rotation)
-        const button1X = 25;
+        const button1X = 60;
         const button2X = button1X + buttonHeight + buttonSpacing;
         
         return svg`
             <g class="stylus-pen" transform="translate(${centerX - penLength/2}, ${centerY - penWidth/2})">
                 <!-- Pen tip (pointing left) -->
-                <path d="M 0 ${penWidth/2} 
+                <path d="M 2 ${penWidth/2} 
                          L 15 ${penWidth/2 - 4}
                          L 15 ${penWidth/2 + 4}
                          Z"
                       fill="#6c757d"
                       stroke="#495057"
                       stroke-width="1"
+                      stroke-linejoin="round"
                       pointer-events="none" />
+                <!-- Rounded tip cap -->
+                <circle cx="6" cy="${penWidth/2}" r="2"
+                        fill="#6c757d"
+                        pointer-events="none" />
                 
                 <!-- Pen body -->
                 <rect x="15" y="0" 
@@ -361,14 +469,6 @@ export class TabletVisualizer extends LitElement {
                       fill="#343a40"
                       stroke="#495057"
                       stroke-width="1"
-                      pointer-events="none" />
-                
-                <!-- Pen grip area (textured section) -->
-                <rect x="60" y="0" 
-                      width="15" height="${penWidth}"
-                      rx="2"
-                      fill="#2c2e33"
-                      opacity="0.8"
                       pointer-events="none" />
                 
                 <!-- Pen eraser end (right side) -->
@@ -407,11 +507,12 @@ export class TabletVisualizer extends LitElement {
     }
 
     private renderTilt() {
-        const size = 240;
-        const centerX = size / 2;
-        const centerY = size / 2 + 50; // Increased offset for title and buttons
-        const maxRadius = 90;
-        const buttonsY = 20;
+        const viewBoxWidth = 300;
+        const viewBoxHeight = 320; // Increased from 300 to make room for labels
+        const centerX = viewBoxWidth / 2;
+        const centerY = viewBoxHeight / 2 + 5; // Moved down for better spacing
+        const maxRadius = 80; // Reduced from 100 for more breathing room
+        const buttonsY = 30;
         
         // Calculate pressure rings
         const pressureRings = 5;
@@ -421,16 +522,18 @@ export class TabletVisualizer extends LitElement {
         const tiltLineEndX = centerX + this.tiltX * maxRadius;
         const tiltLineEndY = centerY + this.tiltY * maxRadius;
         
+        // Calculate combined tilt magnitude using distance formula
+        const tiltMagnitude = Math.sqrt(this.tiltX * this.tiltX + this.tiltY * this.tiltY);
+        
         return svg`
-            <svg width="${size}" height="${size + 70}" 
+            <svg width="100%" height="100%" 
+                 viewBox="0 0 ${viewBoxWidth} ${viewBoxHeight}"
+                 preserveAspectRatio="xMidYMid meet"
                  xmlns="http://www.w3.org/2000/svg"
                  class="tilt-svg">
                 
-                <!-- Title -->
-                <text x="${centerX}" y="15" class="tablet-label" text-anchor="middle">Pen Tilt & Pressure</text>
-                
                 <!-- Stylus Buttons -->
-                ${this.renderStylusButtons(size, buttonsY)}
+                ${this.renderStylusButtons(viewBoxWidth, buttonsY)}
                 
                 <!-- Interactive area for tilt (invisible circle that captures events) -->
                 <circle cx="${centerX}" cy="${centerY}" r="${maxRadius}"
@@ -479,11 +582,14 @@ export class TabletVisualizer extends LitElement {
                         pointer-events="none" />
                 ` : ''}
                 
-                <!-- Axis labels -->
-                <text x="${centerX}" y="${size + 45}" class="axis-label" text-anchor="middle">
+                <!-- Axis labels with more vertical separation -->
+                <text x="${centerX}" y="${viewBoxHeight - 45}" class="axis-label" text-anchor="middle">
                     Tilt X: ${this.tiltX.toFixed(2)} | Tilt Y: ${this.tiltY.toFixed(2)}
                 </text>
-                <text x="${centerX}" y="${size + 60}" class="axis-label" text-anchor="middle">
+                <text x="${centerX}" y="${viewBoxHeight - 30}" class="axis-label" text-anchor="middle">
+                    Tilt X + Y: ${tiltMagnitude.toFixed(2)}
+                </text>
+                <text x="${centerX}" y="${viewBoxHeight - 15}" class="axis-label" text-anchor="middle">
                     Pressure: ${this.tiltPressure.toFixed(2)}
                 </text>
             </svg>

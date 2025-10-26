@@ -7,15 +7,47 @@ export const styles = css`
     }
     
     .tablet-container {
-        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .tablet-label-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 8px;
+        font-size: 12px;
+        color: #adb5bd;
+    }
+    
+    .tablet-info-label {
+        color: #868e96;
+    }
+    
+    .tablet-info-label strong {
+        color: #f1f3f5;
+        font-weight: 600;
+    }
+    
+    .tablet-info-separator {
+        color: #495057;
     }
     
     .tilt-container {
-        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
     }
     
-    .tablet-svg {
+    .tablet-svg,
+    .tilt-svg {
         cursor: crosshair;
+        display: block;
+        max-width: 100%;
+        height: auto;
     }
     
     .tablet-body {
@@ -31,6 +63,15 @@ export const styles = css`
     }
     
     .button-rect {
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    
+    .button-rect:hover {
+        filter: brightness(1.2);
+    }
+    
+    .string-hitbox {
         cursor: pointer;
     }
     

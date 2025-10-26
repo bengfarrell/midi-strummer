@@ -191,23 +191,12 @@ export class CurveVisualizer extends LitElement {
 
         return html`
             <div class="curve-container">
-                <!-- Control selector -->
-                <div class="control-selector-top">
-                    <label class="control-selector-label">Controlled by:</label>
-                    <sp-picker 
-                        size="s" 
-                        value="${this.control}"
-                        @change=${this.handleControlChange}>
-                        <sp-menu-item value="yaxis">Y-Axis Position</sp-menu-item>
-                        <sp-menu-item value="pressure">Stylus Pressure</sp-menu-item>
-                        <sp-menu-item value="tiltX">Tilt X</sp-menu-item>
-                        <sp-menu-item value="tiltY">Tilt Y</sp-menu-item>
-                        <sp-menu-item value="tiltXY">Tilt X+Y</sp-menu-item>
-                    </sp-picker>
-                </div>
-                
-                <svg width="${graphWidth}" height="${graphHeight}" 
-                     xmlns="http://www.w3.org/2000/svg">
+                <!-- Graph -->
+                <div class="graph-container">
+                    <svg width="${graphWidth}" height="${graphHeight}" 
+                         viewBox="0 0 ${graphWidth} ${graphHeight}"
+                         preserveAspectRatio="xMidYMid meet"
+                         xmlns="http://www.w3.org/2000/svg">
                     <g class="curve-graph">
                     <!-- Background -->
                     <rect x="${padding}" y="${padding}" 
@@ -260,69 +249,80 @@ export class CurveVisualizer extends LitElement {
                     ` : ''}
                 </g>
             </svg>
-            
-            <!-- Range inputs -->
-            <div class="range-inputs">
-                <div class="range-field">
-                    <label class="range-label">Min</label>
-                    <sp-number-field 
-                        size="s"
-                        value="${this.config.min}"
-                        @change=${this.handleMinChange}
-                        step="0.1">
-                    </sp-number-field>
                 </div>
-                <div class="range-field">
-                    <label class="range-label">Max</label>
-                    <sp-number-field 
-                        size="s"
-                        value="${this.config.max}"
-                        @change=${this.handleMaxChange}
-                        step="0.1">
-                    </sp-number-field>
+                
+                <!-- Controls Grid -->
+                <div class="controls-grid">
+                    <div class="control-selector-top">
+                        <label class="control-selector-label">Controlled by:</label>
+                        <sp-picker 
+                            size="s" 
+                            value="${this.control}"
+                            @change=${this.handleControlChange}>
+                            <sp-menu-item value="yaxis">Y-Axis Position</sp-menu-item>
+                            <sp-menu-item value="pressure">Stylus Pressure</sp-menu-item>
+                            <sp-menu-item value="tiltX">Tilt X</sp-menu-item>
+                            <sp-menu-item value="tiltY">Tilt Y</sp-menu-item>
+                            <sp-menu-item value="tiltXY">Tilt X+Y</sp-menu-item>
+                        </sp-picker>
+                    </div>
+                    
+                    <div class="range-field">
+                        <label class="range-label">Spread</label>
+                        <sp-picker 
+                            size="s" 
+                            value="${this.config.spread}"
+                            @change=${this.handleSpreadChange}>
+                            <sp-menu-item value="direct">Direct</sp-menu-item>
+                            <sp-menu-item value="inverse">Inverse</sp-menu-item>
+                            <sp-menu-item value="central">Central</sp-menu-item>
+                        </sp-picker>
+                    </div>
+                    
+                    <div class="range-field">
+                        <label class="range-label">Min</label>
+                        <sp-number-field 
+                            size="s"
+                            value="${this.config.min}"
+                            @change=${this.handleMinChange}
+                            step="0.1">
+                        </sp-number-field>
+                    </div>
+                    
+                    <div class="range-field">
+                        <label class="range-label">Max</label>
+                        <sp-number-field 
+                            size="s"
+                            value="${this.config.max}"
+                            @change=${this.handleMaxChange}
+                            step="0.1">
+                        </sp-number-field>
+                    </div>
+                    
+                    <div class="range-field">
+                        <label class="range-label">Curve</label>
+                        <sp-number-field 
+                            size="s"
+                            value="${this.config.curve}"
+                            @change=${this.handleCurveChange}
+                            step="0.1"
+                            min="0.1">
+                        </sp-number-field>
+                    </div>
+                    
+                    <div class="range-field">
+                        <label class="range-label">Multiplier</label>
+                        <sp-number-field 
+                            size="s"
+                            value="${this.config.multiplier}"
+                            @change=${this.handleMultiplierChange}
+                            step="0.1"
+                            min="0"
+                            max="2">
+                        </sp-number-field>
+                    </div>
                 </div>
             </div>
-            
-            <!-- Curve and Multiplier controls -->
-            <div class="range-inputs">
-                <div class="range-field">
-                    <label class="range-label">Curve</label>
-                    <sp-number-field 
-                        size="s"
-                        value="${this.config.curve}"
-                        @change=${this.handleCurveChange}
-                        step="0.1"
-                        min="0.1">
-                    </sp-number-field>
-                </div>
-                <div class="range-field">
-                    <label class="range-label">Multiplier</label>
-                    <sp-number-field 
-                        size="s"
-                        value="${this.config.multiplier}"
-                        @change=${this.handleMultiplierChange}
-                        step="0.1"
-                        min="0"
-                        max="2">
-                    </sp-number-field>
-                </div>
-            </div>
-            
-            <!-- Spread control -->
-            <div class="spread-control">
-                <div class="range-field">
-                    <label class="range-label">Spread</label>
-                    <sp-picker 
-                        size="s" 
-                        value="${this.config.spread}"
-                        @change=${this.handleSpreadChange}>
-                        <sp-menu-item value="direct">Direct</sp-menu-item>
-                        <sp-menu-item value="inverse">Inverse</sp-menu-item>
-                        <sp-menu-item value="central">Central</sp-menu-item>
-                    </sp-picker>
-                </div>
-            </div>
-        </div>
         `;
     }
 }
