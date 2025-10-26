@@ -3,7 +3,7 @@ import { css } from 'lit';
 export const styles = css`
     :host {
         width: 100%;
-        height: 100vh;
+        min-height: 100vh;
         display: inline-block;
         background-color: black;
         padding: 15px;
@@ -17,10 +17,26 @@ export const styles = css`
     }
     
     piano-keys {
-        margin-top: 12px;
-        margin-bottom: 12px;
-        width: calc(100% - 52px);
         pointer-events: none;
+        width: 100%;
+    }
+    
+    .curve-visualizers {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .config-group {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 16px 20px;
+        align-items: center;
+        max-width: 600px;
+    }
+    
+    .config-group sp-checkbox {
+        grid-column: 1 / -1;
     }
     
     dashboard-panel {

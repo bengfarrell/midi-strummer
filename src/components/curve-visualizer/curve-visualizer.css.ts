@@ -9,15 +9,71 @@ export const styles = css`
         display: flex;
         flex-direction: column;
         gap: 8px;
+        background-color: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 16px;
     }
 
-    .control-selector {
+    .visualizer-title {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: #f1f3f5;
+        text-align: center;
+    }
+
+    .control-selector-top {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+    }
+
+    .control-selector-label {
+        font-size: 11px;
+        color: #adb5bd;
+        font-weight: 500;
+    }
+
+    .control-selector-top sp-picker {
+        width: 130px;
+    }
+
+    .range-inputs {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .range-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .range-label {
+        font-size: 11px;
+        color: #adb5bd;
+        font-weight: 500;
+    }
+
+    .range-inputs sp-number-field {
+        width: 65px;
+    }
+
+    .range-inputs sp-picker {
+        width: 65px;
+    }
+
+    .spread-control {
         display: flex;
         justify-content: center;
     }
 
-    .control-selector sp-picker {
-        width: 160px;
+    .spread-control sp-picker {
+        width: 130px;
     }
 
     .graph-title {

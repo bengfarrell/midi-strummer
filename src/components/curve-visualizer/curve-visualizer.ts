@@ -3,6 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { styles } from './curve-visualizer.css';
 import '@spectrum-web-components/picker/sp-picker.js';
 import '@spectrum-web-components/menu/sp-menu-item.js';
+import '@spectrum-web-components/number-field/sp-number-field.js';
 
 export interface CurveConfig {
     min: number;
@@ -69,6 +70,75 @@ export class CurveVisualizer extends LitElement {
         }
     }
 
+    private handleMinChange(e: Event) {
+        const target = e.target as any;
+        const newMin = parseFloat(target.value);
+        if (!isNaN(newMin)) {
+            this.dispatchEvent(new CustomEvent('config-change', {
+                detail: { 
+                    [`${this.parameterKey}.min`]: newMin
+                },
+                bubbles: true,
+                composed: true
+            }));
+        }
+    }
+
+    private handleMaxChange(e: Event) {
+        const target = e.target as any;
+        const newMax = parseFloat(target.value);
+        if (!isNaN(newMax)) {
+            this.dispatchEvent(new CustomEvent('config-change', {
+                detail: { 
+                    [`${this.parameterKey}.max`]: newMax
+                },
+                bubbles: true,
+                composed: true
+            }));
+        }
+    }
+
+    private handleCurveChange(e: Event) {
+        const target = e.target as any;
+        const newCurve = parseFloat(target.value);
+        if (!isNaN(newCurve)) {
+            this.dispatchEvent(new CustomEvent('config-change', {
+                detail: { 
+                    [`${this.parameterKey}.curve`]: newCurve
+                },
+                bubbles: true,
+                composed: true
+            }));
+        }
+    }
+
+    private handleMultiplierChange(e: Event) {
+        const target = e.target as any;
+        const newMultiplier = parseFloat(target.value);
+        if (!isNaN(newMultiplier)) {
+            this.dispatchEvent(new CustomEvent('config-change', {
+                detail: { 
+                    [`${this.parameterKey}.multiplier`]: newMultiplier
+                },
+                bubbles: true,
+                composed: true
+            }));
+        }
+    }
+
+    private handleSpreadChange(e: Event) {
+        const target = e.target as any;
+        if (target && target.value) {
+            this.dispatchEvent(new CustomEvent('config-change', {
+                detail: { 
+                    [`${this.parameterKey}.spread`]: target.value
+                },
+                bubbles: true,
+                composed: true
+            }));
+        }
+    }
+
     private generateCurvePath(config: CurveConfig, width: number, height: number): string {
         const points: string[] = [];
         const steps = 50;
@@ -119,41 +189,48 @@ export class CurveVisualizer extends LitElement {
 
         const curvePath = this.generateCurvePath(this.config, innerWidth, innerHeight);
 
-        // Calculate range text
-        const effectiveMax = this.config.multiplier < 1.0 
-            ? this.config.min + ((this.config.max - this.config.min) * this.config.multiplier)
-            : this.config.max;
-        const rangeText = this.config.multiplier < 1.0
-            ? `Range: ${this.config.min.toFixed(2)} to ${effectiveMax.toFixed(2)} (${(this.config.multiplier * 100).toFixed(0)}%)`
-            : `Range: ${this.config.min.toFixed(2)} to ${this.config.max.toFixed(2)}`;
-
         return html`
             <div class="curve-container">
-                <svg width="${graphWidth}" height="${graphHeight + 60}" 
+                <!-- Title -->
+                <h3 class="visualizer-title">${this.label}</h3>
+                
+                <!-- Control selector -->
+                <div class="control-selector-top">
+                    <label class="control-selector-label">Controlled by:</label>
+                    <sp-picker 
+                        size="s" 
+                        value="${this.control}"
+                        @change=${this.handleControlChange}>
+                        <sp-menu-item value="yaxis">Y-Axis Position</sp-menu-item>
+                        <sp-menu-item value="pressure">Stylus Pressure</sp-menu-item>
+                        <sp-menu-item value="tiltX">Tilt X</sp-menu-item>
+                        <sp-menu-item value="tiltY">Tilt Y</sp-menu-item>
+                        <sp-menu-item value="tiltXY">Tilt X+Y</sp-menu-item>
+                    </sp-picker>
+                </div>
+                
+                <svg width="${graphWidth}" height="${graphHeight}" 
                      xmlns="http://www.w3.org/2000/svg">
                     <g class="curve-graph">
-                        <!-- Graph title -->
-                        <text x="${graphWidth / 2}" y="12" class="graph-title" text-anchor="middle">${this.label}</text>
-                    
                     <!-- Background -->
-                    <rect x="${padding}" y="${15 + padding}" 
+                    <rect x="${padding}" y="${padding}" 
                           width="${innerWidth}" height="${innerHeight}" 
                           class="graph-bg" />
                     
                     <!-- Axes -->
-                    <line x1="${padding}" y1="${15 + padding}" 
-                          x2="${padding}" y2="${15 + graphHeight - padding}" 
+                    <line x1="${padding}" y1="${padding}" 
+                          x2="${padding}" y2="${graphHeight - padding}" 
                           class="axis" />
-                    <line x1="${padding}" y1="${15 + graphHeight - padding}" 
-                          x2="${graphWidth - padding}" y2="${15 + graphHeight - padding}" 
+                    <line x1="${padding}" y1="${graphHeight - padding}" 
+                          x2="${graphWidth - padding}" y2="${graphHeight - padding}" 
                           class="axis" />
                     
                     <!-- Center line (for central spread) - vertical now -->
                     ${this.config.spread === 'central' ? svg`
                         <line x1="${padding + innerWidth / 2}" 
-                              y1="${15 + padding}" 
+                              y1="${padding}" 
                               x2="${padding + innerWidth / 2}" 
-                              y2="${15 + graphHeight - padding}" 
+                              y2="${graphHeight - padding}" 
                               stroke="#ffd43b"
                               stroke-width="1"
                               stroke-dasharray="3,3"
@@ -161,49 +238,92 @@ export class CurveVisualizer extends LitElement {
                     ` : ''}
                     
                     <!-- Min/Max labels on Y-axis -->
-                    <text x="${padding - 5}" y="${15 + graphHeight - padding + 5}" class="axis-label" text-anchor="end">${this.config.min.toFixed(2)}</text>
-                    <text x="${padding - 5}" y="${15 + padding + 5}" class="axis-label" text-anchor="end">${this.config.max.toFixed(2)}</text>
-                    <text x="${padding - 10}" y="${15 + padding + innerHeight / 2}" class="axis-label" text-anchor="middle" 
-                        transform="rotate(-90, ${padding - 10}, ${15 + padding + innerHeight / 2})">${this.outputLabel}</text>
+                    <text x="${padding - 5}" y="${graphHeight - padding + 5}" class="axis-label" text-anchor="end">${this.config.min.toFixed(2)}</text>
+                    <text x="${padding - 5}" y="${padding + 5}" class="axis-label" text-anchor="end">${this.config.max.toFixed(2)}</text>
+                    <text x="${padding - 10}" y="${padding + innerHeight / 2}" class="axis-label" text-anchor="middle" 
+                        transform="rotate(-90, ${padding - 10}, ${padding + innerHeight / 2})">${this.outputLabel}</text>
                     
                     <!-- Curve line -->
                     <polyline points="${curvePath}" 
                         class="curve-line"
                         stroke="${this.color}"
                         stroke-width="2.5"
-                        transform="translate(${padding}, ${15 + padding})" />
+                        transform="translate(${padding}, ${padding})" />
                     
                     <!-- Hover position indicator -->
                     ${this.hoverPosition !== null ? svg`
                         <line x1="${padding + (this.hoverPosition * innerWidth)}" 
-                              y1="${15 + padding}" 
+                              y1="${padding}" 
                               x2="${padding + (this.hoverPosition * innerWidth)}" 
-                              y2="${15 + graphHeight - padding}" 
+                              y2="${graphHeight - padding}" 
                               stroke="#51cf66"
                               stroke-width="2"
                               opacity="0.6"
                               stroke-dasharray="4,4" />
                     ` : ''}
-                    
-                    <!-- Info labels -->
-                    <text x="${graphWidth / 2}" y="${15 + graphHeight + 18}" class="info-label" text-anchor="middle">${rangeText}</text>
-                    <text x="${graphWidth / 2}" y="${15 + graphHeight + 31}" class="info-label" text-anchor="middle">Curve: ${this.config.curve.toFixed(2)} • ${this.config.spread}</text>
-                    <text x="${graphWidth / 2}" y="${15 + graphHeight + 44}" class="info-label" text-anchor="middle">Multiplier: ${this.config.multiplier.toFixed(2)}</text>
                 </g>
             </svg>
             
-            <!-- Control selector -->
-            <div class="control-selector">
-                <sp-picker 
-                    size="s" 
-                    value="${this.control}"
-                    @change=${this.handleControlChange}>
-                    <sp-menu-item value="yaxis">Y-Axis Position</sp-menu-item>
-                    <sp-menu-item value="pressure">Stylus Pressure</sp-menu-item>
-                    <sp-menu-item value="tiltX">Tilt X</sp-menu-item>
-                    <sp-menu-item value="tiltY">Tilt Y</sp-menu-item>
-                    <sp-menu-item value="tiltXY">Tilt X+Y</sp-menu-item>
-                </sp-picker>
+            <!-- Range inputs -->
+            <div class="range-inputs">
+                <div class="range-field">
+                    <label class="range-label">Min</label>
+                    <sp-number-field 
+                        size="s"
+                        value="${this.config.min}"
+                        @change=${this.handleMinChange}
+                        step="0.1">
+                    </sp-number-field>
+                </div>
+                <div class="range-field">
+                    <label class="range-label">Max</label>
+                    <sp-number-field 
+                        size="s"
+                        value="${this.config.max}"
+                        @change=${this.handleMaxChange}
+                        step="0.1">
+                    </sp-number-field>
+                </div>
+            </div>
+            
+            <!-- Curve and Multiplier controls -->
+            <div class="range-inputs">
+                <div class="range-field">
+                    <label class="range-label">Curve</label>
+                    <sp-number-field 
+                        size="s"
+                        value="${this.config.curve}"
+                        @change=${this.handleCurveChange}
+                        step="0.1"
+                        min="0.1">
+                    </sp-number-field>
+                </div>
+                <div class="range-field">
+                    <label class="range-label">Multiplier</label>
+                    <sp-number-field 
+                        size="s"
+                        value="${this.config.multiplier}"
+                        @change=${this.handleMultiplierChange}
+                        step="0.1"
+                        min="0"
+                        max="2">
+                    </sp-number-field>
+                </div>
+            </div>
+            
+            <!-- Spread control -->
+            <div class="spread-control">
+                <div class="range-field">
+                    <label class="range-label">Spread</label>
+                    <sp-picker 
+                        size="s" 
+                        value="${this.config.spread}"
+                        @change=${this.handleSpreadChange}>
+                        <sp-menu-item value="direct">Direct</sp-menu-item>
+                        <sp-menu-item value="inverse">Inverse</sp-menu-item>
+                        <sp-menu-item value="central">Central</sp-menu-item>
+                    </sp-picker>
+                </div>
             </div>
         </div>
         `;

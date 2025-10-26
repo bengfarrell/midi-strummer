@@ -17,9 +17,8 @@ import '../piano/piano.js';
 import { PianoElement } from '../piano/piano.js';
 import { NoteObject } from '../../utils/note.js';
 import '../dashboard-panel/dashboard-panel.js';
-import '../expression-mappings/expression-mappings.js';
-import '../features/features.js';
 import '../tablet-visualizer/tablet-visualizer.js';
+import '../curve-visualizer/curve-visualizer.js';
 import { TabletExpressionConfig } from '../tablet-expression-controls/tablet-expression-controls.js';
 import { StrummingConfig } from '../strumming-controls/strumming-controls.js';
 import { NoteRepeaterConfig } from '../note-repeater-controls/note-repeater-controls.js';
@@ -285,13 +284,14 @@ export class StrummerApp extends LitElement {
     }
 
     render() {
+        const colors = ['#51cf66', '#339af0', '#ff6b6b'];
+        
         return html`<sp-theme system="spectrum" color="dark" scale="medium">
             <h1>MIDI Strummer</h1>
 
-            <piano-keys layout="C" keys=20></piano-keys>
-
-            <dashboard-panel title="Expression Mapping Visualizations" collapsible>
+            <dashboard-panel title="Drawing Tablet" collapsible>
                 <tablet-visualizer
+                    mode="tablet"
                     .noteDuration=${this.noteDuration}
                     .pitchBend=${this.pitchBend}
                     .noteVelocity=${this.noteVelocity}
@@ -299,24 +299,125 @@ export class StrummerApp extends LitElement {
                 </tablet-visualizer>
             </dashboard-panel>
 
-            <dashboard-panel title="Expression Mappings" collapsible>
-                <expression-mappings
+            <dashboard-panel title="Pen Tilt & Pressure" collapsible>
+                <tablet-visualizer
+                    mode="tilt"
                     .noteDuration=${this.noteDuration}
                     .pitchBend=${this.pitchBend}
                     .noteVelocity=${this.noteVelocity}
                     @config-change=${this.handleConfigChange}>
-                </expression-mappings>
+                </tablet-visualizer>
             </dashboard-panel>
 
-            <dashboard-panel title="Features" collapsible>
-                <features-panel
-                    .strumming=${this.strumming}
-                    .noteRepeater=${this.noteRepeater}
-                    .transpose=${this.transpose}
-                    .stylusButtons=${this.stylusButtons}
-                    .strumRelease=${this.strumRelease}
-                    @config-change=${this.handleConfigChange}>
-                </features-panel>
+            <dashboard-panel title="Keyboard" collapsible>
+                <piano-keys layout="C" keys=20></piano-keys>
+            </dashboard-panel>
+
+            <dashboard-panel title="Expression Parameters" collapsible>
+                <div class="curve-visualizers">
+                    <curve-visualizer
+                        .label="Note Duration"
+                        .parameterKey="noteDuration"
+                        .control="${this.noteDuration.control}"
+                        .outputLabel="Value"
+                        .config="${this.noteDuration}"
+                        .color="${colors[0]}"
+                        @config-change=${this.handleConfigChange}
+                        @control-change=${this.handleConfigChange}>
+                    </curve-visualizer>
+                    <curve-visualizer
+                        .label="Pitch Bend"
+                        .parameterKey="pitchBend"
+                        .control="${this.pitchBend.control}"
+                        .outputLabel="Value"
+                        .config="${this.pitchBend}"
+                        .color="${colors[1]}"
+                        @config-change=${this.handleConfigChange}
+                        @control-change=${this.handleConfigChange}>
+                    </curve-visualizer>
+                    <curve-visualizer
+                        .label="Note Velocity"
+                        .parameterKey="noteVelocity"
+                        .control="${this.noteVelocity.control}"
+                        .outputLabel="Value"
+                        .config="${this.noteVelocity}"
+                        .color="${colors[2]}"
+                        @config-change=${this.handleConfigChange}
+                        @control-change=${this.handleConfigChange}>
+                    </curve-visualizer>
+                </div>
+            </dashboard-panel>
+
+            <dashboard-panel title="Strumming" collapsible>
+                <div class="config-group">
+                    <sp-field-label for="pluck-velocity">Pluck Velocity Scale</sp-field-label>
+                    <sp-number-field id="pluck-velocity" value="${this.strumming.pluckVelocityScale}" step="0.1"></sp-number-field>
+                    
+                    <sp-field-label for="pressure-threshold">Pressure Threshold</sp-field-label>
+                    <sp-number-field id="pressure-threshold" value="${this.strumming.pressureThreshold}" step="0.01"></sp-number-field>
+                    
+                    <sp-field-label for="midi-channel">MIDI Channel</sp-field-label>
+                    <sp-number-field id="midi-channel" value="${this.strumming.midiChannel}" step="1" min="1" max="16"></sp-number-field>
+                    
+                    <sp-field-label for="upper-spread">Upper Note Spread</sp-field-label>
+                    <sp-number-field id="upper-spread" value="${this.strumming.upperNoteSpread}" step="1" min="0"></sp-number-field>
+                    
+                    <sp-field-label for="lower-spread">Lower Note Spread</sp-field-label>
+                    <sp-number-field id="lower-spread" value="${this.strumming.lowerNoteSpread}" step="1" min="0"></sp-number-field>
+                </div>
+            </dashboard-panel>
+
+            <dashboard-panel title="Note Repeater" collapsible>
+                <div class="config-group">
+                    <sp-checkbox ?checked="${this.noteRepeater.active}">Active</sp-checkbox>
+                    
+                    <sp-field-label for="pressure-mult">Pressure Multiplier</sp-field-label>
+                    <sp-number-field id="pressure-mult" value="${this.noteRepeater.pressureMultiplier}" step="0.1"></sp-number-field>
+                    
+                    <sp-field-label for="freq-mult">Frequency Multiplier</sp-field-label>
+                    <sp-number-field id="freq-mult" value="${this.noteRepeater.frequencyMultiplier}" step="0.1"></sp-number-field>
+                </div>
+            </dashboard-panel>
+
+            <dashboard-panel title="Transpose" collapsible>
+                <div class="config-group">
+                    <sp-checkbox ?checked="${this.transpose.active}">Active</sp-checkbox>
+                    
+                    <sp-field-label for="transpose-semitones">Semitones</sp-field-label>
+                    <sp-number-field id="transpose-semitones" value="${this.transpose.semitones}" step="1"></sp-number-field>
+                </div>
+            </dashboard-panel>
+
+            <dashboard-panel title="Stylus Buttons" collapsible>
+                <div class="config-group">
+                    <sp-field-label for="primary-action">Primary Button Action</sp-field-label>
+                    <sp-picker id="primary-action" value="${this.stylusButtons.primaryButtonAction}">
+                        <sp-menu-item value="toggle-transpose">Toggle Transpose</sp-menu-item>
+                        <sp-menu-item value="toggle-repeater">Toggle Repeater</sp-menu-item>
+                    </sp-picker>
+                    
+                    <sp-field-label for="secondary-action">Secondary Button Action</sp-field-label>
+                    <sp-picker id="secondary-action" value="${this.stylusButtons.secondaryButtonAction}">
+                        <sp-menu-item value="toggle-transpose">Toggle Transpose</sp-menu-item>
+                        <sp-menu-item value="toggle-repeater">Toggle Repeater</sp-menu-item>
+                    </sp-picker>
+                </div>
+            </dashboard-panel>
+
+            <dashboard-panel title="Strum Release" collapsible>
+                <div class="config-group">
+                    <sp-field-label for="max-duration">Max Duration</sp-field-label>
+                    <sp-number-field id="max-duration" value="${this.strumRelease.maxDuration}" step="0.01"></sp-number-field>
+                    
+                    <sp-field-label for="velocity-mult">Velocity Multiplier</sp-field-label>
+                    <sp-number-field id="velocity-mult" value="${this.strumRelease.velocityMultiplier}" step="0.1"></sp-number-field>
+                    
+                    <sp-field-label for="midi-note">MIDI Note</sp-field-label>
+                    <sp-number-field id="midi-note" value="${this.strumRelease.midiNote}" step="1" min="0" max="127"></sp-number-field>
+                    
+                    <sp-field-label for="release-channel">MIDI Channel</sp-field-label>
+                    <sp-number-field id="release-channel" value="${this.strumRelease.midiChannel}" step="1" min="1" max="16"></sp-number-field>
+                </div>
             </dashboard-panel>
         </sp-theme>`
     }

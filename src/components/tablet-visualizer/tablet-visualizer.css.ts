@@ -6,14 +6,12 @@ export const styles = css`
         width: 100%;
     }
     
-    .container {
-        display: flex;
-        gap: 40px;
-        align-items: flex-start;
+    .tablet-container {
+        margin-bottom: 20px;
     }
     
-    .tablet-container {
-        flex-shrink: 0;
+    .tilt-container {
+        margin-bottom: 20px;
     }
     
     .tablet-svg {
@@ -32,6 +30,17 @@ export const styles = css`
         stroke-width: 1;
     }
     
+    .button-rect {
+        cursor: pointer;
+    }
+    
+    .tablet-button text {
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+    }
+    
     .tablet-label {
         font-size: 13px;
         font-weight: 600;
@@ -41,13 +50,6 @@ export const styles = css`
     .axis-label {
         font-size: 10px;
         fill: #adb5bd;
-    }
-    
-    .visualizer {
-        display: flex;
-        gap: 20px;
-        flex-wrap: wrap;
-        flex: 1;
     }
     
     .no-mappings {
