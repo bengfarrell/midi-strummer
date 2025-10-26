@@ -2,7 +2,7 @@ import { html, LitElement, svg } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { styles } from './tablet-visualizer.css';
 import '../curve-visualizer/curve-visualizer';
-import { TabletExpressionConfig } from '../tablet-expression-controls/tablet-expression-controls.js';
+import { TabletExpressionConfig } from '../../types/config-types.js';
 
 @customElement('tablet-visualizer')
 export class TabletVisualizer extends LitElement {
@@ -507,7 +507,7 @@ export class TabletVisualizer extends LitElement {
                 </div>
             `;
         }
-        
+
         // Otherwise, render only the requested mode
         if (this.mode === 'tablet') {
             return html`<div class="tablet-container">${this.renderTablet()}</div>`;

@@ -15,10 +15,10 @@ export class DashboardPanel extends LitElement {
     @property({ type: String })
     size: 'small' | 'medium' | 'large' | 'wide' | 'tall' | 'full' = 'medium';
 
-    @property({ type: Boolean })
+    @property({ type: Boolean, reflect: true })
     hasActiveControl = false;
 
-    @property({ type: Boolean })
+    @property({ type: Boolean, reflect: true })
     active = false;
 
     @property({ type: Boolean })
@@ -135,15 +135,15 @@ export class DashboardPanel extends LitElement {
                                     ⋮⋮
                                 </div>
                             ` : ''}
-                            <h3 class="panel-title">${this.title}</h3>
                             ${this.hasActiveControl ? html`
                                 <sp-checkbox 
                                     ?checked="${this.active}"
                                     @change="${this.handleActiveChange}"
-                                    class="header-checkbox">
-                                    Active
+                                    class="header-checkbox"
+                                    title="${this.active ? 'Active' : 'Inactive'}">
                                 </sp-checkbox>
                             ` : ''}
+                            <h3 class="panel-title">${this.title}</h3>
                         </div>
                         <div class="header-controls">
                             ${this.minimizable ? html`

@@ -6,8 +6,7 @@ import '@spectrum-web-components/tabs/sp-tabs.js';
 import '@spectrum-web-components/tabs/sp-tab.js';
 import '@spectrum-web-components/tabs/sp-tab-panel.js';
 
-import '../tablet-expression-controls/tablet-expression-controls.js';
-import { TabletExpressionConfig } from '../tablet-expression-controls/tablet-expression-controls.js';
+import { TabletExpressionConfig } from '../../types/config-types.js';
 
 @customElement('expression-mappings')
 export class ExpressionMappings extends LitElement {

@@ -3,11 +3,9 @@ import { css } from 'lit';
 export const styles = css`
     :host {
         display: block;
-        height: 100%;
     }
     
     .panel {
-        height: 100%;
         display: flex;
         flex-direction: column;
         background-color: rgba(255, 255, 255, 0.04);
@@ -16,6 +14,7 @@ export const styles = css`
         overflow: hidden;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         transition: all 0.2s ease;
+        height: 100%;
     }
     
     .panel:hover {
@@ -74,7 +73,7 @@ export const styles = css`
     .header-left {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 8px;
         flex: 1;
         min-width: 0;
     }
@@ -95,11 +94,17 @@ export const styles = css`
         text-transform: uppercase;
         opacity: 0.9;
         white-space: nowrap;
+        transition: opacity 0.2s ease;
+    }
+    
+    /* Dim title when panel has active control AND is inactive */
+    :host([hasActiveControl]:not([active])) .panel-title {
+        opacity: 0.4;
     }
     
     .header-checkbox {
-        font-size: 12px;
         flex-shrink: 0;
+        margin: 0;
     }
     
     .header-controls sp-action-button {
