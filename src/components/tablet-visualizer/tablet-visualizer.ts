@@ -491,26 +491,33 @@ export class TabletVisualizer extends LitElement {
     }
 
     render() {
-        if (!this.noteDuration && !this.pitchBend && !this.noteVelocity) {
+        // If mode is 'both', show everything in the original layout
+        if (this.mode === 'both') {
             return html`
-                <div class="no-mappings">
-                    <p>No expression parameters configured</p>
+                <div class="diagrams-keyboard-row">
+                    <div class="tablet-container">
+                        ${this.renderTablet()}
+                    </div>
+                    <div class="tilt-container">
+                        ${this.renderTilt()}
+                    </div>
+                    <div class="keyboard-slot">
+                        <slot name="keyboard"></slot>
+                    </div>
                 </div>
             `;
         }
         
-        return html`
-            ${(this.mode === 'both' || this.mode === 'tablet') ? html`
-                    <div class="tablet-container">
-                        ${this.renderTablet()}
-                    </div>
-                ` : ''}
-            ${(this.mode === 'both' || this.mode === 'tilt') ? html`
-                <div class="tilt-container">
-                    ${this.renderTilt()}
-                </div>
-            ` : ''}
-        `;
+        // Otherwise, render only the requested mode
+        if (this.mode === 'tablet') {
+            return html`<div class="tablet-container">${this.renderTablet()}</div>`;
+        }
+        
+        if (this.mode === 'tilt') {
+            return html`<div class="tilt-container">${this.renderTilt()}</div>`;
+        }
+        
+        return html``;
     }
 }
 

@@ -98,17 +98,34 @@ export class StrummerApp extends LitElement {
 
     @state()
     protected stylusButtons: StylusButtonsConfig = {
+        active: true,
         primaryButtonAction: 'toggle-transpose',
         secondaryButtonAction: 'toggle-repeater'
     };
 
     @state()
     protected strumRelease: StrumReleaseConfig = {
+        active: false,
         maxDuration: 0.25,
         velocityMultiplier: 2,
         midiNote: 38,
         midiChannel: 11
     };
+
+    @state()
+    protected panelOrder: string[] = [
+        'drawing-tablet',
+        'pen-tilt',
+        'keyboard',
+        'note-duration',
+        'pitch-bend',
+        'note-velocity',
+        'strumming',
+        'note-repeater',
+        'transpose',
+        'stylus-buttons',
+        'strum-release'
+    ];
 
     async connectedCallback() {
         super.connectedCallback();
@@ -283,13 +300,32 @@ export class StrummerApp extends LitElement {
         });
     }
 
-    render() {
+    handlePanelDrop(e: CustomEvent) {
+        const { draggedPanelId, targetPanelId } = e.detail;
+        
+        const draggedIndex = this.panelOrder.indexOf(draggedPanelId);
+        const targetIndex = this.panelOrder.indexOf(targetPanelId);
+        
+        if (draggedIndex === -1 || targetIndex === -1) return;
+        
+        // Create new array with swapped positions
+        const newOrder = [...this.panelOrder];
+        newOrder.splice(draggedIndex, 1);
+        newOrder.splice(targetIndex, 0, draggedPanelId);
+        
+        this.panelOrder = newOrder;
+    }
+
+    getPanels() {
         const colors = ['#51cf66', '#339af0', '#ff6b6b'];
         
-        return html`<sp-theme system="spectrum" color="dark" scale="medium">
-            <h1>MIDI Strummer</h1>
-
-            <dashboard-panel title="Drawing Tablet" collapsible>
+        const panels: Record<string, any> = {
+            'drawing-tablet': html`
+                <dashboard-panel 
+                    panelId="drawing-tablet"
+                    title="Drawing Tablet" 
+                    size="small"
+                    @panel-drop=${this.handlePanelDrop}>
                 <tablet-visualizer
                     mode="tablet"
                     .noteDuration=${this.noteDuration}
@@ -298,8 +334,13 @@ export class StrummerApp extends LitElement {
                     @config-change=${this.handleConfigChange}>
                 </tablet-visualizer>
             </dashboard-panel>
-
-            <dashboard-panel title="Pen Tilt & Pressure" collapsible>
+            `,
+            'pen-tilt': html`
+                <dashboard-panel 
+                    panelId="pen-tilt"
+                    title="Pen Tilt & Pressure" 
+                    size="small"
+                    @panel-drop=${this.handlePanelDrop}>
                 <tablet-visualizer
                     mode="tilt"
                     .noteDuration=${this.noteDuration}
@@ -308,13 +349,23 @@ export class StrummerApp extends LitElement {
                     @config-change=${this.handleConfigChange}>
                 </tablet-visualizer>
             </dashboard-panel>
-
-            <dashboard-panel title="Keyboard" collapsible>
-                <piano-keys layout="C" keys=20></piano-keys>
-            </dashboard-panel>
-
-            <dashboard-panel title="Expression Parameters" collapsible>
-                <div class="curve-visualizers">
+            `,
+            'keyboard': html`
+                <dashboard-panel 
+                    panelId="keyboard"
+                    title="Keyboard" 
+                    size="wide"
+                    @panel-drop=${this.handlePanelDrop}>
+                    <piano-keys layout="C" keys=20></piano-keys>
+                </dashboard-panel>
+            `,
+            'note-duration': html`
+                <dashboard-panel 
+                    panelId="note-duration"
+                    title="Note Duration" 
+                    size="small" 
+                    closable
+                    @panel-drop=${this.handlePanelDrop}>
                     <curve-visualizer
                         .label="Note Duration"
                         .parameterKey="noteDuration"
@@ -325,6 +376,15 @@ export class StrummerApp extends LitElement {
                         @config-change=${this.handleConfigChange}
                         @control-change=${this.handleConfigChange}>
                     </curve-visualizer>
+                </dashboard-panel>
+            `,
+            'pitch-bend': html`
+                <dashboard-panel 
+                    panelId="pitch-bend"
+                    title="Pitch Bend" 
+                    size="small" 
+                    closable
+                    @panel-drop=${this.handlePanelDrop}>
                     <curve-visualizer
                         .label="Pitch Bend"
                         .parameterKey="pitchBend"
@@ -335,6 +395,15 @@ export class StrummerApp extends LitElement {
                         @config-change=${this.handleConfigChange}
                         @control-change=${this.handleConfigChange}>
                     </curve-visualizer>
+                </dashboard-panel>
+            `,
+            'note-velocity': html`
+                <dashboard-panel 
+                    panelId="note-velocity"
+                    title="Note Velocity" 
+                    size="small" 
+                    closable
+                    @panel-drop=${this.handlePanelDrop}>
                     <curve-visualizer
                         .label="Note Velocity"
                         .parameterKey="noteVelocity"
@@ -345,10 +414,15 @@ export class StrummerApp extends LitElement {
                         @config-change=${this.handleConfigChange}
                         @control-change=${this.handleConfigChange}>
                     </curve-visualizer>
-                </div>
-            </dashboard-panel>
-
-            <dashboard-panel title="Strumming" collapsible>
+                </dashboard-panel>
+            `,
+            'strumming': html`
+                <dashboard-panel 
+                    panelId="strumming"
+                    title="Strumming" 
+                    size="medium"
+                    closable
+                    @panel-drop=${this.handlePanelDrop}>
                 <div class="config-group">
                     <sp-field-label for="pluck-velocity">Pluck Velocity Scale</sp-field-label>
                     <sp-number-field id="pluck-velocity" value="${this.strumming.pluckVelocityScale}" step="0.1"></sp-number-field>
@@ -366,59 +440,106 @@ export class StrummerApp extends LitElement {
                     <sp-number-field id="lower-spread" value="${this.strumming.lowerNoteSpread}" step="1" min="0"></sp-number-field>
                 </div>
             </dashboard-panel>
+            `,
+            'note-repeater': html`
+                <dashboard-panel 
+                    panelId="note-repeater"
+                    title="Note Repeater" 
+                    size="medium"
+                    hasActiveControl
+                    .active="${this.noteRepeater.active}"
+                    closable
+                    @panel-drop=${this.handlePanelDrop}
+                    @active-change="${(e: CustomEvent) => this.handleConfigChange(new CustomEvent('config-change', { detail: { 'noteRepeater.active': e.detail.active } }))}">
+                    <div class="config-group">
+                        <sp-field-label for="pressure-mult">Pressure Multiplier</sp-field-label>
+                        <sp-number-field id="pressure-mult" value="${this.noteRepeater.pressureMultiplier}" step="0.1"></sp-number-field>
+                        
+                        <sp-field-label for="freq-mult">Frequency Multiplier</sp-field-label>
+                        <sp-number-field id="freq-mult" value="${this.noteRepeater.frequencyMultiplier}" step="0.1"></sp-number-field>
+                    </div>
+                </dashboard-panel>
+            `,
+            'transpose': html`
+                <dashboard-panel 
+                    panelId="transpose"
+                    title="Transpose" 
+                    size="small"
+                    hasActiveControl
+                    .active="${this.transpose.active}"
+                    closable
+                    @panel-drop=${this.handlePanelDrop}
+                    @active-change="${(e: CustomEvent) => this.handleConfigChange(new CustomEvent('config-change', { detail: { 'transpose.active': e.detail.active } }))}">
+                    <div class="config-group">
+                        <sp-field-label for="transpose-semitones">Semitones</sp-field-label>
+                        <sp-number-field id="transpose-semitones" value="${this.transpose.semitones}" step="1"></sp-number-field>
+                    </div>
+                </dashboard-panel>
+            `,
+            'stylus-buttons': html`
+                <dashboard-panel 
+                    panelId="stylus-buttons"
+                    title="Stylus Buttons" 
+                    size="medium"
+                    hasActiveControl
+                    .active="${this.stylusButtons.active}"
+                    closable
+                    @panel-drop=${this.handlePanelDrop}
+                    @active-change="${(e: CustomEvent) => this.handleConfigChange(new CustomEvent('config-change', { detail: { 'stylusButtons.active': e.detail.active } }))}">
+                    <div class="config-group">
+                        <sp-field-label for="primary-action">Primary Button Action</sp-field-label>
+                        <sp-picker id="primary-action" value="${this.stylusButtons.primaryButtonAction}">
+                            <sp-menu-item value="toggle-transpose">Toggle Transpose</sp-menu-item>
+                            <sp-menu-item value="toggle-repeater">Toggle Repeater</sp-menu-item>
+                        </sp-picker>
+                        
+                        <sp-field-label for="secondary-action">Secondary Button Action</sp-field-label>
+                        <sp-picker id="secondary-action" value="${this.stylusButtons.secondaryButtonAction}">
+                            <sp-menu-item value="toggle-transpose">Toggle Transpose</sp-menu-item>
+                            <sp-menu-item value="toggle-repeater">Toggle Repeater</sp-menu-item>
+                        </sp-picker>
+                    </div>
+                </dashboard-panel>
+            `,
+            'strum-release': html`
+                <dashboard-panel 
+                    panelId="strum-release"
+                    title="Strum Release" 
+                    size="medium"
+                    hasActiveControl
+                    .active="${this.strumRelease.active}"
+                    closable
+                    @panel-drop=${this.handlePanelDrop}
+                    @active-change="${(e: CustomEvent) => this.handleConfigChange(new CustomEvent('config-change', { detail: { 'strumRelease.active': e.detail.active } }))}">
+                    <div class="config-group">
+                        <sp-field-label for="max-duration">Max Duration</sp-field-label>
+                        <sp-number-field id="max-duration" value="${this.strumRelease.maxDuration}" step="0.01"></sp-number-field>
+                        
+                        <sp-field-label for="velocity-mult">Velocity Multiplier</sp-field-label>
+                        <sp-number-field id="velocity-mult" value="${this.strumRelease.velocityMultiplier}" step="0.1"></sp-number-field>
+                        
+                        <sp-field-label for="midi-note">MIDI Note</sp-field-label>
+                        <sp-number-field id="midi-note" value="${this.strumRelease.midiNote}" step="1" min="0" max="127"></sp-number-field>
+                        
+                        <sp-field-label for="release-channel">MIDI Channel</sp-field-label>
+                        <sp-number-field id="release-channel" value="${this.strumRelease.midiChannel}" step="1" min="1" max="16"></sp-number-field>
+                    </div>
+                </dashboard-panel>
+            `
+        };
+        
+        return panels;
+    }
 
-            <dashboard-panel title="Note Repeater" collapsible>
-                <div class="config-group">
-                    <sp-checkbox ?checked="${this.noteRepeater.active}">Active</sp-checkbox>
-                    
-                    <sp-field-label for="pressure-mult">Pressure Multiplier</sp-field-label>
-                    <sp-number-field id="pressure-mult" value="${this.noteRepeater.pressureMultiplier}" step="0.1"></sp-number-field>
-                    
-                    <sp-field-label for="freq-mult">Frequency Multiplier</sp-field-label>
-                    <sp-number-field id="freq-mult" value="${this.noteRepeater.frequencyMultiplier}" step="0.1"></sp-number-field>
-                </div>
-            </dashboard-panel>
+    render() {
+        const panels = this.getPanels();
+        
+        return html`<sp-theme system="spectrum" color="dark" scale="medium">
+            <h1>MIDI Strummer</h1>
 
-            <dashboard-panel title="Transpose" collapsible>
-                <div class="config-group">
-                    <sp-checkbox ?checked="${this.transpose.active}">Active</sp-checkbox>
-                    
-                    <sp-field-label for="transpose-semitones">Semitones</sp-field-label>
-                    <sp-number-field id="transpose-semitones" value="${this.transpose.semitones}" step="1"></sp-number-field>
-                </div>
-            </dashboard-panel>
-
-            <dashboard-panel title="Stylus Buttons" collapsible>
-                <div class="config-group">
-                    <sp-field-label for="primary-action">Primary Button Action</sp-field-label>
-                    <sp-picker id="primary-action" value="${this.stylusButtons.primaryButtonAction}">
-                        <sp-menu-item value="toggle-transpose">Toggle Transpose</sp-menu-item>
-                        <sp-menu-item value="toggle-repeater">Toggle Repeater</sp-menu-item>
-                    </sp-picker>
-                    
-                    <sp-field-label for="secondary-action">Secondary Button Action</sp-field-label>
-                    <sp-picker id="secondary-action" value="${this.stylusButtons.secondaryButtonAction}">
-                        <sp-menu-item value="toggle-transpose">Toggle Transpose</sp-menu-item>
-                        <sp-menu-item value="toggle-repeater">Toggle Repeater</sp-menu-item>
-                    </sp-picker>
-                </div>
-            </dashboard-panel>
-
-            <dashboard-panel title="Strum Release" collapsible>
-                <div class="config-group">
-                    <sp-field-label for="max-duration">Max Duration</sp-field-label>
-                    <sp-number-field id="max-duration" value="${this.strumRelease.maxDuration}" step="0.01"></sp-number-field>
-                    
-                    <sp-field-label for="velocity-mult">Velocity Multiplier</sp-field-label>
-                    <sp-number-field id="velocity-mult" value="${this.strumRelease.velocityMultiplier}" step="0.1"></sp-number-field>
-                    
-                    <sp-field-label for="midi-note">MIDI Note</sp-field-label>
-                    <sp-number-field id="midi-note" value="${this.strumRelease.midiNote}" step="1" min="0" max="127"></sp-number-field>
-                    
-                    <sp-field-label for="release-channel">MIDI Channel</sp-field-label>
-                    <sp-number-field id="release-channel" value="${this.strumRelease.midiChannel}" step="1" min="1" max="16"></sp-number-field>
-                </div>
-            </dashboard-panel>
+            <div class="dashboard-grid">
+                ${this.panelOrder.map(panelId => panels[panelId])}
+            </div>
         </sp-theme>`
     }
 

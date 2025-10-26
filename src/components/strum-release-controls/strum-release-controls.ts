@@ -8,6 +8,7 @@ import '@spectrum-web-components/picker/sp-picker.js';
 import '@spectrum-web-components/menu/sp-menu-item.js';
 
 export interface StrumReleaseConfig {
+    active: boolean;
     maxDuration: number;
     velocityMultiplier: number;
     midiNote: number;
@@ -20,6 +21,7 @@ export class StrumReleaseControls extends LitElement {
 
     @property({ type: Object })
     config: StrumReleaseConfig = {
+        active: false,
         maxDuration: 0.25,
         velocityMultiplier: 2,
         midiNote: 38,

@@ -3,69 +3,114 @@ import { css } from 'lit';
 export const styles = css`
     :host {
         display: block;
-        width: 100%;
+        height: 100%;
     }
     
     .panel {
-        background-color: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background-color: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
         overflow: hidden;
-        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        transition: all 0.2s ease;
     }
     
     .panel:hover {
         border-color: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+    }
+    
+    .panel.minimized {
+        height: auto;
+    }
+    
+    .panel.minimized .panel-content {
+        display: none;
+    }
+
+    .panel.dragging {
+        opacity: 0.5;
+        cursor: grabbing;
+    }
+
+    .panel[data-size] {
+        transition: opacity 0.2s ease;
     }
     
     .panel-header {
+        padding: 12px 16px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        flex-shrink: 0;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 16px 20px;
-        background-color: rgba(255, 255, 255, 0.03);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        gap: 12px;
+        min-height: 48px;
+    }
+    
+    .drag-handle {
+        cursor: grab;
         user-select: none;
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 14px;
+        padding: 0 4px;
+        transition: color 0.2s ease;
+        line-height: 1;
+        letter-spacing: -2px;
+    }
+
+    .drag-handle:hover {
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .drag-handle:active {
+        cursor: grabbing;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        min-width: 0;
     }
     
-    .panel.collapsed .panel-header {
-        border-bottom: none;
-    }
-    
-    .panel-header[collapsible] {
-        cursor: pointer;
-    }
-    
-    .panel-header:hover {
-        background-color: rgba(255, 255, 255, 0.05);
+    .header-controls {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
     }
     
     .panel-title {
         margin: 0;
-        font-size: 16px;
+        font-size: 13px;
         font-weight: 600;
         color: white;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        opacity: 0.9;
+        white-space: nowrap;
     }
     
-    .collapse-icon {
+    .header-checkbox {
         font-size: 12px;
-        color: rgba(255, 255, 255, 0.6);
-        transition: transform 0.3s ease;
+        flex-shrink: 0;
+    }
+    
+    .header-controls sp-action-button {
+        --spectrum-actionbutton-min-width: 24px;
+        font-size: 11px;
     }
     
     .panel-content {
         padding: 20px;
-        max-height: 1000px;
-        opacity: 1;
-        transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
-    }
-    
-    .panel.collapsed .panel-content {
-        max-height: 0;
-        opacity: 0;
-        padding: 0 20px;
-        overflow: hidden;
+        flex: 1;
+        overflow: auto;
     }
 `;
 

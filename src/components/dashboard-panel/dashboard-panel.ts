@@ -1,6 +1,9 @@
 import { html, LitElement } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { styles } from './dashboard-panel.css';
+
+import '@spectrum-web-components/checkbox/sp-checkbox.js';
+import '@spectrum-web-components/action-button/sp-action-button.js';
 
 @customElement('dashboard-panel')
 export class DashboardPanel extends LitElement {
@@ -9,27 +12,159 @@ export class DashboardPanel extends LitElement {
     @property({ type: String })
     title = '';
 
-    @property({ type: Boolean })
-    collapsible = false;
+    @property({ type: String })
+    size: 'small' | 'medium' | 'large' | 'wide' | 'tall' | 'full' = 'medium';
 
     @property({ type: Boolean })
-    collapsed = false;
+    hasActiveControl = false;
 
-    toggleCollapse() {
-        if (this.collapsible) {
-            this.collapsed = !this.collapsed;
+    @property({ type: Boolean })
+    active = false;
+
+    @property({ type: Boolean })
+    closable = false;
+
+    @property({ type: Boolean })
+    minimizable = true;
+
+    @property({ type: Boolean })
+    draggable = true;
+
+    @property({ type: String })
+    panelId = '';
+
+    @state()
+    private isMinimized = false;
+
+    @state()
+    private isVisible = true;
+
+    @state()
+    private isDragging = false;
+
+    private handleActiveChange(e: Event) {
+        const checked = (e.target as HTMLInputElement).checked;
+        this.dispatchEvent(new CustomEvent('active-change', {
+            detail: { active: checked },
+            bubbles: true,
+            composed: true
+        }));
+    }
+
+    private toggleMinimize() {
+        this.isMinimized = !this.isMinimized;
+    }
+
+    private handleClose() {
+        this.isVisible = false;
+        this.dispatchEvent(new CustomEvent('panel-close', {
+            bubbles: true,
+            composed: true
+        }));
+    }
+
+    private handleDragStart(e: DragEvent) {
+        if (!this.draggable) return;
+        
+        this.isDragging = true;
+        e.dataTransfer!.effectAllowed = 'move';
+        e.dataTransfer!.setData('text/plain', this.panelId);
+        
+        this.dispatchEvent(new CustomEvent('panel-drag-start', {
+            detail: { panelId: this.panelId },
+            bubbles: true,
+            composed: true
+        }));
+    }
+
+    private handleDragEnd() {
+        this.isDragging = false;
+        
+        this.dispatchEvent(new CustomEvent('panel-drag-end', {
+            bubbles: true,
+            composed: true
+        }));
+    }
+
+    private handleDragOver(e: DragEvent) {
+        if (!this.draggable) return;
+        
+        e.preventDefault();
+        e.dataTransfer!.dropEffect = 'move';
+    }
+
+    private handleDrop(e: DragEvent) {
+        if (!this.draggable) return;
+        
+        e.preventDefault();
+        const draggedPanelId = e.dataTransfer!.getData('text/plain');
+        
+        if (draggedPanelId && draggedPanelId !== this.panelId) {
+            this.dispatchEvent(new CustomEvent('panel-drop', {
+                detail: { 
+                    draggedPanelId,
+                    targetPanelId: this.panelId 
+                },
+                bubbles: true,
+                composed: true
+            }));
         }
     }
 
     render() {
+        if (!this.isVisible) {
+            return html``;
+        }
+
         return html`
-            <div class="panel ${this.collapsed ? 'collapsed' : ''}">
+            <div 
+                class="panel ${this.isMinimized ? 'minimized' : ''} ${this.isDragging ? 'dragging' : ''}" 
+                data-size="${this.size}"
+                @dragover="${this.handleDragOver}"
+                @drop="${this.handleDrop}">
                 ${this.title ? html`
-                    <div class="panel-header" @click=${this.toggleCollapse}>
-                        <h3 class="panel-title">${this.title}</h3>
-                        ${this.collapsible ? html`
-                            <span class="collapse-icon">${this.collapsed ? '▶' : '▼'}</span>
-                        ` : ''}
+                    <div class="panel-header">
+                        <div class="header-left">
+                            ${this.draggable ? html`
+                                <div 
+                                    class="drag-handle"
+                                    draggable="true"
+                                    @dragstart="${this.handleDragStart}"
+                                    @dragend="${this.handleDragEnd}"
+                                    title="Drag to reorder">
+                                    ⋮⋮
+                                </div>
+                            ` : ''}
+                            <h3 class="panel-title">${this.title}</h3>
+                            ${this.hasActiveControl ? html`
+                                <sp-checkbox 
+                                    ?checked="${this.active}"
+                                    @change="${this.handleActiveChange}"
+                                    class="header-checkbox">
+                                    Active
+                                </sp-checkbox>
+                            ` : ''}
+                        </div>
+                        <div class="header-controls">
+                            ${this.minimizable ? html`
+                                <sp-action-button 
+                                    size="xs"
+                                    quiet
+                                    @click="${this.toggleMinimize}"
+                                    title="${this.isMinimized ? 'Maximize' : 'Minimize'}">
+                                    ${this.isMinimized ? '▼' : '▲'}
+                                </sp-action-button>
+                            ` : ''}
+                            ${this.closable ? html`
+                                <sp-action-button 
+                                    size="xs"
+                                    quiet
+                                    @click="${this.handleClose}"
+                                    title="Close">
+                                    ✕
+                                </sp-action-button>
+                            ` : ''}
+                        </div>
                     </div>
                 ` : ''}
                 <div class="panel-content">

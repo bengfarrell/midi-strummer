@@ -15,14 +15,6 @@ export const styles = css`
         padding: 16px;
     }
 
-    .visualizer-title {
-        margin: 0;
-        font-size: 14px;
-        font-weight: 600;
-        color: #f1f3f5;
-        text-align: center;
-    }
-
     .control-selector-top {
         display: flex;
         flex-direction: column;

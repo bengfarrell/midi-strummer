@@ -191,9 +191,6 @@ export class CurveVisualizer extends LitElement {
 
         return html`
             <div class="curve-container">
-                <!-- Title -->
-                <h3 class="visualizer-title">${this.label}</h3>
-                
                 <!-- Control selector -->
                 <div class="control-selector-top">
                     <label class="control-selector-label">Controlled by:</label>

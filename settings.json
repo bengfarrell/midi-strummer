@@ -46,11 +46,13 @@
     "frequencyMultiplier": 5.0
   },
   "stylusButtons": {
+    "active": true,
     "primaryButtonAction": ["transpose", 12],
     "secondaryButtonAction": ["toggle-repeater"]
   },
   "tabletButtons": "c-major-pop",
   "strumRelease": {
+    "active": false,
     "maxDuration": 0.25,
     "velocityMultiplier": 2,
     "midiNote": 38,

@@ -102,10 +102,12 @@ class Config:
             "semitones": 12
         },
         "stylusButtons": {
+            "active": True,
             "primaryButtonAction": "toggle-transpose",
             "secondaryButtonAction": "toggle-repeater"
         },
         "strumRelease": {
+            "active": False,
             "midiNote": 38,
             "midiChannel": None,
             "maxDuration": 0.25,

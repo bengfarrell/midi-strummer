@@ -47,12 +47,14 @@ export class FeaturesPanel extends LitElement {
 
     @property({ type: Object })
     stylusButtons: StylusButtonsConfig = {
+        active: true,
         primaryButtonAction: 'toggle-transpose',
         secondaryButtonAction: 'toggle-repeater'
     };
 
     @property({ type: Object })
     strumRelease: StrumReleaseConfig = {
+        active: false,
         maxDuration: 0.25,
         velocityMultiplier: 2,
         midiNote: 38,

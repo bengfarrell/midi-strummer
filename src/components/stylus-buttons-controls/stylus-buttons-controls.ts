@@ -7,6 +7,7 @@ import '@spectrum-web-components/picker/sp-picker.js';
 import '@spectrum-web-components/menu/sp-menu-item.js';
 
 export interface StylusButtonsConfig {
+    active: boolean;
     primaryButtonAction: string;
     secondaryButtonAction: string;
 }
@@ -17,6 +18,7 @@ export class StylusButtonsControls extends LitElement {
 
     @property({ type: Object })
     config: StylusButtonsConfig = {
+        active: true,
         primaryButtonAction: 'toggle-transpose',
         secondaryButtonAction: 'toggle-repeater'
     };
