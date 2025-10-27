@@ -4,6 +4,7 @@ import { styles } from './curve-visualizer.css';
 import '@spectrum-web-components/picker/sp-picker.js';
 import '@spectrum-web-components/menu/sp-menu-item.js';
 import '@spectrum-web-components/number-field/sp-number-field.js';
+import { sharedTabletInteraction } from '../../controllers';
 
 export interface CurveConfig {
     min: number;
@@ -35,6 +36,12 @@ export class CurveVisualizer extends LitElement {
     })
     config?: CurveConfig;
 
+    constructor() {
+        super();
+        // Register with the shared tablet interaction controller
+        sharedTabletInteraction.addHost(this);
+    }
+
     updated(changedProperties: Map<string, any>) {
         if (changedProperties.has('control')) {
             console.log(`${this.label} control changed to:`, this.control);
@@ -52,6 +59,48 @@ export class CurveVisualizer extends LitElement {
         hasChanged: () => true 
     })
     hoverPosition: number | null = null;
+    
+    /**
+     * Calculate hover position based on controller state and control type
+     */
+    private getHoverPositionFromController(): number | null {
+        const state = sharedTabletInteraction.state;
+        
+        switch (this.control) {
+            case 'yaxis':
+                // Y-axis uses tablet Y position (normalized 0-1)
+                // Show position even when just hovering (not pressed)
+                return state.tabletY;
+            
+            case 'pressure':
+                // Pressure from pen (0-1) - only show when tilt is pressed
+                return state.tiltPressed ? state.tiltPressure : null;
+            
+            case 'tiltX':
+                // Tilt X normalized from -1..1 to 0..1 - only show when tilt is pressed
+                return state.tiltPressed ? (state.tiltX + 1) / 2 : null;
+            
+            case 'tiltY':
+                // Tilt Y normalized from -1..1 to 0..1 - only show when tilt is pressed
+                return state.tiltPressed ? (state.tiltY + 1) / 2 : null;
+            
+            case 'tiltXY':
+                // Combined tilt magnitude with sign based on tiltX * tiltY - only show when tilt is pressed
+                if (state.tiltPressed) {
+                    const magnitude = Math.sqrt(state.tiltX * state.tiltX + state.tiltY * state.tiltY);
+                    const sign = (state.tiltX * state.tiltY) >= 0 ? 1 : -1;
+                    // Clamp to [-1, 1] range (magnitude can exceed 1 at corners)
+                    const signedMagnitude = Math.max(-1, Math.min(1, magnitude * sign));
+                    // signedMagnitude ranges from -1 to +1, normalize to 0-1 for display
+                    const normalized = (signedMagnitude + 1) / 2;
+                    return normalized;
+                }
+                return null;
+            
+            default:
+                return null;
+        }
+    }
 
     private handleControlChange(e: Event) {
         const target = e.target as any;
@@ -188,6 +237,9 @@ export class CurveVisualizer extends LitElement {
         const innerHeight = graphHeight - padding * 2;
 
         const curvePath = this.generateCurvePath(this.config, innerWidth, innerHeight);
+        
+        // Get hover position from controller based on current control type
+        const hoverPosition = this.getHoverPositionFromController();
 
         return html`
             <div class="curve-container">
@@ -237,10 +289,10 @@ export class CurveVisualizer extends LitElement {
                         transform="translate(${padding}, ${padding})" />
                     
                     <!-- Hover position indicator -->
-                    ${this.hoverPosition !== null ? svg`
-                        <line x1="${padding + (this.hoverPosition * innerWidth)}" 
+                    ${hoverPosition !== null ? svg`
+                        <line x1="${padding + (hoverPosition * innerWidth)}" 
                               y1="${padding}" 
-                              x2="${padding + (this.hoverPosition * innerWidth)}" 
+                              x2="${padding + (hoverPosition * innerWidth)}" 
                               y2="${graphHeight - padding}" 
                               stroke="#51cf66"
                               stroke-width="2"

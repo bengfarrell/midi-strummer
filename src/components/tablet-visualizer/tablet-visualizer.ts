@@ -3,6 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { styles } from './tablet-visualizer.css';
 import '../curve-visualizer/curve-visualizer';
 import { TabletExpressionConfig } from '../../types/config-types.js';
+import { sharedTabletInteraction } from '../../controllers';
 
 @customElement('tablet-visualizer')
 export class TabletVisualizer extends LitElement {
@@ -37,9 +38,6 @@ export class TabletVisualizer extends LitElement {
 
     @state()
     private secondaryButtonPressed: boolean = false;
-
-    @state()
-    private hoveredString: number | null = null;
 
     @state()
     private lastHoveredString: number | null = null;
@@ -80,30 +78,46 @@ export class TabletVisualizer extends LitElement {
     stringCount: number = 6;
 
     private handleTabletMouseMove(e: MouseEvent) {
+        const rectElement = e.currentTarget as SVGRectElement;
+        const svg = rectElement.ownerSVGElement as SVGSVGElement;
+        const rect = svg.getBoundingClientRect();
+        
+        // Get SVG's viewBox dimensions
+        const viewBox = svg.viewBox.baseVal;
+        const viewBoxWidth = viewBox.width;
+        const viewBoxHeight = viewBox.height;
+        
+        // Convert screen coordinates to SVG viewBox coordinates
+        const scaleX = viewBoxWidth / rect.width;
+        const scaleY = viewBoxHeight / rect.height;
+        
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
+        
         // Update click position if pressing
         if (this.isPressingTablet) {
-            const rectElement = e.currentTarget as SVGRectElement;
-            const svg = rectElement.ownerSVGElement as SVGSVGElement;
-            const rect = svg.getBoundingClientRect();
-            
-            // Get SVG's viewBox dimensions
-            const viewBox = svg.viewBox.baseVal;
-            const viewBoxWidth = viewBox.width;
-            const viewBoxHeight = viewBox.height;
-            
-            // Convert screen coordinates to SVG viewBox coordinates
-            const scaleX = viewBoxWidth / rect.width;
-            const scaleY = viewBoxHeight / rect.height;
-            
-            const x = (e.clientX - rect.left) * scaleX;
-            const y = (e.clientY - rect.top) * scaleY;
-            
             this.clickPosition = { x, y };
         }
+        
+        // Calculate string area boundaries (matching renderStrings calculations)
+        const activeAreaHeight = 160;
+        const activeAreaY = 35;
+        const buttonRadius = 8;
+        const verticalPadding = 20;
+        const buttonCenterY = activeAreaY + verticalPadding + buttonRadius;
+        const buttonMargin = 5;
+        const stringStartY = buttonCenterY + buttonRadius + buttonMargin;
+        const stringEndY = activeAreaY + activeAreaHeight;
+        const stringAreaHeight = stringEndY - stringStartY;
+        
+        // Normalize Y position within string area (0-1)
+        const normalizedY = Math.max(0, Math.min(1, (y - stringStartY) / stringAreaHeight));
+        sharedTabletInteraction.setTabletPosition(x, normalizedY, this.isPressingTablet);
     }
 
     private handleTabletMouseLeave() {
-        // No action needed
+        // Clear position when mouse leaves
+        sharedTabletInteraction.setTabletPressed(false);
     }
 
     private handleTabletMouseDown(e: MouseEvent) {
@@ -127,6 +141,21 @@ export class TabletVisualizer extends LitElement {
         this.clickPosition = { x, y };
         this.pressure = 0;
         this.animatePressure();
+        
+        // Calculate string area boundaries (matching renderStrings calculations)
+        const activeAreaHeight = 160;
+        const activeAreaY = 35;
+        const buttonRadius = 8;
+        const verticalPadding = 20;
+        const buttonCenterY = activeAreaY + verticalPadding + buttonRadius;
+        const buttonMargin = 5;
+        const stringStartY = buttonCenterY + buttonRadius + buttonMargin;
+        const stringEndY = activeAreaY + activeAreaHeight;
+        const stringAreaHeight = stringEndY - stringStartY;
+        
+        // Normalize Y position within string area (0-1)
+        const normalizedY = Math.max(0, Math.min(1, (y - stringStartY) / stringAreaHeight));
+        sharedTabletInteraction.setTabletPosition(x, normalizedY, true);
     }
 
     private handleTabletMouseUp() {
@@ -137,6 +166,9 @@ export class TabletVisualizer extends LitElement {
             cancelAnimationFrame(this.pressureAnimationFrame);
             this.pressureAnimationFrame = null;
         }
+        
+        // Update shared controller
+        sharedTabletInteraction.setTabletPressed(false);
     }
 
     private animatePressure() {
@@ -174,6 +206,9 @@ export class TabletVisualizer extends LitElement {
             this.tiltX = relativeX;
             this.tiltY = relativeY;
         }
+        
+        // Update shared controller
+        sharedTabletInteraction.setTiltPosition(this.tiltX, this.tiltY, this.tiltPressure, true);
     }
 
     private handleTiltMouseDown(e: MouseEvent) {
@@ -192,6 +227,9 @@ export class TabletVisualizer extends LitElement {
             cancelAnimationFrame(this.tiltPressureAnimationFrame);
             this.tiltPressureAnimationFrame = null;
         }
+        
+        // Update shared controller (resets tilt to 0)
+        sharedTabletInteraction.setTiltPressed(false);
     }
 
     private animateTiltPressure() {
@@ -199,6 +237,9 @@ export class TabletVisualizer extends LitElement {
         
         // Increase pressure over time (0 to 1 over ~1 second)
         this.tiltPressure = Math.min(1, this.tiltPressure + 0.02);
+        
+        // Update shared controller with new pressure
+        sharedTabletInteraction.setTiltPosition(this.tiltX, this.tiltY, this.tiltPressure, true);
         
         if (this.tiltPressure < 1) {
             this.tiltPressureAnimationFrame = requestAnimationFrame(() => this.animateTiltPressure());
@@ -288,33 +329,17 @@ export class TabletVisualizer extends LitElement {
         return svg`
             ${Array.from({ length: this.stringCount }, (_, i) => {
                 const stringX = activeAreaX + stringSpacing * (i + 1);
-                const isHovered = this.hoveredString === i;
                 
                 return svg`
-                    <!-- Invisible wider hitbox for easier hovering -->
+                    <!-- Visible string - non-interactive -->
                     <line 
                         x1="${stringX}" 
                         y1="${stringStartY}" 
                         x2="${stringX}" 
                         y2="${activeAreaY + activeAreaHeight}"
-                        stroke="transparent"
-                        stroke-width="8"
-                        class="string-hitbox"
-                        @mouseenter=${() => {
-                            this.hoveredString = i;
-                            this.lastHoveredString = i;
-                        }}
-                        @mouseleave=${() => this.hoveredString = null} />
-                    
-                    <!-- Visible string -->
-                    <line 
-                        x1="${stringX}" 
-                        y1="${stringStartY}" 
-                        x2="${stringX}" 
-                        y2="${activeAreaY + activeAreaHeight}"
-                        stroke="${isHovered ? '#adb5bd' : '#6c757d'}"
-                        stroke-width="${isHovered ? '2' : '1'}"
-                        opacity="${isHovered ? '0.8' : '0.5'}"
+                        stroke="#6c757d"
+                        stroke-width="1"
+                        opacity="0.5"
                         pointer-events="none" />
                 `;
             })}
@@ -522,8 +547,11 @@ export class TabletVisualizer extends LitElement {
         const tiltLineEndX = centerX + this.tiltX * maxRadius;
         const tiltLineEndY = centerY + this.tiltY * maxRadius;
         
-        // Calculate combined tilt magnitude using distance formula
-        const tiltMagnitude = Math.sqrt(this.tiltX * this.tiltX + this.tiltY * this.tiltY);
+        // Calculate combined tilt magnitude with sign based on tiltX * tiltY
+        const magnitude = Math.sqrt(this.tiltX * this.tiltX + this.tiltY * this.tiltY);
+        const sign = (this.tiltX * this.tiltY) >= 0 ? 1 : -1;
+        // Clamp to [-1, 1] range (magnitude can exceed 1 at corners)
+        const tiltMagnitude = Math.max(-1, Math.min(1, magnitude * sign));
         
         return svg`
             <svg width="100%" height="100%" 

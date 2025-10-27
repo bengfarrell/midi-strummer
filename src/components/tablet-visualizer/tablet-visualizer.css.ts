@@ -71,10 +71,6 @@ export const styles = css`
         filter: brightness(1.2);
     }
     
-    .string-hitbox {
-        cursor: pointer;
-    }
-    
     .tablet-button text {
         user-select: none;
         -webkit-user-select: none;

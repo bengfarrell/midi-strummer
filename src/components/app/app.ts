@@ -20,15 +20,10 @@ import '../dashboard-panel/dashboard-panel.js';
 import '../tablet-visualizer/tablet-visualizer.js';
 import '../curve-visualizer/curve-visualizer.js';
 import '../config-panel/config-panel.js';
+import '../stylus-buttons-config/stylus-buttons-config.js';
+import '../tablet-buttons-config/tablet-buttons-config.js';
 import { PANEL_SCHEMAS } from '../../panel-schemas.js';
-import { 
-    TabletExpressionConfig,
-    StrummingConfig, 
-    NoteRepeaterConfig, 
-    TransposeConfig, 
-    StylusButtonsConfig, 
-    StrumReleaseConfig 
-} from '../../types/config-types.js';
+import { sharedSettings } from '../../controllers/index.js';
 
 @customElement('strummer-app')
 export class StrummerApp extends LitElement {
@@ -41,80 +36,14 @@ export class StrummerApp extends LitElement {
 
     protected webSocket?: WebSocket;
 
-    @state()
-    protected allowPitchBend:boolean = false;
+    // Settings are now managed by the shared controller
+    protected settings = sharedSettings;
 
-    @state()
-    protected noteDuration: TabletExpressionConfig = {
-        min: 0.15,
-        max: 1.5,
-        default: 1,
-        multiplier: 1.0,
-        curve: 1.0,
-        spread: 'central',
-        control: 'yaxis'
-    };
-
-    @state()
-    protected pitchBend: TabletExpressionConfig = {
-        min: -1.0,
-        max: 1.0,
-        default: 0,
-        spread: 'direct',
-        multiplier: 1.0,
-        curve: 4.0,
-        control: 'tiltXY'
-    };
-
-    @state()
-    protected noteVelocity: TabletExpressionConfig = {
-        min: 0,
-        max: 127,
-        spread: 'direct',
-        multiplier: 1.0,
-        curve: 4.0,
-        control: 'pressure',
-        default: 64
-    };
-
-    @state()
-    protected strumming: StrummingConfig = {
-        pluckVelocityScale: 4.0,
-        pressureThreshold: 0.1,
-        midiChannel: 10,
-        initialNotes: ['C4', 'E4', 'G4'],
-        upperNoteSpread: 3,
-        lowerNoteSpread: 3
-    };
-
-    @state()
-    protected noteRepeater: NoteRepeaterConfig = {
-        active: false,
-        pressureMultiplier: 1.0,
-        frequencyMultiplier: 5.0
-    };
-
-    @state()
-    protected transpose: TransposeConfig = {
-        active: false,
-        semitones: 12
-    };
-
-    @state()
-    protected stylusButtons: StylusButtonsConfig = {
-        active: true,
-        primaryButtonAction: 'toggle-transpose',
-        secondaryButtonAction: 'toggle-repeater'
-    };
-
-    @state()
-    protected strumRelease: StrumReleaseConfig = {
-        active: false,
-        maxDuration: 0.25,
-        velocityMultiplier: 2,
-        midiNote: 38,
-        midiChannel: 11
-    };
+    constructor() {
+        super();
+        // Register this component with the settings controller
+        sharedSettings.addHost(this);
+    }
 
     @state()
     protected panelOrder: string[] = [
@@ -128,8 +57,25 @@ export class StrummerApp extends LitElement {
         'note-repeater',
         'transpose',
         'stylus-buttons',
+        'tablet-buttons',
         'strum-release'
     ];
+
+    @state()
+    protected panelVisibility: Record<string, boolean> = {
+        'drawing-tablet': true,
+        'pen-tilt': true,
+        'keyboard': true,
+        'note-duration': true,
+        'pitch-bend': true,
+        'note-velocity': true,
+        'strumming': true,
+        'note-repeater': true,
+        'transpose': true,
+        'stylus-buttons': true,
+        'tablet-buttons': true,
+        'strum-release': true
+    };
 
     async connectedCallback() {
         super.connectedCallback();
@@ -152,34 +98,8 @@ export class StrummerApp extends LitElement {
                     break;
 
                 case 'config':
-                    const config = data.config;
-                    if (config.allowPitchBend !== undefined) {
-                        this.allowPitchBend = config.allowPitchBend;
-                    }
-                    if (config.noteDuration) {
-                        this.noteDuration = { ...this.noteDuration, ...config.noteDuration };
-                    }
-                    if (config.pitchBend) {
-                        this.pitchBend = { ...this.pitchBend, ...config.pitchBend };
-                    }
-                    if (config.noteVelocity) {
-                        this.noteVelocity = { ...this.noteVelocity, ...config.noteVelocity };
-                    }
-                    if (config.strumming) {
-                        this.strumming = { ...this.strumming, ...config.strumming };
-                    }
-                    if (config.noteRepeater) {
-                        this.noteRepeater = { ...this.noteRepeater, ...config.noteRepeater };
-                    }
-                    if (config.transpose) {
-                        this.transpose = { ...this.transpose, ...config.transpose };
-                    }
-                    if (config.stylusButtons) {
-                        this.stylusButtons = { ...this.stylusButtons, ...config.stylusButtons };
-                    }
-                    if (config.strumRelease) {
-                        this.strumRelease = { ...this.strumRelease, ...config.strumRelease };
-                    }
+                    // Update settings through the shared controller
+                    sharedSettings.loadSettings(data.config);
                     break;
             }
         };
@@ -200,33 +120,8 @@ export class StrummerApp extends LitElement {
                 const settings = await response.json();
                 console.log('📋 Loaded settings from /api/settings', settings);
                 
-                if (settings.noteDuration) {
-                    this.noteDuration = settings.noteDuration;
-                }
-                if (settings.pitchBend) {
-                    this.pitchBend = settings.pitchBend;
-                }
-                if (settings.noteVelocity) {
-                    this.noteVelocity = settings.noteVelocity;
-                }
-                if (settings.strumming) {
-                    this.strumming = settings.strumming;
-                }
-                if (settings.noteRepeater) {
-                    this.noteRepeater = settings.noteRepeater;
-                }
-                if (settings.transpose) {
-                    this.transpose = settings.transpose;
-                }
-                if (settings.stylusButtons) {
-                    this.stylusButtons = settings.stylusButtons;
-                }
-                if (settings.strumRelease) {
-                    this.strumRelease = settings.strumRelease;
-                }
-                if (settings.allowPitchBend !== undefined) {
-                    this.allowPitchBend = settings.allowPitchBend;
-                }
+                // Load settings into the shared controller
+                sharedSettings.loadSettings(settings);
             }
         } catch (error) {
             // Silently fail - likely not in dev mode or server not running
@@ -240,53 +135,15 @@ export class StrummerApp extends LitElement {
     }
 
     handleConfigChange(event: CustomEvent) {
-        // Update local state immediately for live UI updates
+        // Update settings through the shared controller
         const detail = event.detail;
         
         console.log('Config change received:', detail);
         
         for (const key in detail) {
-            const [section, field] = key.split('.');
             const value = detail[key];
-            
-            switch (section) {
-                case 'noteDuration':
-                    if (this.noteDuration) {
-                        this.noteDuration = { ...this.noteDuration, [field]: value } as TabletExpressionConfig;
-                        console.log('Updated noteDuration:', this.noteDuration);
-                    }
-                    break;
-                case 'pitchBend':
-                    if (this.pitchBend) {
-                        this.pitchBend = { ...this.pitchBend, [field]: value } as TabletExpressionConfig;
-                        console.log('Updated pitchBend:', this.pitchBend);
-                    }
-                    break;
-                case 'noteVelocity':
-                    if (this.noteVelocity) {
-                        this.noteVelocity = { ...this.noteVelocity, [field]: value } as TabletExpressionConfig;
-                        console.log('Updated noteVelocity:', this.noteVelocity);
-                    }
-                    break;
-                case 'strumming':
-                    this.strumming = { ...this.strumming, [field]: value };
-                    break;
-                case 'noteRepeater':
-                    this.noteRepeater = { ...this.noteRepeater, [field]: value };
-                    break;
-                case 'transpose':
-                    this.transpose = { ...this.transpose, [field]: value };
-                    break;
-                case 'stylusButtons':
-                    this.stylusButtons = { ...this.stylusButtons, [field]: value };
-                    break;
-                case 'strumRelease':
-                    this.strumRelease = { ...this.strumRelease, [field]: value };
-                    break;
-                case 'allowPitchBend':
-                    this.allowPitchBend = value;
-                    break;
-            }
+            // Use the controller's path-based update method
+            sharedSettings.updateSettingByPath(key, value);
         }
         
         // Also send to server
@@ -320,6 +177,25 @@ export class StrummerApp extends LitElement {
         this.panelOrder = newOrder;
     }
 
+    handlePanelClose(e: CustomEvent) {
+        const panel = e.target as any;
+        const panelId = panel.panelId;
+        
+        if (panelId) {
+            this.panelVisibility = {
+                ...this.panelVisibility,
+                [panelId]: false
+            };
+        }
+    }
+
+    togglePanelVisibility(panelId: string) {
+        this.panelVisibility = {
+            ...this.panelVisibility,
+            [panelId]: !this.panelVisibility[panelId]
+        };
+    }
+
     /**
      * Renders a custom component based on schema definition
      */
@@ -328,21 +204,22 @@ export class StrummerApp extends LitElement {
         if (!schema.customComponent) return html``;
         
         const { type, props } = schema.customComponent;
+        const settings = sharedSettings.state;
         
         switch (type) {
             case 'tablet-visualizer':
                 return html`
                 <tablet-visualizer
                         mode="${props.mode}"
-                    .noteDuration=${this.noteDuration}
-                    .pitchBend=${this.pitchBend}
-                    .noteVelocity=${this.noteVelocity}
+                    .noteDuration=${settings.noteDuration}
+                    .pitchBend=${settings.pitchBend}
+                    .noteVelocity=${settings.noteVelocity}
                     @config-change=${this.handleConfigChange}>
                 </tablet-visualizer>
                 `;
             
             case 'curve-visualizer':
-                const config = schema.configKey ? this[schema.configKey as keyof this] : null;
+                const config = schema.configKey ? (settings as any)[schema.configKey] : null;
                 return html`
                     <curve-visualizer
                         .label="${props.label}"
@@ -364,6 +241,24 @@ export class StrummerApp extends LitElement {
                     </piano-keys>
                 `;
             
+            case 'stylus-buttons-config':
+                const stylusConfig = settings.stylusButtons;
+                return html`
+                    <stylus-buttons-config
+                        .config="${stylusConfig}"
+                        @config-change=${this.handleConfigChange}>
+                    </stylus-buttons-config>
+                `;
+            
+            case 'tablet-buttons-config':
+                const tabletButtonsConfig = settings.tabletButtons;
+                return html`
+                    <tablet-buttons-config
+                        .config="${tabletButtonsConfig}"
+                        @config-change=${this.handleConfigChange}>
+                    </tablet-buttons-config>
+                `;
+            
             default:
                 return html`<div>Unknown component: ${type}</div>`;
         }
@@ -376,7 +271,13 @@ export class StrummerApp extends LitElement {
         const schema = PANEL_SCHEMAS[panelId];
         if (!schema) return html``;
         
-        const config = schema.configKey ? this[schema.configKey as keyof this] : null;
+        // Check visibility
+        if (!this.panelVisibility[panelId]) {
+            return html``;
+        }
+        
+        // Get config from the settings controller
+        const config = schema.configKey ? (sharedSettings.state as any)[schema.configKey] : null;
         const hasActive = schema.hasActiveControl && config && typeof config === 'object' && 'active' in config;
         const isActive = hasActive ? (config as any).active : true;
         
@@ -389,6 +290,7 @@ export class StrummerApp extends LitElement {
                 .active="${isActive}"
                 closable
                 @panel-drop=${this.handlePanelDrop}
+                @panel-close=${this.handlePanelClose}
                 @active-change="${hasActive ? (e: CustomEvent) => 
                     this.handleConfigChange(new CustomEvent('config-change', { 
                         detail: { [`${schema.configKey}.active`]: e.detail.active } 
@@ -425,11 +327,39 @@ export class StrummerApp extends LitElement {
         return panels;
     }
 
+    /**
+     * Renders the panel tray for managing panel visibility
+     */
+    private renderPanelTray() {
+        return html`
+            <div class="panel-tray">
+                <div class="panel-tray-label">Panels:</div>
+                <div class="panel-tray-items">
+                    ${this.panelOrder.map(panelId => {
+                        const schema = PANEL_SCHEMAS[panelId];
+                        const isVisible = this.panelVisibility[panelId];
+                        
+                        return html`
+                            <button 
+                                class="panel-tray-item ${isVisible ? 'visible' : 'hidden'}"
+                                @click=${() => this.togglePanelVisibility(panelId)}
+                                title="${isVisible ? 'Hide' : 'Show'} ${schema.title}">
+                                ${schema.title}
+                            </button>
+                        `;
+                    })}
+                </div>
+            </div>
+        `;
+    }
+
     render() {
         const panels = this.getPanels();
         
         return html`<sp-theme system="spectrum" color="dark" scale="medium">
             <h1>MIDI Strummer</h1>
+
+            ${this.renderPanelTray()}
 
             <div class="dashboard-grid">
                 ${this.panelOrder.map(panelId => panels[panelId])}

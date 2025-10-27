@@ -362,7 +362,11 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
         pressure_val = float(pressure)
         tilt_x_val = float(tilt_x)
         tilt_y_val = float(tilt_y)
-        tilt_xy_val = math.sqrt(tilt_x_val * tilt_x_val + tilt_y_val * tilt_y_val)
+        # Calculate tiltXY magnitude with sign based on tiltX * tiltY
+        magnitude = math.sqrt(tilt_x_val * tilt_x_val + tilt_y_val * tilt_y_val)
+        sign = 1 if (tilt_x_val * tilt_y_val) >= 0 else -1
+        # Clamp to [-1, 1] range (magnitude can exceed 1 at corners)
+        tilt_xy_val = max(-1.0, min(1.0, magnitude * sign))
         
         # Create mapping of control names to input values
         control_inputs = {

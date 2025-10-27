@@ -49,7 +49,9 @@ export type ControlSchema =
 export type CustomComponentType = 
     | 'tablet-visualizer'
     | 'curve-visualizer'
-    | 'piano-keys';
+    | 'piano-keys'
+    | 'stylus-buttons-config'
+    | 'tablet-buttons-config';
 
 export interface CustomComponentConfig {
     type: CustomComponentType;
@@ -258,28 +260,23 @@ export const PANEL_SCHEMAS: Record<string, PanelSchema> = {
         hasActiveControl: true,
         size: 'small',
         configKey: 'stylusButtons',
-        controls: [
-            {
-                type: 'picker',
-                label: 'Primary Button Action',
-                key: 'primaryButtonAction',
-                options: [
-                    { value: 'toggle-transpose', label: 'Toggle Transpose' },
-                    { value: 'toggle-repeater', label: 'Toggle Repeater' },
-                    { value: 'none', label: 'None' }
-                ]
-            },
-            {
-                type: 'picker',
-                label: 'Secondary Button Action',
-                key: 'secondaryButtonAction',
-                options: [
-                    { value: 'toggle-transpose', label: 'Toggle Transpose' },
-                    { value: 'toggle-repeater', label: 'Toggle Repeater' },
-                    { value: 'none', label: 'None' }
-                ]
-            }
-        ]
+        isCustom: true,
+        customComponent: {
+            type: 'stylus-buttons-config',
+            props: {}
+        }
+    },
+    'tablet-buttons': {
+        id: 'tablet-buttons',
+        title: 'Tablet Buttons',
+        hasActiveControl: false,
+        size: 'wide',
+        configKey: 'tabletButtons',
+        isCustom: true,
+        customComponent: {
+            type: 'tablet-buttons-config',
+            props: {}
+        }
     },
     'strum-release': {
         id: 'strum-release',
