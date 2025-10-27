@@ -233,10 +233,13 @@ export class CurveVisualizer extends LitElement {
         const graphWidth = 180;
         const graphHeight = 160;
         const padding = 30;
+        const strokeInset = 3; // Additional inset to prevent stroke from overlapping borders
         const innerWidth = graphWidth - padding * 2;
         const innerHeight = graphHeight - padding * 2;
+        const curveWidth = innerWidth - strokeInset * 2;
+        const curveHeight = innerHeight - strokeInset * 2;
 
-        const curvePath = this.generateCurvePath(this.config, innerWidth, innerHeight);
+        const curvePath = this.generateCurvePath(this.config, curveWidth, curveHeight);
         
         // Get hover position from controller based on current control type
         const hoverPosition = this.getHoverPositionFromController();
@@ -265,9 +268,9 @@ export class CurveVisualizer extends LitElement {
                     
                     <!-- Center line (for central spread) - vertical now -->
                     ${this.config.spread === 'central' ? svg`
-                        <line x1="${padding + innerWidth / 2}" 
+                        <line x1="${padding + strokeInset + curveWidth / 2}" 
                               y1="${padding}" 
-                              x2="${padding + innerWidth / 2}" 
+                              x2="${padding + strokeInset + curveWidth / 2}" 
                               y2="${graphHeight - padding}" 
                               stroke="#ffd43b"
                               stroke-width="1"
@@ -286,13 +289,13 @@ export class CurveVisualizer extends LitElement {
                         class="curve-line"
                         stroke="${this.color}"
                         stroke-width="2.5"
-                        transform="translate(${padding}, ${padding})" />
+                        transform="translate(${padding + strokeInset}, ${padding + strokeInset})" />
                     
                     <!-- Hover position indicator -->
                     ${hoverPosition !== null ? svg`
-                        <line x1="${padding + (hoverPosition * innerWidth)}" 
+                        <line x1="${padding + strokeInset + (hoverPosition * curveWidth)}" 
                               y1="${padding}" 
-                              x2="${padding + (hoverPosition * innerWidth)}" 
+                              x2="${padding + strokeInset + (hoverPosition * curveWidth)}" 
                               y2="${graphHeight - padding}" 
                               stroke="#51cf66"
                               stroke-width="2"
