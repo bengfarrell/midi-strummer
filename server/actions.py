@@ -8,9 +8,10 @@ from config import Config
 from strummer import strummer
 from note import Note
 from chord_progression_state import ChordProgressionState
+from eventlistener import EventEmitter
 
 
-class Actions:
+class Actions(EventEmitter):
     """
     Handles various user actions that can be triggered by stylus buttons or other inputs.
     
@@ -22,16 +23,15 @@ class Actions:
     - Chord notation: ["set-strum-chord", "Cmaj7", 3] for chord-based note setting
     """
     
-    def __init__(self, config: Config, socket_server=None):
+    def __init__(self, config: Config):
         """
         Initialize Actions with a configuration instance.
         
         Args:
             config: Configuration instance that will be modified by actions
-            socket_server: Optional socket server for broadcasting state changes
         """
+        super().__init__()
         self.config = config
-        self.socket_server = socket_server
         
         # Map action names to handler methods
         self._action_handlers = {
@@ -41,12 +41,6 @@ class Actions:
             'set-strum-chord': self.set_strum_chord,
             'set-chord-in-progression': self.set_chord_in_progression,
             'increment-chord-in-progression': self.increment_chord_in_progression,
-        }
-        
-        # Internal state for transpose
-        self._transpose_state = {
-            'active': False,
-            'semitones': 0
         }
         
         # Chord progression state
@@ -101,11 +95,14 @@ class Actions:
         note_repeater_cfg = self.config.get('noteRepeater', {})
         current_active = note_repeater_cfg.get('active', False)
         new_state = not current_active
-        note_repeater_cfg['active'] = new_state
+        self.config.set('noteRepeater.active', new_state)
         
         # Log which button triggered the action if available
         button = context.get('button', 'Unknown')
         print(f"[ACTIONS] {button} button toggled repeater: {'ON' if new_state else 'OFF'}")
+        
+        # Emit config changed event
+        self.emit('config_changed')
     
     def transpose(self, params: List[Any], context: Dict[str, Any]) -> None:
         """
@@ -121,20 +118,23 @@ class Actions:
             return
         
         semitones = int(params[0])
+        transpose_cfg = self.config.get('transpose', {})
+        button = context.get('button', 'Unknown')
         
         # Toggle: if currently active with same semitones, turn off; otherwise turn on with new semitones
-        if self._transpose_state['active'] and self._transpose_state['semitones'] == semitones:
+        if transpose_cfg.get('active', False) and transpose_cfg.get('semitones', 0) == semitones:
             # Turn off
-            self._transpose_state['active'] = False
-            self._transpose_state['semitones'] = 0
-            button = context.get('button', 'Unknown')
+            self.config.set('transpose.active', False)
+            self.config.set('transpose.semitones', 0)
             print(f"[ACTIONS] {button} button disabled transpose")
         else:
             # Turn on with specified semitones
-            self._transpose_state['active'] = True
-            self._transpose_state['semitones'] = semitones
-            button = context.get('button', 'Unknown')
+            self.config.set('transpose.active', True)
+            self.config.set('transpose.semitones', semitones)
             print(f"[ACTIONS] {button} button enabled transpose: {semitones:+d} semitones")
+        
+        # Emit config changed event
+        self.emit('config_changed')
     
     def get_transpose_semitones(self) -> int:
         """
@@ -143,8 +143,9 @@ class Actions:
         Returns:
             Current transpose semitones (0 if transpose is not active)
         """
-        if self._transpose_state['active']:
-            return self._transpose_state['semitones']
+        transpose_cfg = self.config.get('transpose', {})
+        if transpose_cfg.get('active', False):
+            return transpose_cfg.get('semitones', 0)
         return 0
     
     def is_transpose_active(self) -> bool:
@@ -154,7 +155,8 @@ class Actions:
         Returns:
             True if transpose is active, False otherwise
         """
-        return self._transpose_state['active']
+        transpose_cfg = self.config.get('transpose', {})
+        return transpose_cfg.get('active', False)
     
     def set_strum_notes(self, params: List[Any], context: Dict[str, Any]) -> None:
         """
@@ -197,9 +199,7 @@ class Actions:
             note_names = ', '.join(note_strings)
             print(f"[ACTIONS] {button} button set strum notes: [{note_names}]")
             
-            # Broadcast updated strummer state to WebSocket clients
-            from main import broadcast_strummer_notes
-            broadcast_strummer_notes(self.socket_server)
+            # Note: broadcast happens automatically via strummer's notes_changed event
             
         except Exception as e:
             print(f"[ACTIONS] Error parsing notes: {e}")
@@ -246,9 +246,7 @@ class Actions:
             note_names = ', '.join([f"{n.notation}{n.octave}" for n in notes])
             print(f"[ACTIONS] {button} button set strum chord: {chord_notation} [{note_names}]")
             
-            # Broadcast updated strummer state to WebSocket clients
-            from main import broadcast_strummer_notes
-            broadcast_strummer_notes(self.socket_server)
+            # Note: broadcast happens automatically via strummer's notes_changed event
             
         except Exception as e:
             print(f"[ACTIONS] Error parsing chord: {e}")
@@ -317,9 +315,7 @@ class Actions:
             button = context.get('button', 'Unknown')
             print(f"[ACTIONS] {button} button set progression '{progression_name}' to index {actual_index}: {chord_notation}")
             
-            # Broadcast updated strummer state to WebSocket clients
-            from main import broadcast_strummer_notes
-            broadcast_strummer_notes(self.socket_server)
+            # Note: broadcast happens automatically via strummer's notes_changed event
             
         except Exception as e:
             print(f"[ACTIONS] Error setting chord in progression: {e}")
@@ -389,9 +385,7 @@ class Actions:
             direction = "forward" if increment_amount > 0 else "backward"
             print(f"[ACTIONS] {button} button incremented progression '{progression_name}' {direction} by {abs(increment_amount)} to index {actual_index}: {chord_notation}")
             
-            # Broadcast updated strummer state to WebSocket clients
-            from main import broadcast_strummer_notes
-            broadcast_strummer_notes(self.socket_server)
+            # Note: broadcast happens automatically via strummer's notes_changed event
             
         except Exception as e:
             print(f"[ACTIONS] Error incrementing chord in progression: {e}")

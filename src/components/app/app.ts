@@ -488,7 +488,7 @@ export class StrummerApp extends LitElement {
                 panelId="${schema.id}"
                 title="${schema.title}"
                 size="${schema.size}"
-                hasActiveControl="${schema.hasActiveControl}"
+                ?hasActiveControl="${schema.hasActiveControl}"
                 .active="${isActive}"
                 closable
                 @panel-drop=${this.handlePanelDrop}
@@ -506,7 +506,7 @@ export class StrummerApp extends LitElement {
                     <config-panel
                         .controls="${schema.controls}"
                         .config="${config}"
-                        configKey="${schema.configKey}"
+                        .configKey="${schema.configKey || ''}"
                         ?disabled="${!isActive}"
                         @config-change=${this.handleConfigChange}>
                     </config-panel>

@@ -1,9 +1,11 @@
 from typing import List, Optional, Dict, Any, Tuple
 import time
 from note import NoteObject
+from eventlistener import EventEmitter
 
-class Strummer:
+class Strummer(EventEmitter):
     def __init__(self):
+        super().__init__()
         self._width: float = 1.0
         self._height: float = 1.0
         self._notes: List[NoteObject] = []
@@ -29,21 +31,27 @@ class Strummer:
     def notes(self, notes: List[NoteObject]) -> None:
         self._notes = notes
         self.update_bounds(self._width, self._height)
+        # Emit event when notes change
+        self.emit('notes_changed')
     
     def get_notes_state(self) -> Dict[str, Any]:
         """
         Get the current notes state as a dictionary for broadcasting.
         
         Returns:
-            Dictionary with type, notes, stringCount, and timestamp
+            Dictionary with type, notes, stringCount, baseNotes, and timestamp
         """
         from dataclasses import asdict
         import time
+        
+        # Get base notes (non-secondary) as NoteObject instances for recalculation
+        base_notes = [note for note in self._notes if not note.secondary]
         
         return {
             'type': 'notes',
             'notes': [asdict(note) for note in self._notes],
             'stringCount': len(self._notes),
+            'baseNotes': [asdict(note) for note in base_notes],
             'timestamp': time.time()
         }
 

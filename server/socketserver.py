@@ -5,12 +5,12 @@ import json
 
 
 class SocketServer:
-    def __init__(self, on_message: Optional[Callable[[Dict[str, Any]], None]] = None, config: Optional[Dict[str, Any]] = None, initial_notes_callback: Optional[Callable[[], Dict[str, Any]]] = None):
+    def __init__(self, on_message: Optional[Callable[[Dict[str, Any]], None]] = None, config_callback: Optional[Callable[[], Dict[str, Any]]] = None, initial_notes_callback: Optional[Callable[[], Dict[str, Any]]] = None):
         self.sockets: Set[websockets.WebSocketServerProtocol] = set()
         self.server = None
         self.loop = None
         self.on_message_callback = on_message
-        self.config = config
+        self.config_callback = config_callback
         self.initial_notes_callback = initial_notes_callback
 
     async def start(self, port: int = 8080):
@@ -24,11 +24,12 @@ class SocketServer:
             self.sockets.add(websocket)
             
             # Send the current config to the new client
-            if self.config is not None:
+            if self.config_callback is not None:
                 try:
+                    config_data = self.config_callback()
                     config_message = json.dumps({
                         'type': 'config',
-                        'config': self.config
+                        'config': config_data
                     })
                     await websocket.send(config_message)
                 except Exception as e:

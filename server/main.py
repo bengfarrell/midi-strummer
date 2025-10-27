@@ -189,15 +189,14 @@ def on_midi_note_event(event: MidiNoteEvent, cfg: Config, socket_server: Optiona
     """Handle MIDI note events - defined at module level to avoid garbage collection"""
     # Use notes from the event object instead of accessing midi.notes directly
     midi_notes = [Note.parse_notation(n) for n in event.notes]
+    
     strumming_cfg = cfg.get('strumming', {})
     strummer.notes = Note.fill_note_spread(
         midi_notes,
         strumming_cfg.get('lowerNoteSpread', 0),
         strumming_cfg.get('upperNoteSpread', 0)
     )
-    
-    # Broadcast updated strummer state to WebSocket clients
-    broadcast_strummer_notes(socket_server)
+    # Note: broadcast happens automatically via strummer's notes_changed event
 
 
 def setup_midi_and_strummer(cfg: Config, socket_server: Optional[SocketServer] = None) -> Midi:
@@ -213,6 +212,7 @@ def setup_midi_and_strummer(cfg: Config, socket_server: Optional[SocketServer] =
     strumming_cfg = cfg.get('strumming', {})
     if 'initialNotes' in strumming_cfg and strumming_cfg['initialNotes']:
         initial_notes = [Note.parse_notation(n) for n in strumming_cfg['initialNotes']]
+        
         strummer.notes = Note.fill_note_spread(
             initial_notes, 
             strumming_cfg.get('lowerNoteSpread', 0), 
@@ -236,44 +236,73 @@ def setup_midi_and_strummer(cfg: Config, socket_server: Optional[SocketServer] =
     return midi
 
 
-def update_config(cfg: Config, updates: Dict[str, Any]) -> None:
+def update_config(cfg: Config, updates: Dict[str, Any], socket_server: Optional[SocketServer] = None) -> None:
     """
     Update configuration with key-value pairs from incoming messages.
     Supports nested keys using dot notation (e.g., "device.product").
     """
+    # Track if note spread changed
+    note_spread_changed = False
+    
     for key, value in updates.items():
-        # Handle nested keys with dot notation
-        if '.' in key:
-            keys = key.split('.')
-            target = cfg
-            # Navigate to the nested dictionary
-            for k in keys[:-1]:
-                if k not in target:
-                    target[k] = {}
-                target = target[k]
-            # Set the final value
-            target[keys[-1]] = value
-            print(f'[CONFIG] Updated {key} = {value}')
-        else:
-            # Direct key update
-            cfg[key] = value
-            print(f'[CONFIG] Updated {key} = {value}')
+        # Check if this is a note spread update
+        if key in ['strumming.upperNoteSpread', 'strumming.lowerNoteSpread', 'upperNoteSpread', 'lowerNoteSpread']:
+            note_spread_changed = True
+        
+        # Use Config.set() method which handles dot notation
+        cfg.set(key, value)
+        print(f'[CONFIG] Updated {key} = {value}')
+    
+    # If note spreads changed and we have strummer notes, recalculate with new spreads
+    if note_spread_changed and strummer.notes:
+        # Get base notes from strummer
+        notes_state = strummer.get_notes_state()
+        base_notes_dicts = notes_state.get('baseNotes', [])
+        
+        if base_notes_dicts:
+            # Convert dictionaries back to NoteObject instances
+            from note import NoteObject
+            base_notes = [NoteObject(**note_dict) for note_dict in base_notes_dicts]
+            
+            strumming_cfg = cfg.get('strumming', {})
+            strummer.notes = Note.fill_note_spread(
+                base_notes,
+                strumming_cfg.get('lowerNoteSpread', 0),
+                strumming_cfg.get('upperNoteSpread', 0)
+            )
+            print(f'[CONFIG] Recalculated strummer notes with new spreads: {len(strummer.notes)} notes')
+            # Note: broadcast happens automatically via strummer's notes_changed event
+    
+    # Broadcast the updated config to all WebSocket clients
+    if socket_server is not None:
+        try:
+            config_data = {
+                'type': 'config',
+                'config': cfg.to_dict()
+            }
+            message = json.dumps(config_data)
+            socket_server.send_message_sync(message)
+        except Exception as e:
+            print(f"[CONFIG] Error broadcasting config: {e}")
 
 
 def start_socket_server(port: int, cfg: Config) -> tuple[SocketServer, asyncio.AbstractEventLoop, threading.Thread]:
     """Start socket server in a separate thread with its own event loop"""
     
+    # Declare socket_server early so it can be referenced in handle_message
+    socket_server: Optional[SocketServer] = None
+    
     # Create message handler that updates config
     def handle_message(data: Dict[str, Any]):
         """Handle incoming WebSocket messages"""
         try:
-            update_config(cfg, data)
+            update_config(cfg, data, socket_server)
         except Exception as e:
             print(f'[SERVER] Error updating config: {e}')
     
     socket_server = SocketServer(
         on_message=handle_message, 
-        config=cfg.to_dict(),
+        config_callback=lambda: cfg.to_dict(),
         initial_notes_callback=lambda: strummer.get_notes_state()
     )
     
@@ -309,7 +338,24 @@ def create_hid_data_handler(cfg: Config, midi: Midi, socket_server: Optional[Soc
         Callback function that processes HID data and sends MIDI messages
     """
     # Create actions handler
-    actions = Actions(cfg, socket_server)
+    actions = Actions(cfg)
+    
+    # Listen for config changes from actions and broadcast to WebSocket clients
+    def on_action_config_changed():
+        """Broadcast config when actions change it"""
+        if socket_server is not None:
+            try:
+                import json
+                config_data = {
+                    'type': 'config',
+                    'config': cfg.to_dict()
+                }
+                message = json.dumps(config_data)
+                socket_server.send_message_sync(message)
+            except Exception as e:
+                print(f"[ACTIONS] Error broadcasting config: {e}")
+    
+    actions.on('config_changed', on_action_config_changed)
     
     # Storage for note repeater feature
     repeater_state = {
@@ -556,6 +602,13 @@ def main():
     
     # Setup MIDI and strummer
     _midi = setup_midi_and_strummer(cfg, _socket_server)
+    
+    # Listen for strummer notes changes and broadcast to WebSocket clients
+    def on_strummer_notes_changed():
+        """Broadcast strummer notes when they change"""
+        broadcast_strummer_notes(_socket_server)
+    
+    strummer.on('notes_changed', on_strummer_notes_changed)
     
     # Create callback for hotplug device connection
     def on_device_plugged_in(driver_name: str, driver_config: Dict[str, Any], device):

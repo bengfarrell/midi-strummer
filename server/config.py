@@ -402,6 +402,28 @@ class Config:
         """Allow dictionary-style assignment."""
         self._config[key] = value
     
+    def set(self, key: str, value: Any) -> None:
+        """
+        Set a configuration value using dot notation.
+        
+        Args:
+            key: Configuration key, may use dot notation (e.g., 'transpose.active')
+            value: Value to set
+        """
+        if '.' in key:
+            keys = key.split('.')
+            target = self._config
+            # Navigate to the nested dictionary
+            for k in keys[:-1]:
+                if k not in target:
+                    target[k] = {}
+                target = target[k]
+            # Set the final value
+            target[keys[-1]] = value
+        else:
+            # Direct key update
+            self._config[key] = value
+    
     def __contains__(self, key: str) -> bool:
         """Support 'in' operator."""
         return key in self._config

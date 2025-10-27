@@ -41,18 +41,18 @@ export class ConfigPanel extends LitElement {
     }
 
     private renderNumberControl(schema: NumberControlSchema): TemplateResult {
-        const value = this.config[schema.key];
+        const value = this.config?.[schema.key] ?? 0;
         return html`
             <sp-field-label for="${schema.key}">${schema.label}</sp-field-label>
             <sp-number-field
                 id="${schema.key}"
-                value="${value ?? 0}"
-                step="${schema.step ?? 1}"
-                min="${schema.min ?? ''}"
-                max="${schema.max ?? ''}"
+                .value=${value}
+                .step=${schema.step ?? 1}
+                .min=${schema.min}
+                .max=${schema.max}
                 ?disabled="${this.disabled}"
                 @change="${(e: Event) => {
-                    const target = e.target as HTMLInputElement;
+                    const target = e.target as any;
                     this.handleChange(schema.key, Number(target.value));
                 }}">
             </sp-number-field>
@@ -65,7 +65,7 @@ export class ConfigPanel extends LitElement {
             <sp-field-label for="${schema.key}">${schema.label}</sp-field-label>
             <sp-picker
                 id="${schema.key}"
-                value="${value ?? schema.options[0]?.value ?? ''}"
+                .value="${value ?? schema.options[0]?.value ?? ''}"
                 ?disabled="${this.disabled}"
                 @change="${(e: Event) => {
                     const target = e.target as HTMLInputElement;
