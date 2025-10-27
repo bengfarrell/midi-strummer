@@ -29,6 +29,23 @@ class Strummer:
     def notes(self, notes: List[NoteObject]) -> None:
         self._notes = notes
         self.update_bounds(self._width, self._height)
+    
+    def get_notes_state(self) -> Dict[str, Any]:
+        """
+        Get the current notes state as a dictionary for broadcasting.
+        
+        Returns:
+            Dictionary with type, notes, stringCount, and timestamp
+        """
+        from dataclasses import asdict
+        import time
+        
+        return {
+            'type': 'notes',
+            'notes': [asdict(note) for note in self._notes],
+            'stringCount': len(self._notes),
+            'timestamp': time.time()
+        }
 
     def strum(self, x: float, pressure: float) -> Optional[Dict[str, Any]]:
         """Process strumming input and return dict with type and notes/velocities if triggered"""

@@ -11,7 +11,8 @@
     "lint:eslint": "eslint 'src/**/*.ts'",
     "lint:lit-analyzer": "lit-analyzer",
     "format": "prettier \\\\\\\"**/*.{cjs,html,js,json,md,ts}\\\\\\\" --write",
-    "dev": "npm run build:watch & wds --watch"
+    "dev": "npm run build:watch & wds --watch",
+    "socket-dev": "npm run build:watch & SOCKET_MODE=true wds --watch"
   },
   "repository": {
     "type": "git",

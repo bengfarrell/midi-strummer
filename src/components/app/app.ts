@@ -22,8 +22,10 @@ import '../curve-visualizer/curve-visualizer.js';
 import '../config-panel/config-panel.js';
 import '../stylus-buttons-config/stylus-buttons-config.js';
 import '../tablet-buttons-config/tablet-buttons-config.js';
+import '../websocket-connection/websocket-connection.js';
 import { PANEL_SCHEMAS } from '../../panel-schemas.js';
-import { sharedSettings } from '../../controllers/index.js';
+import { sharedSettings, sharedTabletInteraction } from '../../controllers/index.js';
+import type { ConnectionStatus } from '../websocket-connection/websocket-connection.js';
 
 @customElement('strummer-app')
 export class StrummerApp extends LitElement {
@@ -32,12 +34,52 @@ export class StrummerApp extends LitElement {
     @query('piano-keys')
     protected piano?: PianoElement;
 
+    @state()
     protected notes: NoteObject[] = [];
 
     protected webSocket?: WebSocket;
 
     // Settings are now managed by the shared controller
     protected settings = sharedSettings;
+
+    @state()
+    protected socketMode: boolean = false;
+
+    @state()
+    protected connectionStatus: ConnectionStatus = 'disconnected';
+
+    @state()
+    protected connectionError: string = '';
+
+    @state()
+    protected stringCount: number = 6;
+
+    @state()
+    protected lastPluckedString: number | null = null;
+
+    @state()
+    protected pressedButtons: Set<number> = new Set();
+
+    @state()
+    protected tabletData: {
+        x: number;
+        y: number;
+        pressure: number;
+        tiltX: number;
+        tiltY: number;
+        tiltXY: number;
+        primaryButtonPressed: boolean;
+        secondaryButtonPressed: boolean;
+    } = {
+        x: 0,
+        y: 0,
+        pressure: 0,
+        tiltX: 0,
+        tiltY: 0,
+        tiltXY: 0,
+        primaryButtonPressed: false,
+        secondaryButtonPressed: false
+    };
 
     constructor() {
         super();
@@ -80,37 +122,169 @@ export class StrummerApp extends LitElement {
     async connectedCallback() {
         super.connectedCallback();
         
-        // Load settings in dev mode
-        await this.loadSettingsIfDev();
+        console.log('🚀 App connected to DOM');
         
-        if (this.webSocket && this.webSocket.readyState === WebSocket.OPEN) return;
-        this.webSocket = new WebSocket('ws://localhost:8080');
-        this.webSocket.onopen = () => {
-            //updateStatus(true);
-            console.log('WebSocket opened');
-        };
+        // Check if we're in socket mode
+        await this.detectMode();
+        
+        console.log('✅ Mode detection complete. socketMode:', this.socketMode);
+        
+        // If not in socket mode, load settings from JSON and connect to WebSocket automatically
+        if (!this.socketMode) {
+            console.log('📥 Loading settings from JSON (dev mode)');
+            await this.loadSettingsIfDev();
+            this.connectWebSocket('ws://localhost:8080');
+        } else {
+            console.log('⏸️  Waiting for user to connect (socket mode)');
+        }
+    }
 
-        this.webSocket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            switch (data.type) {
-                case 'notes':
-                    this.updateNotes(data.notes);
-                    break;
+    async detectMode() {
+        // Read socket mode from injected global config
+        const config = (window as any).__MIDI_STRUMMER_CONFIG__;
+        
+        if (config && config.socketMode === true) {
+            console.log('🔧 Socket mode enabled via injected config');
+            this.socketMode = true;
+        } else {
+            console.log('🔧 Dev mode (loading from settings.json)');
+            this.socketMode = false;
+        }
+        
+        console.log('   Global config:', config);
+    }
 
-                case 'config':
-                    // Update settings through the shared controller
-                    sharedSettings.loadSettings(data.config);
-                    break;
-            }
-        };
+    connectWebSocket(address: string) {
+        if (this.webSocket && this.webSocket.readyState === WebSocket.OPEN) {
+            console.log('WebSocket already connected');
+            return;
+        }
 
-        this.webSocket.onerror = (error) => {
-            console.log(`❌ WebSocket error: ${error}`);
-        };
+        this.connectionStatus = 'connecting';
+        this.connectionError = '';
 
-        this.webSocket.onclose = () => {
-            console.log('WebSocket closed');
-        };
+        try {
+            this.webSocket = new WebSocket(address);
+            
+            this.webSocket.onopen = () => {
+                this.connectionStatus = 'connected';
+                this.connectionError = '';
+                console.log('✅ WebSocket connected');
+            };
+
+            this.webSocket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                switch (data.type) {
+                    case 'notes':
+                        this.updateNotes(data.notes);
+                        // Update string count if provided
+                        if (data.stringCount !== undefined) {
+                            this.stringCount = data.stringCount;
+                        }
+                        break;
+
+                    case 'config':
+                        // Update settings through the shared controller
+                        sharedSettings.loadSettings(data.config);
+                        break;
+
+                    case 'string_pluck':
+                        // Update which string was plucked
+                        this.lastPluckedString = data.string;
+                        
+                        // Update the shared tablet interaction controller
+                        if (this.socketMode) {
+                            sharedTabletInteraction.setLastHoveredString(data.string);
+                        }
+                        
+                        // Clear after a short delay
+                        setTimeout(() => {
+                            if (this.lastPluckedString === data.string) {
+                                this.lastPluckedString = null;
+                                if (this.socketMode) {
+                                    sharedTabletInteraction.setLastHoveredString(null);
+                                }
+                            }
+                        }, 500);
+                        break;
+
+                    case 'tablet_button':
+                        // Update button pressed state
+                        if (data.pressed) {
+                            this.pressedButtons = new Set([...this.pressedButtons, data.button]);
+                        } else {
+                            const newSet = new Set(this.pressedButtons);
+                            newSet.delete(data.button);
+                            this.pressedButtons = newSet;
+                        }
+                        
+                        // Update the shared tablet interaction controller
+                        if (this.socketMode) {
+                            sharedTabletInteraction.setTabletButton(data.button, data.pressed);
+                        }
+                        break;
+
+                    case 'tablet_data':
+                        // Update tablet coordinates, pressure, tilt, and stylus buttons
+                        this.tabletData = {
+                            x: data.x,
+                            y: data.y,
+                            pressure: data.pressure,
+                            tiltX: data.tiltX,
+                            tiltY: data.tiltY,
+                            tiltXY: data.tiltXY,
+                            primaryButtonPressed: data.primaryButtonPressed,
+                            secondaryButtonPressed: data.secondaryButtonPressed
+                        };
+                        
+                        // Update the shared tablet interaction controller so curve visualizers react
+                        if (this.socketMode) {
+                            const isPressed = data.pressure > 0;
+                            sharedTabletInteraction.setTabletPosition(data.x, data.y, isPressed);
+                            sharedTabletInteraction.setTiltPosition(data.tiltX, data.tiltY, data.pressure, isPressed, data.tiltXY);
+                            sharedTabletInteraction.setPrimaryButton(data.primaryButtonPressed);
+                            sharedTabletInteraction.setSecondaryButton(data.secondaryButtonPressed);
+                        }
+                        break;
+                }
+            };
+
+            this.webSocket.onerror = (error) => {
+                this.connectionStatus = 'error';
+                this.connectionError = 'Failed to connect to server';
+                console.log(`❌ WebSocket error:`, error);
+            };
+
+            this.webSocket.onclose = () => {
+                if (this.connectionStatus === 'connected') {
+                    this.connectionStatus = 'disconnected';
+                    this.connectionError = 'Connection closed';
+                }
+                console.log('WebSocket closed');
+            };
+        } catch (error) {
+            this.connectionStatus = 'error';
+            this.connectionError = error instanceof Error ? error.message : 'Connection failed';
+            console.error('❌ WebSocket connection error:', error);
+        }
+    }
+
+    disconnectWebSocket() {
+        if (this.webSocket) {
+            this.webSocket.close();
+            this.webSocket = undefined;
+            this.connectionStatus = 'disconnected';
+            this.connectionError = '';
+        }
+    }
+
+    handleConnect(e: CustomEvent) {
+        const { address } = e.detail;
+        this.connectWebSocket(address);
+    }
+
+    handleDisconnect() {
+        this.disconnectWebSocket();
     }
 
     async loadSettingsIfDev() {
@@ -150,15 +324,37 @@ export class StrummerApp extends LitElement {
         this.updateServerConfig(detail);
     }
 
+    private noteToMidiNumber(notation: string, octave: number): number {
+        // Convert note notation to MIDI number for sorting
+        const noteMap: { [key: string]: number } = {
+            'C': 0, 'C#': 1, 'Db': 1, 'D': 2, 'D#': 3, 'Eb': 3,
+            'E': 4, 'F': 5, 'F#': 6, 'Gb': 6, 'G': 7, 'G#': 8,
+            'Ab': 8, 'A': 9, 'A#': 10, 'Bb': 10, 'B': 11
+        };
+        const noteValue = noteMap[notation] ?? 0;
+        return (octave + 1) * 12 + noteValue;
+    }
+
     updateNotes(notes: NoteObject[]) {
+        // Clear previous notes on piano
         this.notes.forEach(note => {
             this.piano?.setNoteUp(note.notation, note.octave);
         });
 
-        this.notes = notes;
+        // Sort notes by pitch (MIDI number) and update notes array - force reactivity
+        this.notes = [...notes].sort((a, b) => {
+            const midiA = this.noteToMidiNumber(a.notation, a.octave);
+            const midiB = this.noteToMidiNumber(b.notation, b.octave);
+            return midiA - midiB;
+        });
+        
+        // Set new notes on piano
         this.notes.forEach(note => {
             this.piano?.setNoteDown(note.notation, note.octave, note.secondary);
         });
+        
+        // Force a re-render to update components that depend on notes
+        this.requestUpdate();
     }
 
     handlePanelDrop(e: CustomEvent) {
@@ -211,6 +407,12 @@ export class StrummerApp extends LitElement {
                 return html`
                 <tablet-visualizer
                         mode="${props.mode}"
+                    .socketMode=${this.socketMode}
+                    .stringCount=${this.stringCount}
+                    .notes=${this.notes}
+                    .externalLastPluckedString=${this.lastPluckedString}
+                    .externalPressedButtons=${this.pressedButtons}
+                    .externalTabletData=${this.tabletData}
                     .noteDuration=${settings.noteDuration}
                     .pitchBend=${settings.pitchBend}
                     .noteVelocity=${settings.noteVelocity}
@@ -354,6 +556,24 @@ export class StrummerApp extends LitElement {
     }
 
     render() {
+        console.log('🎨 Render called - socketMode:', this.socketMode, 'connectionStatus:', this.connectionStatus);
+        
+        // In socket mode, show connection UI if not connected
+        if (this.socketMode && this.connectionStatus !== 'connected') {
+            console.log('🔌 Showing connection UI');
+            return html`<sp-theme system="spectrum" color="dark" scale="medium">
+                <h1>MIDI Strummer</h1>
+                <websocket-connection
+                    .status="${this.connectionStatus}"
+                    .errorMessage="${this.connectionError}"
+                    @connect="${this.handleConnect}"
+                    @disconnect="${this.handleDisconnect}">
+                </websocket-connection>
+            </sp-theme>`;
+        }
+
+        // Normal mode or connected - show the dashboard
+        console.log('📊 Showing dashboard');
         const panels = this.getPanels();
         
         return html`<sp-theme system="spectrum" color="dark" scale="medium">

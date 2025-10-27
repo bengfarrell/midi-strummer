@@ -23,6 +23,11 @@ export const styles = css`
         font-size: 28px;
         font-weight: 700;
         color: white;
+        text-align: center;
+    }
+
+    websocket-connection {
+        margin-top: 40px;
     }
     
     .panel-tray {

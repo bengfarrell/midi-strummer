@@ -169,6 +169,22 @@ def broadcast_to_socket(socket_server: Optional[SocketServer], message_type: str
             print(f"[SERVER] Error broadcasting to WebSocket: {e}")
 
 
+def broadcast_strummer_notes(socket_server: Optional[SocketServer]) -> None:
+    """
+    Query the current strummer state and broadcast to WebSocket clients.
+    
+    Args:
+        socket_server: Socket server instance (or None)
+    """
+    if socket_server is not None:
+        try:
+            notes_state = strummer.get_notes_state()
+            message = json.dumps(notes_state)
+            socket_server.send_message_sync(message)
+        except Exception as e:
+            print(f"[SERVER] Error broadcasting strummer notes: {e}")
+
+
 def on_midi_note_event(event: MidiNoteEvent, cfg: Config, socket_server: Optional[SocketServer] = None):
     """Handle MIDI note events - defined at module level to avoid garbage collection"""
     # Use notes from the event object instead of accessing midi.notes directly
@@ -180,11 +196,8 @@ def on_midi_note_event(event: MidiNoteEvent, cfg: Config, socket_server: Optiona
         strumming_cfg.get('upperNoteSpread', 0)
     )
     
-    # Broadcast notes to socket server if enabled
-    broadcast_to_socket(socket_server, 'notes', {
-        'notes': [asdict(note) for note in strummer.notes],
-        'timestamp': time.time()
-    })
+    # Broadcast updated strummer state to WebSocket clients
+    broadcast_strummer_notes(socket_server)
 
 
 def setup_midi_and_strummer(cfg: Config, socket_server: Optional[SocketServer] = None) -> Midi:
@@ -258,7 +271,11 @@ def start_socket_server(port: int, cfg: Config) -> tuple[SocketServer, asyncio.A
         except Exception as e:
             print(f'[SERVER] Error updating config: {e}')
     
-    socket_server = SocketServer(on_message=handle_message, config=cfg)
+    socket_server = SocketServer(
+        on_message=handle_message, 
+        config=cfg.to_dict(),
+        initial_notes_callback=lambda: strummer.get_notes_state()
+    )
     
     def run_event_loop(loop, server, port):
         """Run the event loop in a separate thread"""
@@ -279,19 +296,20 @@ def start_socket_server(port: int, cfg: Config) -> tuple[SocketServer, asyncio.A
     return socket_server, loop, thread
 
 
-def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Union[str, int, float]]], None]:
+def create_hid_data_handler(cfg: Config, midi: Midi, socket_server: Optional[SocketServer] = None) -> Callable[[Dict[str, Union[str, int, float]]], None]:
     """
     Create a callback function to handle processed HID data
     
     Args:
         cfg: Configuration instance
         midi: MIDI instance
+        socket_server: Optional socket server for broadcasting events
         
     Returns:
         Callback function that processes HID data and sends MIDI messages
     """
     # Create actions handler
-    actions = Actions(cfg)
+    actions = Actions(cfg, socket_server)
     
     # Storage for note repeater feature
     repeater_state = {
@@ -308,6 +326,12 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
     
     # Track tablet button states (buttons 1-8)
     tablet_button_state = {f'button{i}': False for i in range(1, 9)}
+    
+    # Throttle state for WebSocket broadcasts (100ms = 10 times per second)
+    throttle_state = {
+        'last_broadcast_time': 0,
+        'throttle_interval': 0.1  # 100ms in seconds
+    }
     
     def handle_hid_data(result: Dict[str, Union[str, int, float]]) -> None:
         """Handle processed HID data - send MIDI messages based on strumming"""
@@ -353,6 +377,18 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
                 action = tablet_buttons_cfg.get(str(i))
                 if action:
                     actions.execute(action, context={'button': f'Tablet{i}'})
+                
+                # Broadcast button press to WebSocket
+                broadcast_to_socket(socket_server, 'tablet_button', {
+                    'button': i - 1,  # 0-indexed for frontend
+                    'pressed': True
+                })
+            elif not button_pressed and tablet_button_state[button_key]:
+                # Button released
+                broadcast_to_socket(socket_server, 'tablet_button', {
+                    'button': i - 1,  # 0-indexed for frontend
+                    'pressed': False
+                })
             
             # Update tablet button state
             tablet_button_state[button_key] = button_pressed
@@ -367,6 +403,21 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
         sign = 1 if (tilt_x_val * tilt_y_val) >= 0 else -1
         # Clamp to [-1, 1] range (magnitude can exceed 1 at corners)
         tilt_xy_val = max(-1.0, min(1.0, magnitude * sign))
+        
+        # Throttled broadcast of tablet data to WebSocket
+        current_time = time.time()
+        if socket_server and (current_time - throttle_state['last_broadcast_time']) >= throttle_state['throttle_interval']:
+            throttle_state['last_broadcast_time'] = current_time
+            broadcast_to_socket(socket_server, 'tablet_data', {
+                'x': float(x),
+                'y': float(y),
+                'pressure': float(pressure),
+                'tiltX': tilt_x_val,
+                'tiltY': tilt_y_val,
+                'tiltXY': tilt_xy_val,
+                'primaryButtonPressed': primary_pressed,
+                'secondaryButtonPressed': secondary_pressed
+            })
         
         # Create mapping of control names to input values
         control_inputs = {
@@ -419,6 +470,16 @@ def create_hid_data_handler(cfg: Config, midi: Midi) -> Callable[[Dict[str, Unio
                         if transpose_enabled:
                             note_to_play = note_to_play.transpose(transpose_semitones)
                         midi.send_note(note_to_play, note_data['velocity'], duration)
+                        
+                        # Broadcast string pluck to WebSocket
+                        # Find which string index was plucked by matching the note
+                        for string_idx, strummer_note in enumerate(strummer.notes):
+                            if strummer_note == note_data['note']:
+                                broadcast_to_socket(socket_server, 'string_pluck', {
+                                    'string': string_idx,
+                                    'velocity': note_data['velocity']
+                                })
+                                break
             
             elif strum_result.get('type') == 'release':
                 # Stop holding - no more repeats
@@ -537,7 +598,7 @@ def main():
         startup_cfg['drawingTablet'] = tablet_config
         
         # Create HID reader with the new device
-        data_handler = create_hid_data_handler(cfg, _midi)
+        data_handler = create_hid_data_handler(cfg, _midi, _socket_server)
         _hid_reader = HIDReader(
             device, 
             cfg, 
@@ -590,7 +651,7 @@ def main():
         print("MIDI Strummer server started with HID device. Press Ctrl+C to exit.")
         
         # Create HID reader with callbacks
-        data_handler = create_hid_data_handler(cfg, _midi)
+        data_handler = create_hid_data_handler(cfg, _midi, _socket_server)
         _hid_reader = HIDReader(
             device, 
             cfg, 

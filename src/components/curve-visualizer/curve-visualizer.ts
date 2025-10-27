@@ -85,14 +85,11 @@ export class CurveVisualizer extends LitElement {
                 return state.tiltPressed ? (state.tiltY + 1) / 2 : null;
             
             case 'tiltXY':
-                // Combined tilt magnitude with sign based on tiltX * tiltY - only show when tilt is pressed
+                // Combined tilt magnitude with sign - use value from controller (calculated by Python)
+                // Only show when tilt is pressed
                 if (state.tiltPressed) {
-                    const magnitude = Math.sqrt(state.tiltX * state.tiltX + state.tiltY * state.tiltY);
-                    const sign = (state.tiltX * state.tiltY) >= 0 ? 1 : -1;
-                    // Clamp to [-1, 1] range (magnitude can exceed 1 at corners)
-                    const signedMagnitude = Math.max(-1, Math.min(1, magnitude * sign));
-                    // signedMagnitude ranges from -1 to +1, normalize to 0-1 for display
-                    const normalized = (signedMagnitude + 1) / 2;
+                    // state.tiltXY ranges from -1 to +1, normalize to 0-1 for display
+                    const normalized = (state.tiltXY + 1) / 2;
                     return normalized;
                 }
                 return null;
@@ -188,6 +185,26 @@ export class CurveVisualizer extends LitElement {
         }
     }
 
+    /**
+     * Calculate the output value for a given input position (0-1)
+     */
+    private calculateOutputValue(config: CurveConfig, t: number): number {
+        if (config.spread === 'central') {
+            // Central mode: center (0.5) maps to max, edges (0.0 and 1.0) map to min
+            const distanceFromCenter = Math.abs(t - 0.5) * 2.0;
+            const curvedDistance = Math.pow(distanceFromCenter, config.curve);
+            return config.max - (curvedDistance * (config.max - config.min));
+        } else if (config.spread === 'inverse') {
+            // Inverse mode: high input = low output
+            const curved = Math.pow(t, config.curve);
+            return config.max - (curved * (config.max - config.min));
+        } else {
+            // Direct mode: normal mapping (low input = low output)
+            const curved = Math.pow(t, config.curve);
+            return config.min + (curved * (config.max - config.min));
+        }
+    }
+
     private generateCurvePath(config: CurveConfig, width: number, height: number): string {
         const points: string[] = [];
         const steps = 50;
@@ -195,22 +212,8 @@ export class CurveVisualizer extends LitElement {
         for (let i = 0; i <= steps; i++) {
             const t = i / steps; // 0 to 1 (bottom to top on tablet)
             
-            // Apply spread
-            let value;
-            if (config.spread === 'central') {
-                // Central mode: center (0.5) maps to max, edges (0.0 and 1.0) map to min
-                const distanceFromCenter = Math.abs(t - 0.5) * 2.0;
-                const curvedDistance = Math.pow(distanceFromCenter, config.curve);
-                value = config.max - (curvedDistance * (config.max - config.min));
-            } else if (config.spread === 'inverse') {
-                // Inverse mode: high input = low output
-                const curved = Math.pow(t, config.curve);
-                value = config.max - (curved * (config.max - config.min));
-            } else {
-                // Direct mode: normal mapping (low input = low output)
-                const curved = Math.pow(t, config.curve);
-                value = config.min + (curved * (config.max - config.min));
-            }
+            // Calculate output value
+            const value = this.calculateOutputValue(config, t);
             
             // Normalize to 0-1 for display
             const normalizedValue = (value - config.min) / (config.max - config.min);
@@ -243,6 +246,9 @@ export class CurveVisualizer extends LitElement {
         
         // Get hover position from controller based on current control type
         const hoverPosition = this.getHoverPositionFromController();
+        
+        // Calculate final output value if we have a hover position
+        const outputValue = hoverPosition !== null ? this.calculateOutputValue(this.config, hoverPosition) : null;
 
         return html`
             <div class="curve-container">
@@ -292,7 +298,7 @@ export class CurveVisualizer extends LitElement {
                         transform="translate(${padding + strokeInset}, ${padding + strokeInset})" />
                     
                     <!-- Hover position indicator -->
-                    ${hoverPosition !== null ? svg`
+                    ${hoverPosition !== null && outputValue !== null ? svg`
                         <line x1="${padding + strokeInset + (hoverPosition * curveWidth)}" 
                               y1="${padding}" 
                               x2="${padding + strokeInset + (hoverPosition * curveWidth)}" 
@@ -301,6 +307,16 @@ export class CurveVisualizer extends LitElement {
                               stroke-width="2"
                               opacity="0.6"
                               stroke-dasharray="4,4" />
+                        
+                        <!-- Output value label -->
+                        <text x="${padding + strokeInset + (hoverPosition * curveWidth)}" 
+                              y="${padding - 8}"
+                              text-anchor="middle"
+                              font-size="11"
+                              fill="#51cf66"
+                              font-weight="600">
+                            ${outputValue.toFixed(3)}
+                        </text>
                     ` : ''}
                 </g>
             </svg>

@@ -42,9 +42,6 @@ export class TabletVisualizer extends LitElement {
     @state()
     private lastHoveredString: number | null = null;
 
-    @state()
-    private lastPressedButton: number | null = null;
-
     // Dummy hardware config - will be replaced with actual config later
     private hardwareConfig = {
         buttonCount: 8
@@ -76,6 +73,48 @@ export class TabletVisualizer extends LitElement {
 
     @property({ type: Number })
     stringCount: number = 6;
+
+    @property({ type: Boolean })
+    socketMode: boolean = false;
+
+    @property({ 
+        type: Array,
+        hasChanged: () => true // Always update when notes array changes
+    })
+    notes: any[] = [];
+
+    @property({ type: Number })
+    externalLastPluckedString: number | null = null;
+
+    @property({ 
+        type: Object,
+        hasChanged: () => true // Always update when Set changes
+    })
+    externalPressedButtons: Set<number> = new Set();
+
+    @property({ 
+        type: Object,
+        hasChanged: () => true // Always update when object changes
+    })
+    externalTabletData: {
+        x: number;
+        y: number;
+        pressure: number;
+        tiltX: number;
+        tiltY: number;
+        tiltXY: number;
+        primaryButtonPressed: boolean;
+        secondaryButtonPressed: boolean;
+    } = {
+        x: 0,
+        y: 0,
+        pressure: 0,
+        tiltX: 0,
+        tiltY: 0,
+        tiltXY: 0,
+        primaryButtonPressed: false,
+        secondaryButtonPressed: false
+    };
 
     private handleTabletMouseMove(e: MouseEvent) {
         const rectElement = e.currentTarget as SVGRectElement;
@@ -249,7 +288,6 @@ export class TabletVisualizer extends LitElement {
     private handleButtonMouseDown(buttonIndex: number, e: MouseEvent) {
         e.stopPropagation(); // Prevent tablet events
         this.pressedButtons = new Set(this.pressedButtons).add(buttonIndex);
-        this.lastPressedButton = buttonIndex;
     }
 
     private handleButtonMouseUp(buttonIndex: number, e: MouseEvent) {
@@ -282,6 +320,7 @@ export class TabletVisualizer extends LitElement {
         // Add global mouseup listener to handle releases outside the SVG
         window.addEventListener('mouseup', this.handleGlobalMouseUp);
     }
+
 
     disconnectedCallback() {
         super.disconnectedCallback();
@@ -326,9 +365,19 @@ export class TabletVisualizer extends LitElement {
         const buttonMargin = 5; // Extra margin around buttons
         const stringStartY = buttonCenterY + buttonRadius + buttonMargin;
         
+        // Use external last plucked string when in socket mode, otherwise use internal hover state
+        const lastPluckedString = this.socketMode ? this.externalLastPluckedString : this.lastHoveredString;
+        
         return svg`
             ${Array.from({ length: this.stringCount }, (_, i) => {
                 const stringX = activeAreaX + stringSpacing * (i + 1);
+                
+                // Get note label for this string
+                const note = this.notes[i];
+                const noteLabel = note ? `${note.notation}${note.octave}` : '';
+                
+                // Check if this string is the one that was just plucked
+                const isPlucked = lastPluckedString === i;
                 
                 return svg`
                     <!-- Visible string - non-interactive -->
@@ -340,7 +389,22 @@ export class TabletVisualizer extends LitElement {
                         stroke="#6c757d"
                         stroke-width="1"
                         opacity="0.5"
+                        class="${isPlucked ? 'string-plucked' : ''}"
                         pointer-events="none" />
+                    
+                    <!-- Note label at bottom of string -->
+                    ${noteLabel ? svg`
+                        <text 
+                            x="${stringX}" 
+                            y="${activeAreaY + activeAreaHeight - 5}"
+                            text-anchor="middle"
+                            font-size="10"
+                            fill="#adb5bd"
+                            font-weight="500"
+                            pointer-events="none">
+                            ${noteLabel}
+                        </text>
+                    ` : ''}
                 `;
             })}
         `;
@@ -367,7 +431,9 @@ export class TabletVisualizer extends LitElement {
         return svg`
             ${Array.from({ length: buttonCount }, (_, i) => {
                 const buttonCx = startX + buttonRadius + (i * (buttonRadius * 2 + buttonGap));
-                const isPressed = this.pressedButtons.has(i);
+                // Use external pressed buttons when in socket mode, otherwise use internal state
+                const pressedButtonsSet = this.socketMode ? this.externalPressedButtons : this.pressedButtons;
+                const isPressed = pressedButtonsSet.has(i);
                 
                 return svg`
                     <g class="tablet-button">
@@ -377,6 +443,7 @@ export class TabletVisualizer extends LitElement {
                               fill="${isPressed ? '#51cf66' : '#495057'}"
                               stroke="#adb5bd"
                               stroke-width="1.5"
+                              pointer-events="${this.socketMode ? 'none' : 'auto'}"
                               @mousedown=${(e: MouseEvent) => this.handleButtonMouseDown(i, e)}
                               @mouseup=${(e: MouseEvent) => this.handleButtonMouseUp(i, e)}
                               class="button-rect" />
@@ -405,10 +472,7 @@ export class TabletVisualizer extends LitElement {
         const activeAreaY = tabletY + 20;
         const activeAreaWidth = tabletWidth - 40;
         const activeAreaHeight = tabletHeight - 40;
-        
-        const stringLabel = this.lastHoveredString !== null ? `String ${this.lastHoveredString + 1}` : '—';
-        const buttonLabel = this.lastPressedButton !== null ? `Button ${this.lastPressedButton + 1}` : '—';
-        
+
         return html`
             <div class="tablet-container">
                 <svg width="100%" height="100%" 
@@ -420,6 +484,7 @@ export class TabletVisualizer extends LitElement {
                 <!-- Tablet body (with pointer events for the main area) -->
                 <rect x="${tabletX}" y="${tabletY}" width="${tabletWidth}" height="${tabletHeight}" 
                     class="tablet-body" rx="15"
+                    pointer-events="${this.socketMode ? 'none' : 'auto'}"
                  @mousemove=${this.handleTabletMouseMove}
                  @mouseleave=${this.handleTabletMouseLeave}
                  @mousedown=${this.handleTabletMouseDown}
@@ -436,21 +501,40 @@ export class TabletVisualizer extends LitElement {
                 <!-- Buttons rendered AFTER strings to appear on top -->
                 ${this.renderButtons(activeAreaWidth, activeAreaX, activeAreaY)}
                 
-                ${this.clickPosition && this.isPressingTablet ? svg`
-                    <!-- Pressure indicator dot -->
-                    <circle cx="${this.clickPosition.x}" 
-                            cy="${this.clickPosition.y}" 
-                            r="12" 
-                            fill="#ff6b6b"
-                            opacity="${this.pressure}"
-                            pointer-events="none" />
-                ` : ''}
+                ${(() => {
+                    // Use external data when in socket mode, otherwise use internal state
+                    const shouldShow = this.socketMode 
+                        ? this.externalTabletData.pressure > 0
+                        : (this.clickPosition && this.isPressingTablet);
+                    
+                    if (!shouldShow) return '';
+                    
+                    if (this.socketMode) {
+                        // Convert normalized coordinates to SVG coordinates
+                        const x = activeAreaX + (this.externalTabletData.x * activeAreaWidth);
+                        const y = activeAreaY + (this.externalTabletData.y * activeAreaHeight);
+                        return svg`
+                            <!-- Pressure indicator dot -->
+                            <circle cx="${x}" 
+                                    cy="${y}" 
+                                    r="12" 
+                                    fill="#ff6b6b"
+                                    opacity="${this.externalTabletData.pressure}"
+                                    pointer-events="none" />
+                        `;
+                    } else {
+                        return svg`
+                            <!-- Pressure indicator dot -->
+                            <circle cx="${this.clickPosition!.x}" 
+                                    cy="${this.clickPosition!.y}" 
+                                    r="12" 
+                                    fill="#ff6b6b"
+                                    opacity="${this.pressure}"
+                                    pointer-events="none" />
+                        `;
+                    }
+                })()}
                 </svg>
-                <div class="tablet-label-container">
-                    <span class="tablet-info-label">Last String: <strong>${stringLabel}</strong></span>
-                    <span class="tablet-info-separator">|</span>
-                    <span class="tablet-info-label">Last Button: <strong>${buttonLabel}</strong></span>
-                </div>
             </div>
         `;
     }
@@ -510,9 +594,10 @@ export class TabletVisualizer extends LitElement {
                 <rect x="${button1X}" y="${penWidth/2 - buttonWidth/2}" 
                       width="${buttonHeight}" height="${buttonWidth}"
                       rx="2"
-                      fill="${this.primaryButtonPressed ? '#51cf66' : '#495057'}"
-                      stroke="${this.primaryButtonPressed ? '#40c057' : '#6c757d'}"
+                      fill="${(this.socketMode ? this.externalTabletData.primaryButtonPressed : this.primaryButtonPressed) ? '#51cf66' : '#495057'}"
+                      stroke="${(this.socketMode ? this.externalTabletData.primaryButtonPressed : this.primaryButtonPressed) ? '#40c057' : '#6c757d'}"
                       stroke-width="1"
+                      pointer-events="${this.socketMode ? 'none' : 'auto'}"
                       @mousedown=${(e: MouseEvent) => this.handleStylusButtonMouseDown(true, e)}
                       @mouseup=${(e: MouseEvent) => this.handleStylusButtonMouseUp(true, e)}
                       class="button-rect" />
@@ -521,9 +606,10 @@ export class TabletVisualizer extends LitElement {
                 <rect x="${button2X}" y="${penWidth/2 - buttonWidth/2}" 
                       width="${buttonHeight}" height="${buttonWidth}"
                       rx="2"
-                      fill="${this.secondaryButtonPressed ? '#51cf66' : '#495057'}"
-                      stroke="${this.secondaryButtonPressed ? '#40c057' : '#6c757d'}"
+                      fill="${(this.socketMode ? this.externalTabletData.secondaryButtonPressed : this.secondaryButtonPressed) ? '#51cf66' : '#495057'}"
+                      stroke="${(this.socketMode ? this.externalTabletData.secondaryButtonPressed : this.secondaryButtonPressed) ? '#40c057' : '#6c757d'}"
                       stroke-width="1"
+                      pointer-events="${this.socketMode ? 'none' : 'auto'}"
                       @mousedown=${(e: MouseEvent) => this.handleStylusButtonMouseDown(false, e)}
                       @mouseup=${(e: MouseEvent) => this.handleStylusButtonMouseUp(false, e)}
                       class="button-rect" />
@@ -539,19 +625,28 @@ export class TabletVisualizer extends LitElement {
         const maxRadius = 80; // Reduced from 100 for more breathing room
         const buttonsY = 30;
         
+        // Use external data when in socket mode, otherwise use internal state
+        const tiltX = this.socketMode ? this.externalTabletData.tiltX : this.tiltX;
+        const tiltY = this.socketMode ? this.externalTabletData.tiltY : this.tiltY;
+        const tiltPressure = this.socketMode ? this.externalTabletData.pressure : this.tiltPressure;
+        const isPressingTilt = this.socketMode ? this.externalTabletData.pressure > 0 : this.isPressingTilt;
+        
         // Calculate pressure rings
         const pressureRings = 5;
-        const activeRing = Math.floor(this.tiltPressure * pressureRings);
+        const activeRing = Math.floor(tiltPressure * pressureRings);
         
         // Calculate tilt indicator position
-        const tiltLineEndX = centerX + this.tiltX * maxRadius;
-        const tiltLineEndY = centerY + this.tiltY * maxRadius;
+        const tiltLineEndX = centerX + tiltX * maxRadius;
+        const tiltLineEndY = centerY + tiltY * maxRadius;
         
-        // Calculate combined tilt magnitude with sign based on tiltX * tiltY
-        const magnitude = Math.sqrt(this.tiltX * this.tiltX + this.tiltY * this.tiltY);
-        const sign = (this.tiltX * this.tiltY) >= 0 ? 1 : -1;
-        // Clamp to [-1, 1] range (magnitude can exceed 1 at corners)
-        const tiltMagnitude = Math.max(-1, Math.min(1, magnitude * sign));
+        // Use tiltXY from external data in socket mode, otherwise calculate locally
+        const tiltMagnitude = this.socketMode ? this.externalTabletData.tiltXY : (() => {
+            // Calculate combined tilt magnitude with sign based on tiltX * tiltY
+            const magnitude = Math.sqrt(tiltX * tiltX + tiltY * tiltY);
+            const sign = (tiltX * tiltY) >= 0 ? 1 : -1;
+            // Clamp to [-1, 1] range (magnitude can exceed 1 at corners)
+            return Math.max(-1, Math.min(1, magnitude * sign));
+        })();
         
         return svg`
             <svg width="100%" height="100%" 
@@ -566,16 +661,17 @@ export class TabletVisualizer extends LitElement {
                 <!-- Interactive area for tilt (invisible circle that captures events) -->
                 <circle cx="${centerX}" cy="${centerY}" r="${maxRadius}"
                     fill="transparent"
+                    pointer-events="${this.socketMode ? 'none' : 'auto'}"
                     @mousemove=${this.handleTiltMouseMove}
                     @mousedown=${this.handleTiltMouseDown}
                     @mouseup=${this.handleTiltMouseUp}
-                    style="cursor: crosshair;" />
+                    style="cursor: ${this.socketMode ? 'default' : 'crosshair'};" />
                 
                 <!-- Pressure rings (from outside to inside) -->
                 ${Array.from({ length: pressureRings }, (_, i) => {
                     const ringIndex = pressureRings - i - 1;
                     const radius = maxRadius * ((ringIndex + 1) / pressureRings);
-                    const isActive = this.isPressingTilt && ringIndex <= activeRing;
+                    const isActive = isPressingTilt && ringIndex <= activeRing;
                     const opacity = isActive ? 0.3 + (ringIndex / pressureRings) * 0.4 : 0.4;
                     const strokeWidth = isActive ? 2 : 1;
                     
@@ -596,7 +692,7 @@ export class TabletVisualizer extends LitElement {
                     pointer-events="none" />
                 
                 <!-- Tilt direction line -->
-                ${this.isPressingTilt || this.tiltX !== 0 || this.tiltY !== 0 ? svg`
+                ${isPressingTilt || tiltX !== 0 || tiltY !== 0 ? svg`
                     <line x1="${centerX}" y1="${centerY}" 
                           x2="${tiltLineEndX}" y2="${tiltLineEndY}"
                           stroke="#339af0"
@@ -612,13 +708,13 @@ export class TabletVisualizer extends LitElement {
                 
                 <!-- Axis labels with more vertical separation -->
                 <text x="${centerX}" y="${viewBoxHeight - 45}" class="axis-label" text-anchor="middle">
-                    Tilt X: ${this.tiltX.toFixed(2)} | Tilt Y: ${this.tiltY.toFixed(2)}
+                    Tilt X: ${tiltX.toFixed(2)} | Tilt Y: ${tiltY.toFixed(2)}
                 </text>
                 <text x="${centerX}" y="${viewBoxHeight - 30}" class="axis-label" text-anchor="middle">
                     Tilt X + Y: ${tiltMagnitude.toFixed(2)}
                 </text>
                 <text x="${centerX}" y="${viewBoxHeight - 15}" class="axis-label" text-anchor="middle">
-                    Pressure: ${this.tiltPressure.toFixed(2)}
+                    Pressure: ${tiltPressure.toFixed(2)}
                 </text>
             </svg>
         `;

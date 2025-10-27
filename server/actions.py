@@ -22,14 +22,16 @@ class Actions:
     - Chord notation: ["set-strum-chord", "Cmaj7", 3] for chord-based note setting
     """
     
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, socket_server=None):
         """
         Initialize Actions with a configuration instance.
         
         Args:
             config: Configuration instance that will be modified by actions
+            socket_server: Optional socket server for broadcasting state changes
         """
         self.config = config
+        self.socket_server = socket_server
         
         # Map action names to handler methods
         self._action_handlers = {
@@ -195,6 +197,10 @@ class Actions:
             note_names = ', '.join(note_strings)
             print(f"[ACTIONS] {button} button set strum notes: [{note_names}]")
             
+            # Broadcast updated strummer state to WebSocket clients
+            from main import broadcast_strummer_notes
+            broadcast_strummer_notes(self.socket_server)
+            
         except Exception as e:
             print(f"[ACTIONS] Error parsing notes: {e}")
     
@@ -239,6 +245,10 @@ class Actions:
             button = context.get('button', 'Unknown')
             note_names = ', '.join([f"{n.notation}{n.octave}" for n in notes])
             print(f"[ACTIONS] {button} button set strum chord: {chord_notation} [{note_names}]")
+            
+            # Broadcast updated strummer state to WebSocket clients
+            from main import broadcast_strummer_notes
+            broadcast_strummer_notes(self.socket_server)
             
         except Exception as e:
             print(f"[ACTIONS] Error parsing chord: {e}")
@@ -307,6 +317,10 @@ class Actions:
             button = context.get('button', 'Unknown')
             print(f"[ACTIONS] {button} button set progression '{progression_name}' to index {actual_index}: {chord_notation}")
             
+            # Broadcast updated strummer state to WebSocket clients
+            from main import broadcast_strummer_notes
+            broadcast_strummer_notes(self.socket_server)
+            
         except Exception as e:
             print(f"[ACTIONS] Error setting chord in progression: {e}")
     
@@ -374,6 +388,10 @@ class Actions:
             button = context.get('button', 'Unknown')
             direction = "forward" if increment_amount > 0 else "backward"
             print(f"[ACTIONS] {button} button incremented progression '{progression_name}' {direction} by {abs(increment_amount)} to index {actual_index}: {chord_notation}")
+            
+            # Broadcast updated strummer state to WebSocket clients
+            from main import broadcast_strummer_notes
+            broadcast_strummer_notes(self.socket_server)
             
         except Exception as e:
             print(f"[ACTIONS] Error incrementing chord in progression: {e}")

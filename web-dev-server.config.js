@@ -15,13 +15,34 @@ if (!['dev', 'prod'].includes(mode)) {
   throw new Error(`MODE must be "dev" or "prod", was "${mode}"`);
 }
 
+const socketMode = process.env.SOCKET_MODE === 'true';
+
+console.log('🔧 Web Dev Server starting...');
+console.log('   SOCKET_MODE:', process.env.SOCKET_MODE);
+console.log('   socketMode:', socketMode);
+
 export default {
   nodeResolve: {exportConditions: mode === 'dev' ? ['development'] : []},
   open: 'index.html',
   preserveSymlinks: true,
+  plugins: [
+    {
+      name: 'inject-config',
+      transform(context) {
+        if (context.path === '/index.html') {
+          const html = context.body;
+          // Inject global config before any scripts
+          const configScript = `<script>window.__MIDI_STRUMMER_CONFIG__ = { socketMode: ${socketMode} };</script>`;
+          const injected = html.replace('<head>', `<head>\n    ${configScript}`);
+          return { body: injected };
+        }
+      },
+    },
+  ],
   middleware: [
     function serveSettings(context, next) {
       if (context.url === '/api/settings') {
+        // Serve settings.json for dev mode
         const settingsPath = join(__dirname, 'settings.json');
         const settings = readFileSync(settingsPath, 'utf-8');
         return {

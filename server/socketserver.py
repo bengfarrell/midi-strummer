@@ -5,12 +5,13 @@ import json
 
 
 class SocketServer:
-    def __init__(self, on_message: Optional[Callable[[Dict[str, Any]], None]] = None, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, on_message: Optional[Callable[[Dict[str, Any]], None]] = None, config: Optional[Dict[str, Any]] = None, initial_notes_callback: Optional[Callable[[], Dict[str, Any]]] = None):
         self.sockets: Set[websockets.WebSocketServerProtocol] = set()
         self.server = None
         self.loop = None
         self.on_message_callback = on_message
         self.config = config
+        self.initial_notes_callback = initial_notes_callback
 
     async def start(self, port: int = 8080):
         """Start the WebSocket server"""
@@ -32,6 +33,15 @@ class SocketServer:
                     await websocket.send(config_message)
                 except Exception as e:
                     print(f'Error sending config to new client: {e}')
+            
+            # Send the current strummer notes to the new client
+            if self.initial_notes_callback is not None:
+                try:
+                    notes_data = self.initial_notes_callback()
+                    notes_message = json.dumps(notes_data)
+                    await websocket.send(notes_message)
+                except Exception as e:
+                    print(f'Error sending initial notes to new client: {e}')
             
             try:
                 # Listen for incoming messages

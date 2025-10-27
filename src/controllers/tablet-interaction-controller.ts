@@ -13,6 +13,7 @@ export interface TabletInteractionState {
     tiltPressed: boolean;
     tiltX: number;
     tiltY: number;
+    tiltXY: number; // Combined tilt magnitude with sign
     tiltPressure: number;
     
     // Button states
@@ -41,6 +42,7 @@ export class TabletInteractionController implements ReactiveController {
         tiltPressed: false,
         tiltX: 0,
         tiltY: 0,
+        tiltXY: 0,
         tiltPressure: 0,
         
         primaryButtonPressed: false,
@@ -107,11 +109,22 @@ export class TabletInteractionController implements ReactiveController {
     }
     
     // Pen tilt methods
-    setTiltPosition(x: number, y: number, pressure: number, pressed: boolean) {
+    setTiltPosition(x: number, y: number, pressure: number, pressed: boolean, tiltXY?: number) {
         this._state.tiltX = x;
         this._state.tiltY = y;
         this._state.tiltPressure = pressure;
         this._state.tiltPressed = pressed;
+        
+        // Use provided tiltXY or calculate it
+        if (tiltXY !== undefined) {
+            this._state.tiltXY = tiltXY;
+        } else {
+            // Calculate tiltXY for backward compatibility
+            const magnitude = Math.sqrt(x * x + y * y);
+            const sign = (x * y) >= 0 ? 1 : -1;
+            this._state.tiltXY = Math.max(-1, Math.min(1, magnitude * sign));
+        }
+        
         this.notifyHosts();
     }
     
@@ -121,6 +134,7 @@ export class TabletInteractionController implements ReactiveController {
             // Reset tilt when released
             this._state.tiltX = 0;
             this._state.tiltY = 0;
+            this._state.tiltXY = 0;
             this._state.tiltPressure = 0;
         }
         this.notifyHosts();
@@ -163,6 +177,7 @@ export class TabletInteractionController implements ReactiveController {
             tiltPressed: false,
             tiltX: 0,
             tiltY: 0,
+            tiltXY: 0,
             tiltPressure: 0,
             
             primaryButtonPressed: false,

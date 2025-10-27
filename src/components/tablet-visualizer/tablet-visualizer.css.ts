@@ -12,27 +12,21 @@ export const styles = css`
         gap: 8px;
     }
     
-    .tablet-label-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        padding: 8px;
-        font-size: 12px;
-        color: #adb5bd;
+    @keyframes string-pluck {
+        0% {
+            stroke: #51cf66;
+            stroke-width: 3;
+            opacity: 1;
+        }
+        100% {
+            stroke: #6c757d;
+            stroke-width: 1;
+            opacity: 0.5;
+        }
     }
     
-    .tablet-info-label {
-        color: #868e96;
-    }
-    
-    .tablet-info-label strong {
-        color: #f1f3f5;
-        font-weight: 600;
-    }
-    
-    .tablet-info-separator {
-        color: #495057;
+    .string-plucked {
+        animation: string-pluck 0.5s ease-out forwards;
     }
     
     .tilt-container {
