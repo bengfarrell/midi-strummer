@@ -89,22 +89,31 @@ export class StrummerApp extends LitElement {
 
     @state()
     protected panelOrder: string[] = [
+        // System panels
+        'websocket-connection',
+        'panel-controls',
+        // Visualizations
         'drawing-tablet',
         'pen-tilt',
         'keyboard',
+        // Inputs
         'note-duration',
         'pitch-bend',
         'note-velocity',
+        // Buttons
+        'stylus-buttons',
+        'tablet-buttons',
+        // Misc Features
         'strumming',
         'note-repeater',
         'transpose',
-        'stylus-buttons',
-        'tablet-buttons',
         'strum-release'
     ];
 
     @state()
     protected panelVisibility: Record<string, boolean> = {
+        'panel-controls': true,
+        'websocket-connection': true,
         'drawing-tablet': true,
         'pen-tilt': true,
         'keyboard': true,
@@ -117,6 +126,12 @@ export class StrummerApp extends LitElement {
         'stylus-buttons': true,
         'tablet-buttons': true,
         'strum-release': true
+    };
+
+    @state()
+    protected panelMinimized: Record<string, boolean> = {
+        'panel-controls': true,
+        'websocket-connection': false
     };
 
     async connectedCallback() {
@@ -170,6 +185,12 @@ export class StrummerApp extends LitElement {
                 this.connectionStatus = 'connected';
                 this.connectionError = '';
                 console.log('✅ WebSocket connected');
+                
+                // Minimize the websocket panel when connected
+                this.panelMinimized = {
+                    ...this.panelMinimized,
+                    'websocket-connection': true
+                };
             };
 
             this.webSocket.onmessage = (event) => {
@@ -253,6 +274,12 @@ export class StrummerApp extends LitElement {
                 this.connectionStatus = 'error';
                 this.connectionError = 'Failed to connect to server';
                 console.log(`❌ WebSocket error:`, error);
+                
+                // Open the websocket panel when there's an error
+                this.panelMinimized = {
+                    ...this.panelMinimized,
+                    'websocket-connection': false
+                };
             };
 
             this.webSocket.onclose = () => {
@@ -261,11 +288,23 @@ export class StrummerApp extends LitElement {
                     this.connectionError = 'Connection closed';
                 }
                 console.log('WebSocket closed');
+                
+                // Open the websocket panel when disconnected
+                this.panelMinimized = {
+                    ...this.panelMinimized,
+                    'websocket-connection': false
+                };
             };
         } catch (error) {
             this.connectionStatus = 'error';
             this.connectionError = error instanceof Error ? error.message : 'Connection failed';
             console.error('❌ WebSocket connection error:', error);
+            
+            // Open the websocket panel when there's an error
+            this.panelMinimized = {
+                ...this.panelMinimized,
+                'websocket-connection': false
+            };
         }
     }
 
@@ -275,6 +314,12 @@ export class StrummerApp extends LitElement {
             this.webSocket = undefined;
             this.connectionStatus = 'disconnected';
             this.connectionError = '';
+            
+            // Open the websocket panel when manually disconnected
+            this.panelMinimized = {
+                ...this.panelMinimized,
+                'websocket-connection': false
+            };
         }
     }
 
@@ -461,8 +506,62 @@ export class StrummerApp extends LitElement {
                     </tablet-buttons-config>
                 `;
             
+            case 'websocket-connection':
+                return html`
+                    <websocket-connection
+                        .status="${this.connectionStatus}"
+                        .errorMessage="${this.connectionError}"
+                        @connect="${this.handleConnect}"
+                        @disconnect="${this.handleDisconnect}">
+                    </websocket-connection>
+                `;
+            
+            case 'panel-controls':
+                return html`
+                    <div class="panel-controls-content">
+                        ${Object.entries(this.panelCategories).map(([category, panelIds]) => html`
+                            <div class="panel-category">
+                                <h4 class="category-title">${category}</h4>
+                                <div class="category-items">
+                                    ${panelIds.map(panelId => {
+                                        const schema = PANEL_SCHEMAS[panelId];
+                                        const isVisible = this.panelVisibility[panelId];
+                                        
+                                        return html`
+                                            <button 
+                                                class="panel-control-item ${isVisible ? 'visible' : 'hidden'}"
+                                                @click=${() => this.togglePanelVisibility(panelId)}
+                                                title="${isVisible ? 'Hide' : 'Show'} ${schema.title}">
+                                                <span class="item-icon">${isVisible ? '👁️' : '👁️‍🗨️'}</span>
+                                                <span class="item-label">${schema.title}</span>
+                                            </button>
+                                        `;
+                                    })}
+                                </div>
+                            </div>
+                        `)}
+                    </div>
+                `;
+            
             default:
                 return html`<div>Unknown component: ${type}</div>`;
+        }
+    }
+
+    /**
+     * Get connection status emoji and text for the websocket panel
+     */
+    private getConnectionStatusDisplay() {
+        switch (this.connectionStatus) {
+            case 'connected':
+                return '🟢 Connected';
+            case 'connecting':
+                return '🟡 Connecting...';
+            case 'error':
+                return '🔴 Error';
+            case 'disconnected':
+            default:
+                return '⚪ Disconnected';
         }
     }
 
@@ -483,14 +582,28 @@ export class StrummerApp extends LitElement {
         const hasActive = schema.hasActiveControl && config && typeof config === 'object' && 'active' in config;
         const isActive = hasActive ? (config as any).active : true;
         
+        // Determine panel title (add status for websocket connection)
+        let panelTitle = schema.title;
+        if (panelId === 'websocket-connection') {
+            panelTitle = `${schema.title} - ${this.getConnectionStatusDisplay()}`;
+        }
+        
+        // Determine if panel is closable (panel-controls and websocket-connection are not)
+        const isClosable = panelId !== 'panel-controls' && panelId !== 'websocket-connection';
+        
+        // Check if panel should be minimized by default
+        const isMinimized = this.panelMinimized[panelId] || false;
+        
         return html`
             <dashboard-panel 
                 panelId="${schema.id}"
-                title="${schema.title}"
+                title="${panelTitle}"
                 size="${schema.size}"
                 ?hasActiveControl="${schema.hasActiveControl}"
                 .active="${isActive}"
-                closable
+                ?closable="${isClosable}"
+                ?minimized="${isMinimized}"
+                draggable
                 @panel-drop=${this.handlePanelDrop}
                 @panel-close=${this.handlePanelClose}
                 @active-change="${hasActive ? (e: CustomEvent) => 
@@ -530,59 +643,46 @@ export class StrummerApp extends LitElement {
     }
 
     /**
-     * Renders the panel tray for managing panel visibility
+     * Panel categories for organizing the control panel
      */
-    private renderPanelTray() {
-        return html`
-            <div class="panel-tray">
-                <div class="panel-tray-label">Panels:</div>
-                <div class="panel-tray-items">
-                    ${this.panelOrder.map(panelId => {
-                        const schema = PANEL_SCHEMAS[panelId];
-                        const isVisible = this.panelVisibility[panelId];
-                        
-                        return html`
-                            <button 
-                                class="panel-tray-item ${isVisible ? 'visible' : 'hidden'}"
-                                @click=${() => this.togglePanelVisibility(panelId)}
-                                title="${isVisible ? 'Hide' : 'Show'} ${schema.title}">
-                                ${schema.title}
-                            </button>
-                        `;
-                    })}
-                </div>
-            </div>
-        `;
-    }
+    private panelCategories = {
+        'Visualizations': ['drawing-tablet', 'pen-tilt', 'keyboard'],
+        'Inputs': ['note-duration', 'pitch-bend', 'note-velocity'],
+        'Buttons': ['stylus-buttons', 'tablet-buttons'],
+        'Misc Features': ['strumming', 'note-repeater', 'transpose', 'strum-release']
+    };
 
     render() {
         console.log('🎨 Render called - socketMode:', this.socketMode, 'connectionStatus:', this.connectionStatus);
         
-        // In socket mode, show connection UI if not connected
+        // In socket mode, show only connection panel if not connected
         if (this.socketMode && this.connectionStatus !== 'connected') {
             console.log('🔌 Showing connection UI');
+            const connectionPanel = this.renderPanel('websocket-connection');
+            
             return html`<sp-theme system="spectrum" color="dark" scale="medium">
                 <h1>MIDI Strummer</h1>
-                <websocket-connection
-                    .status="${this.connectionStatus}"
-                    .errorMessage="${this.connectionError}"
-                    @connect="${this.handleConnect}"
-                    @disconnect="${this.handleDisconnect}">
-                </websocket-connection>
+                <div class="dashboard-grid connection-only">
+                    ${connectionPanel}
+                </div>
             </sp-theme>`;
         }
 
-        // Normal mode or connected - show the dashboard
+        // Normal mode or connected - show the full dashboard
         console.log('📊 Showing dashboard');
         const panels = this.getPanels();
         
         return html`<sp-theme system="spectrum" color="dark" scale="medium">
             <h1>MIDI Strummer</h1>
 
-            ${this.renderPanelTray()}
-
             <div class="dashboard-grid">
-                ${this.panelOrder.map(panelId => panels[panelId])}
+                ${this.panelOrder.map(panelId => {
+                    // Skip websocket-connection panel in non-socket mode
+                    if (panelId === 'websocket-connection' && !this.socketMode) {
+                        return '';
+                    }
+                    return panels[panelId];
+                })}
             </div>
         </sp-theme>`
     }

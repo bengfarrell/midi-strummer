@@ -33,8 +33,17 @@ export class DashboardPanel extends LitElement {
     @property({ type: String })
     panelId = '';
 
+    @property({ type: Boolean })
+    minimized = false;
+
     @state()
     private isMinimized = false;
+
+    updated(changedProperties: Map<string, any>) {
+        if (changedProperties.has('minimized')) {
+            this.isMinimized = this.minimized;
+        }
+    }
 
     @state()
     private isVisible = true;

@@ -30,67 +30,84 @@ export const styles = css`
         margin-top: 40px;
     }
     
-    .panel-tray {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 20px;
-        padding: 12px 16px;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+    /* Panel Controls Panel */
+    .panel-controls-content {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
     }
     
-    .panel-tray-label {
+    .panel-category {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .category-title {
+        margin: 0;
         font-size: 14px;
         font-weight: 600;
         color: rgba(255, 255, 255, 0.7);
-        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
     
-    .panel-tray-items {
+    .category-items {
         display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        flex: 1;
+        flex-direction: column;
+        gap: 6px;
     }
     
-    .panel-tray-item {
-        padding: 6px 12px;
+    .panel-control-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
         font-size: 13px;
         font-weight: 500;
         border-radius: 6px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.05);
         color: rgba(255, 255, 255, 0.9);
         cursor: pointer;
         transition: all 0.2s ease;
-        white-space: nowrap;
+        text-align: left;
     }
     
-    .panel-tray-item:hover {
-        background: rgba(255, 255, 255, 0.15);
-        border-color: rgba(255, 255, 255, 0.3);
-        transform: translateY(-1px);
+    .panel-control-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.25);
+        transform: translateX(2px);
     }
     
-    .panel-tray-item.visible {
-        background: rgba(59, 130, 246, 0.3);
-        border-color: rgba(59, 130, 246, 0.5);
+    .panel-control-item.visible {
+        background: rgba(59, 130, 246, 0.2);
+        border-color: rgba(59, 130, 246, 0.4);
         color: white;
     }
     
-    .panel-tray-item.visible:hover {
-        background: rgba(59, 130, 246, 0.4);
-        border-color: rgba(59, 130, 246, 0.6);
+    .panel-control-item.visible:hover {
+        background: rgba(59, 130, 246, 0.3);
+        border-color: rgba(59, 130, 246, 0.5);
     }
     
-    .panel-tray-item.hidden {
-        opacity: 0.6;
+    .panel-control-item.hidden {
+        opacity: 0.5;
     }
     
-    .panel-tray-item.hidden:hover {
-        opacity: 1;
+    .panel-control-item.hidden:hover {
+        opacity: 0.8;
+    }
+    
+    .item-icon {
+        font-size: 16px;
+        line-height: 1;
+    }
+    
+    .item-label {
+        flex: 1;
     }
     
     .dashboard-grid {
@@ -100,6 +117,13 @@ export const styles = css`
         grid-auto-rows: auto;
         grid-auto-flow: dense;
         align-items: stretch;
+    }
+    
+    .dashboard-grid.connection-only {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 60vh;
     }
     
     /* Uniform sizing - most panels are single column */

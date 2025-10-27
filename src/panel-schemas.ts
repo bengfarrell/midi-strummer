@@ -51,7 +51,9 @@ export type CustomComponentType =
     | 'curve-visualizer'
     | 'piano-keys'
     | 'stylus-buttons-config'
-    | 'tablet-buttons-config';
+    | 'tablet-buttons-config'
+    | 'websocket-connection'
+    | 'panel-controls';
 
 export interface CustomComponentConfig {
     type: CustomComponentType;
@@ -81,6 +83,32 @@ export interface PanelSchema {
  * Schema definitions for each configuration panel
  */
 export const PANEL_SCHEMAS: Record<string, PanelSchema> = {
+    // Panel controls
+    'panel-controls': {
+        id: 'panel-controls',
+        title: 'Panel Controls',
+        hasActiveControl: false,
+        size: 'full',
+        isCustom: true,
+        customComponent: {
+            type: 'panel-controls',
+            props: {}
+        }
+    },
+    
+    // WebSocket connection panel
+    'websocket-connection': {
+        id: 'websocket-connection',
+        title: 'Strummer Service',
+        hasActiveControl: false,
+        size: 'full',
+        isCustom: true,
+        customComponent: {
+            type: 'websocket-connection',
+            props: {}
+        }
+    },
+    
     // Custom rendered panels
     'drawing-tablet': {
         id: 'drawing-tablet',
@@ -270,7 +298,7 @@ export const PANEL_SCHEMAS: Record<string, PanelSchema> = {
         id: 'tablet-buttons',
         title: 'Tablet Buttons',
         hasActiveControl: false,
-        size: 'wide',
+        size: 'full',
         configKey: 'tabletButtons',
         isCustom: true,
         customComponent: {
