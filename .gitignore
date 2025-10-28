@@ -2,6 +2,7 @@
 /node_modules
 /dist
 /dmg-temp
+/docs
 /server/public
 **/*.js
 **/*.js.map

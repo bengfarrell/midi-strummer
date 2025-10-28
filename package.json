@@ -14,17 +14,25 @@
     "lint:lit-analyzer": "lit-analyzer",
     "format": "prettier \\\\\\\"**/*.{cjs,html,js,json,md,ts}\\\\\\\" --write",
     "dev": "npm run build:watch & wds --watch",
-    "socket-dev": "npm run build:watch & SOCKET_MODE=true wds --watch"
+    "socket-dev": "npm run build:watch & SOCKET_MODE=true wds --watch",
+    "docs": "npm run docs:build",
+    "docs:clean": "rimraf docs",
+    "docs:deploy": "npm run docs && node_modules/.bin/gh-pages -d docs",
+    "docs:gen": "./node_modules/.bin/eleventy --config=eleventy.config.mjs",
+    "docs:gen:watch": "./node_modules/.bin/eleventy --config=eleventy.config.mjs --watch",
+    "docs:build": "npm run docs:clean && npm run docs:gen",
+    "docs:dev": "npx @11ty/eleventy --serve --quiet"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/bengfarrell/midi-strummer.git"
   },
   "dependencies": {
-    "@spectrum-web-components/bundle": "^1.7.0",
     "lit": "^3.3.1"
   },
   "devDependencies": {
+    "@11ty/eleventy": "^3.1.2",
+    "@11ty/eleventy-plugin-syntaxhighlight": "^5.0.2",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@types/minimatch": "^3.0.5",
     "@typescript-eslint/eslint-plugin": "^5.25.0",
@@ -32,6 +40,7 @@
     "@web/dev-server": "^0.1.31",
     "@web/rollup-plugin-html": "^2.0.0",
     "eslint": "^8.15.0",
+    "gh-pages": "^5.0.0",
     "prettier": "^2.6.2",
     "rollup": "^2.73.0",
     "rollup-plugin-clean": "^1.0.0",

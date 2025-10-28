@@ -1,0 +1,69 @@
+<html lang="en-US" dir="ltr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+    <link rel="canonical" href="{{ page.url }}" />
+    <meta property="og:site_name" content="Strumboli" />
+    <meta property="og:title" content="Strumboli: {{ title }}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="{{ page.url }}" />
+    <link rel="icon" href="/img/icon.svg" type="image/svg+xml" />
+    <link rel="icon" type="image/svg+xml" href="/img/icon.svg" />
+
+    <title>Strumboli: {{ title }}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Poppins:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{{ page.url | resolvePath('/docs.css') }}" />
+    <link rel="stylesheet" href="{{ page.url | resolvePath('/prism-okaidia.css') }}" />
+    <link rel="preload" href="{{ page.url | resolvePath('/docs.css') }}" as="style" />
+</head>
+<body>
+
+<header>
+    <button id="mobile-menu" class="mobile-menu-button" aria-label="Open menu">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" role="img" fill="currentColor" height="24" width="24" aria-hidden="true">
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="16"></rect>
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="6"></rect>
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="26"></rect>
+        </svg>
+    </button>
+  
+    <div class="logo-container">
+        <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <!-- Background with rounded corners -->
+            <rect width="100" height="100" fill="#1d1d1d" rx="10" ry="10"/>
+            
+            <!-- Colorful horizontal stripes (every other line with gaps) -->
+            <line x1="15" y1="26" x2="85" y2="26" stroke="#ff6b6b" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="42" x2="85" y2="42" stroke="#ffd93d" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="58" x2="85" y2="58" stroke="#6bcf7f" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="74" x2="85" y2="74" stroke="#4dabf7" stroke-width="5" stroke-linecap="butt"/>
+            
+            <!-- Enclosing U-shape (square with right edge missing) -->
+            <!-- Top edge -->
+            <line x1="15" y1="15" x2="85" y2="15" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Left edge -->
+            <line x1="15" y1="15" x2="15" y2="85" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Bottom edge -->
+            <line x1="15" y1="85" x2="85" y2="85" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Right edge is missing (opening) -->
+        </svg>
+    </div>
+
+    <div class="title">
+        <h1>Strumboli</h1>
+        <h4>Turn your drawing tablet into a MIDI strumming controller</h4>
+    </div>
+
+    <div class="logo-container github">
+        <a href="https://github.com/yourusername/midi-strummer"><img src="/img/github-logo.svg" alt="Github Logo" /></a>
+    </div>
+</header>

@@ -1,0 +1,45 @@
+{% set gettingStartedNav = [
+    { url: '/', label: 'Introduction' },
+    { url: '/about/getting-started/', label: 'Getting Started' },
+    { url: '/about/configuration-overview/', label: 'Configuration Overview' }
+] %}
+
+{% set setupNav = [
+    { url: '/about/tablet-setup/', label: 'Tablet Setup' },
+    { url: '/about/actions-reference/', label: 'Actions Reference' },
+    { url: '/about/chords-and-progressions/', label: 'Chords & Progressions' }
+] %}
+
+{% set featuresNav = [
+    { url: '/about/startup-configuration/', label: 'Startup Configuration' },
+    { url: '/about/strumming/', label: 'Strumming' },
+    { url: '/about/note-velocity/', label: 'Note Velocity' },
+    { url: '/about/note-duration/', label: 'Note Duration' },
+    { url: '/about/pitch-bend/', label: 'Pitch Bend' },
+    { url: '/about/note-repeater/', label: 'Note Repeater' },
+    { url: '/about/transpose/', label: 'Transpose' },
+    { url: '/about/stylus-buttons/', label: 'Stylus Buttons' },
+    { url: '/about/tablet-buttons/', label: 'Tablet Buttons' },
+    { url: '/about/strum-release/', label: 'Strum Release' }
+] %}
+
+
+<nav>
+    <div class="mobile-header">
+        <h1>Strumboli</h1>
+    </div>
+    <h4>Getting Started</h4>
+    {% for item in gettingStartedNav %}
+    <a href="{{ page.url | resolvePath(item.url) }}">{{item.label}}</a>
+    {% endfor %}
+
+    <h4>Configuration</h4>
+    {% for item in setupNav %}
+        <a href="{{ page.url | resolvePath(item.url) }}">{{item.label}}</a>
+    {% endfor %}
+
+    <h4>Features</h4>
+    {% for item in featuresNav %}
+        <a href="{{ page.url | resolvePath(item.url) }}">{{item.label}}</a>
+    {% endfor %}
+</nav>
