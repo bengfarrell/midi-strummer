@@ -796,9 +796,9 @@ def main():
         except Exception as e:
             print(f"[Hotplug] Could not start hotplug monitor: {e}")
         
-        print("MIDI Strummer server started (MIDI-only mode). Press Ctrl+C to exit.")
+        print("Strumboli server started (MIDI-only mode). Press Ctrl+C to exit.")
     else:
-        print("MIDI Strummer server started with HID device. Press Ctrl+C to exit.")
+        print("Strumboli server started with HID device. Press Ctrl+C to exit.")
         
         # Update global tablet connection state
         _tablet_connected = True

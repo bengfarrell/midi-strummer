@@ -1,6 +1,6 @@
-# MIDI Strummer
+# Strumboli
 
-A Python implementation of the MIDI Strummer application for processing tablet input and generating MIDI output.
+A Python application for processing tablet input and generating MIDI output.
 
 ## Quick Start
 

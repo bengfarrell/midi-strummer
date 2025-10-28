@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
-PyInstaller spec file for MIDI Strummer
+PyInstaller spec file for Strumboli
 Builds a standalone application bundle
 """
 
@@ -12,6 +12,7 @@ block_cipher = None
 # Collect all data files and hidden imports
 datas = [
     ('../settings.json', '.'),  # Include settings.json in the bundle
+    ('public', 'public'),  # Include public folder for web server functionality
 ]
 
 # Hidden imports that PyInstaller might miss
@@ -48,7 +49,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='MIDI-Strummer',
+    name='Strumboli',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -69,16 +70,16 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='MIDI-Strummer',
+    name='Strumboli',
 )
 
 # macOS: Create .app bundle
 if sys.platform == 'darwin':
     app = BUNDLE(
         coll,
-        name='MIDI-Strummer.app',
+        name='Strumboli.app',
         icon=None,  # Add 'icon.icns' here if you create an icon
-        bundle_identifier='com.midistrummer.app',
+        bundle_identifier='com.strumboli.app',
         info_plist={
             'NSPrincipalClass': 'NSApplication',
             'NSHighResolutionCapable': 'True',

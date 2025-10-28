@@ -4,13 +4,13 @@
 set -e
 
 echo "=========================================="
-echo "MIDI Strummer - DMG Creator"
+echo "Strumboli - DMG Creator"
 echo "=========================================="
 echo ""
 
 # Check if app exists
-if [ ! -d "dist/MIDI-Strummer.app" ]; then
-    echo "❌ Error: MIDI-Strummer.app not found"
+if [ ! -d "dist/Strumboli.app" ]; then
+    echo "❌ Error: Strumboli.app not found"
     echo "Please run ./build.sh first"
     exit 1
 fi
@@ -23,7 +23,7 @@ mkdir -p "$DMG_DIR"
 
 # Copy app to DMG directory
 echo "📦 Copying application..."
-cp -R dist/MIDI-Strummer.app "$DMG_DIR/"
+cp -R dist/Strumboli.app "$DMG_DIR/"
 
 # Copy settings.json
 if [ -f "settings.json" ]; then
@@ -33,10 +33,10 @@ fi
 
 # Create a README for the DMG
 cat > "$DMG_DIR/README.txt" << EOF
-MIDI Strummer v1.0.0
+Strumboli v1.0.0
 
 Installation:
-1. Drag MIDI-Strummer.app to your Applications folder
+1. Drag Strumboli.app to your Applications folder
 2. Place settings.json in the same directory as the app
    (or keep it in ~/Documents/projects/web/midi-strummer/)
 
@@ -63,14 +63,14 @@ echo "🔗 Creating Applications folder link..."
 ln -s /Applications "$DMG_DIR/Applications"
 
 # Create DMG
-DMG_NAME="MIDI-Strummer-Installer.dmg"
+DMG_NAME="Strumboli-Installer.dmg"
 echo "💿 Creating DMG..."
 
 # Remove old DMG if exists
 rm -f "dist/$DMG_NAME"
 
 # Create DMG using hdiutil
-hdiutil create -volname "MIDI Strummer" \
+hdiutil create -volname "Strumboli" \
     -srcfolder "$DMG_DIR" \
     -ov \
     -format UDZO \
@@ -89,7 +89,7 @@ echo "Installer: dist/$DMG_NAME"
 echo ""
 echo "Users can now:"
 echo "1. Download and mount the DMG"
-echo "2. Drag MIDI-Strummer.app to Applications"
+echo "2. Drag Strumboli.app to Applications"
 echo "3. Double-click to run"
 echo ""
 

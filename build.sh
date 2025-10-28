@@ -1,10 +1,10 @@
 #!/bin/bash
-# Build script for MIDI Strummer standalone application
+# Build script for Strumboli standalone application
 
 set -e  # Exit on error
 
 echo "=========================================="
-echo "MIDI Strummer - Build Script"
+echo "Strumboli - Build Script"
 echo "=========================================="
 echo ""
 
@@ -40,31 +40,31 @@ pyinstaller midi-strummer.spec --clean
 # Move build artifacts to project root
 echo "📦 Moving build artifacts..."
 cd ..
-if [ -d "server/dist/MIDI-Strummer.app" ]; then
-    mv server/dist/MIDI-Strummer.app dist/ 2>/dev/null || mkdir -p dist && mv server/dist/MIDI-Strummer.app dist/
+if [ -d "server/dist/Strumboli.app" ]; then
+    mv server/dist/Strumboli.app dist/ 2>/dev/null || mkdir -p dist && mv server/dist/Strumboli.app dist/
     echo ""
     echo "=========================================="
     echo "✅ Build successful!"
     echo "=========================================="
     echo ""
-    echo "Application: dist/MIDI-Strummer.app"
+    echo "Application: dist/Strumboli.app"
     echo ""
     echo "To run the app:"
-    echo "  open dist/MIDI-Strummer.app"
+    echo "  open dist/Strumboli.app"
     echo ""
     echo "To create a DMG installer:"
     echo "  ./create-dmg.sh"
-elif [ -d "server/dist/MIDI-Strummer" ]; then
-    mv server/dist/MIDI-Strummer dist/ 2>/dev/null || mkdir -p dist && mv server/dist/MIDI-Strummer dist/
+elif [ -d "server/dist/Strumboli" ]; then
+    mv server/dist/Strumboli dist/ 2>/dev/null || mkdir -p dist && mv server/dist/Strumboli dist/
     echo ""
     echo "=========================================="
     echo "✅ Build successful!"
     echo "=========================================="
     echo ""
-    echo "Application: dist/MIDI-Strummer/"
+    echo "Application: dist/Strumboli/"
     echo ""
     echo "To run the app:"
-    echo "  ./dist/MIDI-Strummer/MIDI-Strummer"
+    echo "  ./dist/Strumboli/Strumboli"
 else
     echo ""
     echo "❌ Build failed - application not found in dist/"

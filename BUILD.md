@@ -1,6 +1,6 @@
-# Building MIDI Strummer for Distribution
+# Building Strumboli for Distribution
 
-This guide explains how to package MIDI Strummer as a standalone desktop application that users can download, install, and run.
+This guide explains how to package Strumboli as a standalone desktop application that users can download, install, and run.
 
 ## Prerequisites
 
@@ -40,7 +40,12 @@ pip install pyinstaller
 
 ### 2. Build the Application
 
-**macOS/Linux:**
+**Using npm (macOS - Recommended):**
+```bash
+npm run build:osx
+```
+
+**Manual Build (macOS/Linux):**
 ```bash
 chmod +x build.sh
 ./build.sh
@@ -52,6 +57,13 @@ python -m PyInstaller server/midi-strummer.spec --clean
 ```
 
 ### 3. Create Installer (macOS only)
+
+**Using npm:**
+```bash
+npm run build:dmg
+```
+
+**Manual:**
 ```bash
 chmod +x create-dmg.sh
 ./create-dmg.sh
@@ -60,15 +72,15 @@ chmod +x create-dmg.sh
 ## What Gets Built
 
 ### macOS
-- **`dist/MIDI-Strummer.app`** - Standalone macOS application bundle
-- **`dist/MIDI-Strummer-Installer.dmg`** - Installable DMG with app and documentation
+- **`dist/Strumboli.app`** - Standalone macOS application bundle
+- **`dist/Strumboli-Installer.dmg`** - Installable DMG with app and documentation
 
 ### Windows
-- **`dist/MIDI-Strummer/MIDI-Strummer.exe`** - Standalone Windows executable
+- **`dist/Strumboli/Strumboli.exe`** - Standalone Windows executable
 - All dependencies bundled in the same folder
 
 ### Linux
-- **`dist/MIDI-Strummer/MIDI-Strummer`** - Standalone Linux executable
+- **`dist/Strumboli/Strumboli`** - Standalone Linux executable
 - All dependencies bundled in the same folder
 
 ## Distribution
@@ -87,7 +99,7 @@ Users need:
 
 1. **macOS**: Right-click app → "Open" (to bypass Gatekeeper on first run)
 2. **Windows**: May need to click "More info" → "Run anyway" (Windows Defender)
-3. **Linux**: `chmod +x MIDI-Strummer` if needed
+3. **Linux**: `chmod +x Strumboli` if needed
 
 ### Creating Settings Template
 
@@ -116,7 +128,7 @@ exe = EXE(
 
 For a GUI-only experience (no terminal window):
 ```python
-# In midi-strummer.spec
+# In server/midi-strummer.spec
 exe = EXE(
     # ...
     console=False,  # Change from True to False
@@ -131,10 +143,10 @@ For professional distribution without security warnings:
 # Sign the app
 codesign --deep --force --verify --verbose \
   --sign "Developer ID Application: Your Name" \
-  dist/MIDI-Strummer.app
+  dist/Strumboli.app
 
 # Notarize with Apple
-xcrun notarytool submit dist/MIDI-Strummer-Installer.dmg \
+xcrun notarytool submit dist/Strumboli-Installer.dmg \
   --apple-id your-email@example.com \
   --team-id TEAM_ID \
   --password app-specific-password
@@ -177,10 +189,11 @@ brew install upx  # macOS
 
 ### Including Additional Files
 
-Edit `midi-strummer.spec`:
+Edit `server/midi-strummer.spec`:
 ```python
 datas = [
     ('../settings.json', '.'),
+    ('public', 'public'),
     ('../README.md', '.'),
     ('../path/to/other/file', 'destination/folder'),
 ]
@@ -194,7 +207,7 @@ datas = [
 ### App crashes immediately
 - Run from terminal to see error messages:
   ```bash
-  ./dist/MIDI-Strummer.app/Contents/MacOS/MIDI-Strummer
+  ./dist/Strumboli.app/Contents/MacOS/Strumboli
   ```
 
 ### Large file size
