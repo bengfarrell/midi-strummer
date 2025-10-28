@@ -13,6 +13,7 @@ block_cipher = None
 datas = [
     ('../settings.json', '.'),  # Include settings.json in the bundle
     ('public', 'public'),  # Include public folder for web server functionality
+    ('drivers', 'drivers'),  # Include device driver configurations
 ]
 
 # Hidden imports that PyInstaller might miss
@@ -24,17 +25,44 @@ hiddenimports = [
     'websockets.legacy.server',
     'hid',
     'hidapi',
+    # Local modules
+    'finddevice',
+    'strummer',
+    'midi',
+    'midievent',
+    'note',
+    'websocketserver',
+    'webserver',
+    'hidreader',
+    'datahelpers',
+    'config',
+    'actions',
+    'eventlistener',
+    'chord_progression_state',
 ]
 
 a = Analysis(
-    ['main.py'],
-    pathex=[],
+    ['main.py',
+     'finddevice.py',
+     'strummer.py',
+     'midi.py',
+     'midievent.py',
+     'note.py',
+     'websocketserver.py',
+     'webserver.py',
+     'hidreader.py',
+     'datahelpers.py',
+     'config.py',
+     'actions.py',
+     'eventlistener.py',
+     'chord_progression_state.py'],
+    pathex=['.'],  # Add current directory to search path
     binaries=[],
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
-    runtime_hooks=[],
+    runtime_hooks=['pyi_rth_local_imports.py'],  # Add custom runtime hook
     excludes=[],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
@@ -78,7 +106,7 @@ if sys.platform == 'darwin':
     app = BUNDLE(
         coll,
         name='Strumboli.app',
-        icon=None,  # Add 'icon.icns' here if you create an icon
+        icon='icon.icns',
         bundle_identifier='com.strumboli.app',
         info_plist={
             'NSPrincipalClass': 'NSApplication',

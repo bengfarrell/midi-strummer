@@ -1,6 +1,7 @@
 /.idea
 /node_modules
 /dist
+/dmg-temp
 /server/public
 **/*.js
 **/*.js.map

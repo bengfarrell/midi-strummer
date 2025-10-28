@@ -69,11 +69,11 @@ echo "💿 Creating DMG..."
 # Remove old DMG if exists
 rm -f "dist/$DMG_NAME"
 
-# Create DMG using hdiutil
+# Create DMG using hdiutil (UDBZ format is faster than UDZO)
 hdiutil create -volname "Strumboli" \
     -srcfolder "$DMG_DIR" \
     -ov \
-    -format UDZO \
+    -format UDBZ \
     "dist/$DMG_NAME"
 
 # Clean up
