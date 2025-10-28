@@ -18,12 +18,29 @@ export const styles = css`
         background-color: rgb(29, 29, 29);
     }
     
+    .app-header {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+    
+    .app-logo {
+        flex-shrink: 0;
+        filter: drop-shadow(0 3px 12px rgba(0, 0, 0, 0.4));
+    }
+    
     h1 {
-        margin: 0 0 24px 0;
-        font-size: 28px;
+        margin: 0;
+        font-size: 42px;
         font-weight: 700;
         color: white;
-        text-align: center;
+        background: linear-gradient(135deg, #ff6b6b, #ffd93d, #6bcf7f, #4dabf7, #845ef7);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: 0.5px;
     }
 
     websocket-connection {

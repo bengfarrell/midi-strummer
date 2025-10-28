@@ -1,4 +1,4 @@
-import { html, LitElement } from 'lit';
+import { html, svg, LitElement } from 'lit';
 import { customElement, state, query } from 'lit/decorators.js';
 import { styles } from './app.css';
 
@@ -650,6 +650,114 @@ export class StrummerApp extends LitElement {
     }
 
     /**
+     * Renders the app header with logo
+     */
+    private renderHeader() {
+        return html`
+            <div class="app-header">
+                <svg class="app-logo" width="80" height="80" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    ${this.renderSpiralLogo()}
+                </svg>
+                <h1>Strumboli</h1>
+            </div>
+        `;
+    }
+
+    /**
+     * Renders an abstract stromboli sandwich using colorful layered lines in an open square
+     */
+    private renderSpiralLogo() {
+        const lines = [];
+        const width = 100;
+        const strokeWidth = 5;
+        const spacing = 9;
+        const padding = 10;
+        
+        // Colorful layers
+        const colors = [
+            '#ff6b6b', // red
+            '#ffd93d', // yellow
+            '#6bcf7f', // green
+            '#4dabf7', // blue
+            '#845ef7', // purple
+            '#ff8787', // pink
+            '#ffa94d', // orange
+            '#20c997', // teal
+        ];
+        
+        // Center lines vertically within the frame
+        let yOffset = padding + 13;
+        let colorIndex = 0;
+        
+        // Draw horizontal stripes with gaps (every other line)
+        for (let i = 0; i < 8; i++) {
+            // Only draw even indices (skip odd for gaps)
+            if (i % 2 === 0) {
+                lines.push(svg`
+                    <line
+                        x1="${padding}"
+                        y1="${yOffset}"
+                        x2="${width - padding}"
+                        y2="${yOffset}"
+                        stroke="${colors[colorIndex % colors.length]}"
+                        stroke-width="${strokeWidth}"
+                        stroke-linecap="butt"
+                    />
+                `);
+                colorIndex++;
+            }
+            yOffset += spacing;
+        }
+        
+        // Draw enclosing square with right edge missing (U-shape opening right)
+        const frameStroke = 3;
+        const frameColor = '#adb5bd';
+        
+        // Top edge
+        lines.push(svg`
+            <line
+                x1="${padding}"
+                y1="${padding}"
+                x2="${width - padding}"
+                y2="${padding}"
+                stroke="${frameColor}"
+                stroke-width="${frameStroke}"
+                stroke-linecap="butt"
+            />
+        `);
+        
+        // Left edge
+        lines.push(svg`
+            <line
+                x1="${padding}"
+                y1="${padding}"
+                x2="${padding}"
+                y2="${width - padding}"
+                stroke="${frameColor}"
+                stroke-width="${frameStroke}"
+                stroke-linecap="butt"
+            />
+        `);
+        
+        // Bottom edge
+        lines.push(svg`
+            <line
+                x1="${padding}"
+                y1="${width - padding}"
+                x2="${width - padding}"
+                y2="${width - padding}"
+                stroke="${frameColor}"
+                stroke-width="${frameStroke}"
+                stroke-linecap="butt"
+            />
+        `);
+        
+        // Right edge is MISSING (opening)
+        
+        return svg`${lines}`;
+    }
+
+    /**
      * Data-driven panel rendering - all panels rendered from schema
      */
     getPanels() {
@@ -682,7 +790,7 @@ export class StrummerApp extends LitElement {
             const connectionPanel = this.renderPanel('websocket-connection');
             
             return html`<sp-theme system="spectrum" color="dark" scale="medium">
-                <h1>MIDI Strummer</h1>
+                ${this.renderHeader()}
                 <div class="dashboard-grid connection-only">
                     ${connectionPanel}
                 </div>
@@ -694,7 +802,7 @@ export class StrummerApp extends LitElement {
         const panels = this.getPanels();
         
         return html`<sp-theme system="spectrum" color="dark" scale="medium">
-            <h1>MIDI Strummer</h1>
+            ${this.renderHeader()}
 
             <div class="dashboard-grid">
                 ${this.panelOrder.map(panelId => {

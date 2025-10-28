@@ -2,6 +2,7 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import clean from 'rollup-plugin-clean';
 import html from '@web/rollup-plugin-html';
+import copy from 'rollup-plugin-copy';
 
 export default {
     input: 'index.html',
@@ -11,6 +12,11 @@ export default {
     },
     plugins: [
         clean(),
+        copy({
+            targets: [
+                { src: 'assets/favicon.svg', dest: 'server/public/assets' }
+            ]
+        }),
         html({
             minimize: true,
             transformHtml: [
