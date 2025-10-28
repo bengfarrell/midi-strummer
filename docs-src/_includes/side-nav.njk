@@ -4,14 +4,14 @@
     { url: '/about/configuration-overview/', label: 'Configuration Overview' }
 ] %}
 
-{% set setupNav = [
+{% set serverNav = [
+    { url: '/about/server-startup/', label: 'Overview' },
     { url: '/about/tablet-setup/', label: 'Tablet Setup' },
-    { url: '/about/actions-reference/', label: 'Actions Reference' },
-    { url: '/about/chords-and-progressions/', label: 'Chords & Progressions' }
+    { url: '/about/web-dashboard/', label: 'Web Dashboard' },
+    { url: '/about/midi-input/', label: 'MIDI Input' }
 ] %}
 
 {% set featuresNav = [
-    { url: '/about/startup-configuration/', label: 'Startup Configuration' },
     { url: '/about/strumming/', label: 'Strumming' },
     { url: '/about/note-velocity/', label: 'Note Velocity' },
     { url: '/about/note-duration/', label: 'Note Duration' },
@@ -21,6 +21,11 @@
     { url: '/about/stylus-buttons/', label: 'Stylus Buttons' },
     { url: '/about/tablet-buttons/', label: 'Tablet Buttons' },
     { url: '/about/strum-release/', label: 'Strum Release' }
+] %}
+
+{% set miscNav = [
+    { url: '/about/actions-reference/', label: 'Actions Reference' },
+    { url: '/about/chords-and-progressions/', label: 'Chords & Progressions' }
 ] %}
 
 
@@ -33,13 +38,18 @@
     <a href="{{ page.url | resolvePath(item.url) }}">{{item.label}}</a>
     {% endfor %}
 
-    <h4>Configuration</h4>
-    {% for item in setupNav %}
+    <h4>Server & Startup</h4>
+    {% for item in serverNav %}
         <a href="{{ page.url | resolvePath(item.url) }}">{{item.label}}</a>
     {% endfor %}
 
     <h4>Features</h4>
     {% for item in featuresNav %}
+        <a href="{{ page.url | resolvePath(item.url) }}">{{item.label}}</a>
+    {% endfor %}
+
+    <h4>Misc</h4>
+    {% for item in miscNav %}
         <a href="{{ page.url | resolvePath(item.url) }}">{{item.label}}</a>
     {% endfor %}
 </nav>

@@ -1,4 +1,20 @@
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" viewBox="0 0 32 32" style="enable-background:new 0 0 32 32" xml:space="preserve">
-  <style>.st0 {fill: #3a3a3a;}@media (prefers-color-scheme:dark) {.st0 {fill: #fff;}}</style>
-  <path class="st0" d="M20.2 1.8H32v28.3L20.2 1.8zM11.8 1.8H0v28.3L11.8 1.8zM16 12.3l7.5 17.9h-4.9l-2.3-5.7h-5.5L16 12.3z"/>
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect width="100" height="100" fill="#1d1d1d"/>
+    
+    <!-- Colorful horizontal stripes (every other line with gaps) -->
+    <line x1="10" y1="23" x2="90" y2="23" stroke="#ff6b6b" stroke-width="5" stroke-linecap="butt"/>
+    <line x1="10" y1="41" x2="90" y2="41" stroke="#ffd93d" stroke-width="5" stroke-linecap="butt"/>
+    <line x1="10" y1="59" x2="90" y2="59" stroke="#6bcf7f" stroke-width="5" stroke-linecap="butt"/>
+    <line x1="10" y1="77" x2="90" y2="77" stroke="#4dabf7" stroke-width="5" stroke-linecap="butt"/>
+    
+    <!-- Enclosing U-shape (square with right edge missing) -->
+    <!-- Top edge -->
+    <line x1="10" y1="10" x2="90" y2="10" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+    <!-- Left edge -->
+    <line x1="10" y1="10" x2="10" y2="90" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+    <!-- Bottom edge -->
+    <line x1="10" y1="90" x2="90" y2="90" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+    <!-- Right edge is missing (opening) -->
 </svg>
+
