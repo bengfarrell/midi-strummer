@@ -618,7 +618,7 @@ def create_hid_data_handler(cfg: Config, midi: Midi, socket_server: Optional[Soc
 
 def main():
     """Main application entry point"""
-    global _hid_reader, _midi, _socket_server, _web_server, _event_loop, _loop_thread, _hotplug_monitor
+    global _hid_reader, _midi, _socket_server, _web_server, _event_loop, _loop_thread, _hotplug_monitor, _tablet_connected, _tablet_device_info
     
     # Register cleanup function to run on exit
     atexit.register(cleanup_resources)
@@ -810,6 +810,12 @@ def main():
             'model': driver_info.get('model')
         }
         print(f"[Device Status] Initial state: Connected = True, Device = {_tablet_device_info['name']}")
+        
+        # Broadcast initial device status to any connected WebSocket clients
+        broadcast_to_socket(_socket_server, 'device_status', {
+            'connected': True,
+            'device': _tablet_device_info
+        })
         
         # Start hotplug monitor to detect disconnection and reconnection
         try:

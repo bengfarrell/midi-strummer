@@ -526,8 +526,8 @@ export class StrummerApp extends LitElement {
                     <websocket-connection
                         .status="${this.connectionStatus}"
                         .errorMessage="${this.connectionError}"
-                        .tabletConnected="${this.tabletConnected}"
-                        .tabletDeviceInfo="${this.tabletDeviceInfo}"
+                        .tabletConnected=${this.tabletConnected}
+                        .tabletDeviceInfo=${this.tabletDeviceInfo}
                         @connect="${this.handleConnect}"
                         @disconnect="${this.handleDisconnect}">
                     </websocket-connection>
