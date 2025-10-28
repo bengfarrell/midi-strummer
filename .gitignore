@@ -1,5 +1,7 @@
 /.idea
 /node_modules
+/dist
+/server/public
 **/*.js
 **/*.js.map
 **/*.d.ts.map

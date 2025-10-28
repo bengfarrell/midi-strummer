@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "./node_modules/.bin/tsc",
+    "build": "./node_modules/.bin/tsc && ./node_modules/.bin/rollup -c rollup.config.js",
     "build:watch": "./node_modules/.bin/tsc --watch",
     "lint": "npm run lint:eslint",
     "lint:eslint": "eslint 'src/**/*.ts'",
@@ -18,17 +18,23 @@
     "type": "git",
     "url": "https://github.com/bengfarrell/midi-strummer.git"
   },
-  "private": true,
   "dependencies": {
     "@spectrum-web-components/bundle": "^1.7.0",
     "lit": "^3.3.1"
   },
   "devDependencies": {
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "@types/minimatch": "^3.0.5",
     "@typescript-eslint/eslint-plugin": "^5.25.0",
     "@typescript-eslint/parser": "^5.25.0",
     "@web/dev-server": "^0.1.31",
+    "@web/rollup-plugin-html": "^2.0.0",
     "eslint": "^8.15.0",
     "prettier": "^2.6.2",
+    "rollup": "^2.73.0",
+    "rollup-plugin-clean": "^1.0.0",
+    "rollup-plugin-copy": "^3.5.0",
+    "rollup-plugin-sourcemaps": "^0.6.3",
     "typescript": "~5.2.0"
   }
 }

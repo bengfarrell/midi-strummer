@@ -15,7 +15,8 @@ from strummer import strummer
 from midi import Midi
 from midievent import MidiNoteEvent, NOTE_EVENT
 from note import Note
-from socketserver import SocketServer
+from websocketserver import SocketServer
+from webserver import WebServer
 from hidreader import HIDReader
 from datahelpers import apply_effect
 from config import Config
@@ -25,14 +26,19 @@ from actions import Actions
 _hid_reader = None
 _midi = None
 _socket_server = None
+_web_server = None
 _event_loop = None
 _loop_thread = None
 _hotplug_monitor = None
 
+# Global tablet connection state
+_tablet_connected = False
+_tablet_device_info = None
+
 
 def cleanup_resources():
     """Clean up device and MIDI resources"""
-    global _hid_reader, _midi, _socket_server, _event_loop, _loop_thread, _hotplug_monitor
+    global _hid_reader, _midi, _socket_server, _web_server, _event_loop, _loop_thread, _hotplug_monitor, _tablet_connected, _tablet_device_info
     
     print("\nCleaning up resources...")
     
@@ -45,7 +51,29 @@ def cleanup_resources():
             print(f"Error stopping hotplug monitor: {e}")
             _hotplug_monitor = None
     
-    # Close socket server first
+    # Notify device disconnection if tablet was connected
+    if _tablet_connected and _socket_server is not None:
+        try:
+            print("[Device Status] Broadcasting: Connected = False")
+            broadcast_to_socket(_socket_server, 'device_status', {
+                'connected': False,
+                'device': None
+            })
+            _tablet_connected = False
+            _tablet_device_info = None
+        except Exception as e:
+            print(f"Error broadcasting device disconnection: {e}")
+    
+    # Close web server
+    if _web_server is not None:
+        try:
+            _web_server.stop()
+            _web_server = None
+        except Exception as e:
+            print(f"Error closing web server: {e}")
+            _web_server = None
+    
+    # Close socket server
     if _socket_server is not None:
         try:
             print("Closing socket server...")
@@ -286,6 +314,16 @@ def update_config(cfg: Config, updates: Dict[str, Any], socket_server: Optional[
             print(f"[CONFIG] Error broadcasting config: {e}")
 
 
+def get_device_status() -> Dict[str, Any]:
+    """Get current tablet device connection status"""
+    global _tablet_connected, _tablet_device_info
+    return {
+        'type': 'device_status',
+        'connected': _tablet_connected,
+        'device': _tablet_device_info
+    }
+
+
 def start_socket_server(port: int, cfg: Config) -> tuple[SocketServer, asyncio.AbstractEventLoop, threading.Thread]:
     """Start socket server in a separate thread with its own event loop"""
     
@@ -303,7 +341,8 @@ def start_socket_server(port: int, cfg: Config) -> tuple[SocketServer, asyncio.A
     socket_server = SocketServer(
         on_message=handle_message, 
         config_callback=lambda: cfg.to_dict(),
-        initial_notes_callback=lambda: strummer.get_notes_state()
+        initial_notes_callback=lambda: strummer.get_notes_state(),
+        device_status_callback=get_device_status
     )
     
     def run_event_loop(loop, server, port):
@@ -579,13 +618,30 @@ def create_hid_data_handler(cfg: Config, midi: Midi, socket_server: Optional[Soc
 
 def main():
     """Main application entry point"""
-    global _hid_reader, _midi, _socket_server, _event_loop, _loop_thread, _hotplug_monitor
+    global _hid_reader, _midi, _socket_server, _web_server, _event_loop, _loop_thread, _hotplug_monitor
     
     # Register cleanup function to run on exit
     atexit.register(cleanup_resources)
     
     # Load configuration
     cfg = load_config()
+    
+    # Optionally start web server
+    if cfg.use_web_server:
+        port = cfg.web_server_port
+        print(f"[HTTP] Starting web server on port {port}...")
+        try:
+            # Get the directory where main.py is located
+            server_dir = os.path.dirname(os.path.abspath(__file__))
+            public_dir = os.path.join(server_dir, 'public')
+            
+            _web_server = WebServer(public_dir, port)
+            _web_server.start()
+        except Exception as e:
+            print(f"[HTTP] Failed to start web server: {e}")
+            _web_server = None
+    else:
+        print("[HTTP] Web server disabled in configuration")
     
     # Optionally start socket server
     if cfg.use_socket_server:
@@ -610,18 +666,54 @@ def main():
     
     strummer.on('notes_changed', on_strummer_notes_changed)
     
-    # Create callback for hotplug device connection
+    # Create callbacks for hotplug device connection/disconnection
+    def on_device_disconnected():
+        """Handle device disconnection from hotplug monitor"""
+        global _hid_reader, _tablet_connected, _tablet_device_info
+        
+        print("\n[Hotplug] Device disconnected")
+        
+        # Update global tablet connection state
+        _tablet_connected = False
+        _tablet_device_info = None
+        
+        # Notify via websocket
+        print("[Device Status] Broadcasting: Connected = False (hotplug detected)")
+        broadcast_to_socket(_socket_server, 'device_status', {
+            'connected': False,
+            'device': None
+        })
+        
+        # Stop HID reader if running
+        if _hid_reader is not None:
+            try:
+                _hid_reader.stop()
+                _hid_reader.close()
+                _hid_reader = None
+            except Exception as e:
+                print(f"[Hotplug] Error stopping HID reader: {e}")
+    
     def on_device_plugged_in(driver_name: str, driver_config: Dict[str, Any], device):
         """Handle device connection from hotplug monitor"""
-        global _hid_reader
+        global _hid_reader, _tablet_connected, _tablet_device_info
         
         device_name = driver_config.get('name', driver_name)
         print(f"\n[Hotplug] Device connected: {device_name}")
         
+        # Update global tablet connection state
+        _tablet_connected = True
+        _tablet_device_info = {
+            'name': device_name,
+            'driver': driver_name,
+            'manufacturer': driver_config.get('manufacturer'),
+            'model': driver_config.get('model')
+        }
+        
         # Notify via websocket
-        broadcast_to_socket(_socket_server, 'device_connected', {
-            'device': device_name,
-            'driver': driver_name
+        print(f"[Device Status] Broadcasting: Connected = True, Device = {device_name}")
+        broadcast_to_socket(_socket_server, 'device_status', {
+            'connected': True,
+            'device': _tablet_device_info
         })
         
         # Stop existing HID reader if any
@@ -679,6 +771,10 @@ def main():
     if not device:
         print("HID device not available - continuing with MIDI-only mode")
         
+        # Update global tablet connection state
+        _tablet_connected = False
+        _tablet_device_info = None
+        
         # Start hotplug monitor to detect when device is connected
         try:
             # Get available driver profiles for monitoring
@@ -690,6 +786,7 @@ def main():
                 _hotplug_monitor = HotplugMonitor(
                     driver_profiles=driver_profiles,
                     on_device_connected=on_device_plugged_in,
+                    on_device_disconnected=on_device_disconnected,
                     check_interval=2.0
                 )
                 _hotplug_monitor.start()
@@ -702,6 +799,35 @@ def main():
         print("MIDI Strummer server started (MIDI-only mode). Press Ctrl+C to exit.")
     else:
         print("MIDI Strummer server started with HID device. Press Ctrl+C to exit.")
+        
+        # Update global tablet connection state
+        _tablet_connected = True
+        driver_info = drawing_tablet_cfg.get('_driverInfo', {})
+        _tablet_device_info = {
+            'name': driver_info.get('name', 'Unknown Device'),
+            'driver': drawing_tablet_cfg.get('_driverName', 'unknown'),
+            'manufacturer': driver_info.get('manufacturer'),
+            'model': driver_info.get('model')
+        }
+        print(f"[Device Status] Initial state: Connected = True, Device = {_tablet_device_info['name']}")
+        
+        # Start hotplug monitor to detect disconnection and reconnection
+        try:
+            from config import Config
+            temp_cfg = Config()
+            driver_profiles = temp_cfg._get_available_drivers()
+            
+            if driver_profiles:
+                _hotplug_monitor = HotplugMonitor(
+                    driver_profiles=driver_profiles,
+                    on_device_connected=on_device_plugged_in,
+                    on_device_disconnected=on_device_disconnected,
+                    check_interval=2.0
+                )
+                _hotplug_monitor.start()
+                print("[Hotplug] Monitor started to watch for disconnections")
+        except Exception as e:
+            print(f"[Hotplug] Could not start hotplug monitor: {e}")
         
         # Create HID reader with callbacks
         data_handler = create_hid_data_handler(cfg, _midi, _socket_server)

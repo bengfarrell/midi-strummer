@@ -475,6 +475,16 @@ class Config:
         return self._config.get('startupConfiguration', {}).get('socketServerPort', 8080)
     
     @property
+    def use_web_server(self) -> bool:
+        """Get whether to use HTTP web server."""
+        return self._config.get('startupConfiguration', {}).get('useWebServer', False)
+    
+    @property
+    def web_server_port(self) -> int:
+        """Get HTTP web server port."""
+        return self._config.get('startupConfiguration', {}).get('webServerPort', 80)
+    
+    @property
     def midi_input_id(self) -> Optional[str]:
         """Get MIDI input ID."""
         return self._config.get('startupConfiguration', {}).get('midiInputId')

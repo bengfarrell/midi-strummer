@@ -78,6 +78,18 @@ export class TabletVisualizer extends LitElement {
     socketMode: boolean = false;
 
     @property({ 
+        type: Boolean,
+        hasChanged: () => true // Always update when connection status changes
+    })
+    tabletConnected: boolean = false;
+
+    @property({ 
+        type: Object,
+        hasChanged: () => true // Always update when device info changes
+    })
+    tabletDeviceInfo: any = null;
+
+    @property({ 
         type: Array,
         hasChanged: () => true // Always update when notes array changes
     })
@@ -648,12 +660,14 @@ export class TabletVisualizer extends LitElement {
             return Math.max(-1, Math.min(1, magnitude * sign));
         })();
         
-        return svg`
-            <svg width="100%" height="100%" 
-                 viewBox="0 0 ${viewBoxWidth} ${viewBoxHeight}"
-                 preserveAspectRatio="xMidYMid meet"
-                 xmlns="http://www.w3.org/2000/svg"
-                 class="tilt-svg">
+        return html`
+            <div style="width: 100%; height: 100%;">
+                ${svg`
+                    <svg width="100%" height="100%" 
+                         viewBox="0 0 ${viewBoxWidth} ${viewBoxHeight}"
+                         preserveAspectRatio="xMidYMid meet"
+                         xmlns="http://www.w3.org/2000/svg"
+                         class="tilt-svg">
                 
                 <!-- Stylus Buttons -->
                 ${this.renderStylusButtons(viewBoxWidth, buttonsY)}
@@ -716,7 +730,8 @@ export class TabletVisualizer extends LitElement {
                 <text x="${centerX}" y="${viewBoxHeight - 15}" class="axis-label" text-anchor="middle">
                     Pressure: ${tiltPressure.toFixed(2)}
                 </text>
-            </svg>
+                `}
+            </div>
         `;
     }
 

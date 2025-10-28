@@ -217,6 +217,7 @@ class HotplugMonitor:
     
     def __init__(self, driver_profiles: List[Tuple[str, Dict[str, Any]]], 
                  on_device_connected: Callable[[str, Dict[str, Any], Any], None],
+                 on_device_disconnected: Optional[Callable[[], None]] = None,
                  check_interval: float = 2.0):
         """
         Initialize hotplug monitor.
@@ -224,14 +225,17 @@ class HotplugMonitor:
         Args:
             driver_profiles: List of (driver_name, driver_config) tuples to match against
             on_device_connected: Callback(driver_name, driver_config, device) when device is found
+            on_device_disconnected: Callback when a known device is disconnected
             check_interval: How often to check for new devices (seconds)
         """
         self.driver_profiles = driver_profiles
         self.on_device_connected = on_device_connected
+        self.on_device_disconnected = on_device_disconnected
         self.check_interval = check_interval
         self._running = False
         self._thread = None
         self._known_devices = set()
+        self._connected_device_id = None  # Track the device we're currently using
         
         print(f"[Hotplug] Monitor initialized, checking every {check_interval}s")
     
@@ -310,10 +314,19 @@ class HotplugMonitor:
                                     
                                     # Notify callback
                                     self.on_device_connected(driver_name, driver_config, device)
+                                    # Track this device as the connected one
+                                    self._connected_device_id = device_id
                                     break  # Stop checking other profiles for this device
                                     
                                 except Exception as e:
                                     print(f"[Hotplug] Error opening device: {e}")
+                
+                # Check if the connected device was disconnected
+                if self._connected_device_id and self._connected_device_id not in current_device_ids:
+                    print(f"[Hotplug] Device disconnected")
+                    if self.on_device_disconnected:
+                        self.on_device_disconnected()
+                    self._connected_device_id = None
                 
                 # Update known devices
                 self._known_devices = current_device_ids

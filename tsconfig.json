@@ -21,12 +21,16 @@
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
+    "typeRoots": ["./node_modules/@types"],
     "plugins": [
       {
         "name": "ts-lit-plugin",
         "strict": true
       }
-    ]
+    ],
+    "paths": {
+      "*": ["./src/*", "./node_modules/@types/*"]
+    }
   },
   "include": [
     "src/**/*.ts",

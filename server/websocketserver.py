@@ -5,13 +5,14 @@ import json
 
 
 class SocketServer:
-    def __init__(self, on_message: Optional[Callable[[Dict[str, Any]], None]] = None, config_callback: Optional[Callable[[], Dict[str, Any]]] = None, initial_notes_callback: Optional[Callable[[], Dict[str, Any]]] = None):
+    def __init__(self, on_message: Optional[Callable[[Dict[str, Any]], None]] = None, config_callback: Optional[Callable[[], Dict[str, Any]]] = None, initial_notes_callback: Optional[Callable[[], Dict[str, Any]]] = None, device_status_callback: Optional[Callable[[], Dict[str, Any]]] = None):
         self.sockets: Set[websockets.WebSocketServerProtocol] = set()
         self.server = None
         self.loop = None
         self.on_message_callback = on_message
         self.config_callback = config_callback
         self.initial_notes_callback = initial_notes_callback
+        self.device_status_callback = device_status_callback
 
     async def start(self, port: int = 8080):
         """Start the WebSocket server"""
@@ -43,6 +44,16 @@ class SocketServer:
                     await websocket.send(notes_message)
                 except Exception as e:
                     print(f'Error sending initial notes to new client: {e}')
+            
+            # Send the current device status to the new client
+            if self.device_status_callback is not None:
+                try:
+                    device_status = self.device_status_callback()
+                    device_message = json.dumps(device_status)
+                    await websocket.send(device_message)
+                    print(f'[WebSocket] Sent initial device status to client: connected={device_status.get("connected")}')
+                except Exception as e:
+                    print(f'Error sending device status to new client: {e}')
             
             try:
                 # Listen for incoming messages

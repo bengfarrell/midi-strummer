@@ -81,6 +81,12 @@ export class StrummerApp extends LitElement {
         secondaryButtonPressed: false
     };
 
+    @state()
+    protected tabletConnected: boolean = false;
+
+    @state()
+    protected tabletDeviceInfo: any = null;
+
     constructor() {
         super();
         // Register this component with the settings controller
@@ -266,6 +272,13 @@ export class StrummerApp extends LitElement {
                             sharedTabletInteraction.setPrimaryButton(data.primaryButtonPressed);
                             sharedTabletInteraction.setSecondaryButton(data.secondaryButtonPressed);
                         }
+                        break;
+
+                    case 'device_status':
+                        // Update tablet connection status
+                        this.tabletConnected = data.connected;
+                        this.tabletDeviceInfo = data.device;
+                        console.log('[Device Status]', data.connected ? 'Connected' : 'Disconnected', data.device);
                         break;
                 }
             };
@@ -458,6 +471,8 @@ export class StrummerApp extends LitElement {
                     .externalLastPluckedString=${this.lastPluckedString}
                     .externalPressedButtons=${this.pressedButtons}
                     .externalTabletData=${this.tabletData}
+                    .tabletConnected=${this.tabletConnected}
+                    .tabletDeviceInfo=${this.tabletDeviceInfo}
                     .noteDuration=${settings.noteDuration}
                     .pitchBend=${settings.pitchBend}
                     .noteVelocity=${settings.noteVelocity}
@@ -511,6 +526,8 @@ export class StrummerApp extends LitElement {
                     <websocket-connection
                         .status="${this.connectionStatus}"
                         .errorMessage="${this.connectionError}"
+                        .tabletConnected="${this.tabletConnected}"
+                        .tabletDeviceInfo="${this.tabletDeviceInfo}"
                         @connect="${this.handleConnect}"
                         @disconnect="${this.handleDisconnect}">
                     </websocket-connection>
@@ -582,10 +599,14 @@ export class StrummerApp extends LitElement {
         const hasActive = schema.hasActiveControl && config && typeof config === 'object' && 'active' in config;
         const isActive = hasActive ? (config as any).active : true;
         
-        // Determine panel title (add status for websocket connection)
+        // Determine panel title (add status for websocket connection and tablet)
         let panelTitle = schema.title;
         if (panelId === 'websocket-connection') {
-            panelTitle = `${schema.title} - ${this.getConnectionStatusDisplay()}`;
+            const connectionStatus = this.getConnectionStatusDisplay();
+            const tabletStatus = this.tabletConnected 
+                ? `🟢 ${this.tabletDeviceInfo?.name || 'Tablet'}` 
+                : '🔴 No Tablet';
+            panelTitle = `${schema.title} - ${connectionStatus} | ${tabletStatus}`;
         }
         
         // Determine if panel is closable (panel-controls and websocket-connection are not)

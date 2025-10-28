@@ -8,7 +8,7 @@ and generates MIDI output for musical performance.
 __version__ = "1.0.0"
 __author__ = "Converted from TypeScript/Node.js implementation"
 
-from .server import main
+from .main import main
 from .strummer import strummer
 from .midi import Midi
 from .note import Note, NoteObject
