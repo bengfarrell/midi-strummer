@@ -11,6 +11,7 @@
     "interfaces": [0, 1]
   },
   "reportId": 7,
+  "reportIdNote": "Interface 1 (stylus) uses Report ID 7, Interface 0 (buttons) uses Report ID 6",
   "capabilities": {
     "hasButtons": true,
     "buttonCount": 8,

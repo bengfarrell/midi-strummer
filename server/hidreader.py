@@ -153,20 +153,12 @@ class HIDReader:
                 if data:
                     empty_read_count = 0  # Reset empty count
                     
-                    # Validate Report ID (byte 0)
-                    if len(data) > 0:
+                    # Log Report ID for debugging (different interfaces may use different IDs)
+                    # On multi-interface devices, buttons and stylus may have different report IDs
+                    if len(data) > 0 and not self.wrong_report_id_warned:
                         report_id = data[0]
-                        if report_id != self.expected_report_id and not self.wrong_report_id_warned:
-                            warning_msg = (
-                                f"[HID WARNING] Unexpected Report ID: {report_id} (expected {self.expected_report_id}). "
-                                f"This device may not be compatible with the current configuration."
-                            )
-                            print(warning_msg)
-                            
-                            # Send warning via callback (e.g., to websocket)
-                            if self.warning_callback:
-                                self.warning_callback(warning_msg)
-                            
+                        if report_id != self.expected_report_id:
+                            print(f"[HID] Note: Interface using Report ID {report_id} (config specifies {self.expected_report_id})")
                             self.wrong_report_id_warned = True
                     
                     # Process the data
