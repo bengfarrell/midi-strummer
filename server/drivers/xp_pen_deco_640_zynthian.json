@@ -8,7 +8,7 @@
   "deviceInfo": {
     "product_string": "Deco 640",
     "usage": 0,
-    "interface": 1
+    "interfaces": [0, 1]
   },
   "reportId": 7,
   "capabilities": {

@@ -87,6 +87,84 @@ def find_and_open_device(tablet_config: Dict[str, Any]) -> Optional[Any]:
     return get_tablet_device(device_filter)
 
 
+def find_and_open_all_interfaces(tablet_config: Dict[str, Any]) -> list:
+    """
+    Find and open specified tablet device interfaces.
+    Some tablets (like XP-Pen on Linux) split stylus and buttons across different interfaces.
+    
+    Uses 'interfaces' array from config if specified, otherwise opens all matching interfaces.
+    
+    Args:
+        tablet_config: Drawing tablet configuration (from startupConfiguration.drawingTablet)
+        
+    Returns:
+        List of tuples: [(interface_num, device), ...]
+    """
+    if not tablet_config:
+        print("[FindDevice] No tablet configuration provided")
+        return []
+    
+    # Check if specific interfaces are requested
+    requested_interfaces = tablet_config.get('interfaces')
+    
+    # Extract device identification but remove interface-related filters
+    device_filter = {k: v for k, v in tablet_config.items() 
+                    if k not in ['byteCodeMappings', '_driverName', '_driverInfo', 'reportId', 'interfaces']}
+    
+    if not device_filter:
+        print("[FindDevice] No device filter criteria found in config")
+        return []
+    
+    # Get all devices matching filter (without interface requirement)
+    try:
+        devices = hid.enumerate()
+        matching_devices = []
+        
+        for device_info in devices:
+            if _device_matches_filter(device_info, device_filter):
+                interface_num = device_info.get('interface_number', -1)
+                # If specific interfaces requested, filter by them
+                if requested_interfaces is not None:
+                    if interface_num in requested_interfaces:
+                        matching_devices.append(device_info)
+                else:
+                    # No specific interfaces requested, use all matches
+                    matching_devices.append(device_info)
+        
+        if not matching_devices:
+            print('[FindDevice] Could not find any matching HID devices')
+            if requested_interfaces:
+                print(f'[FindDevice] Looking for interfaces: {requested_interfaces}')
+            return []
+        
+        if requested_interfaces:
+            print(f"[FindDevice] Found {len(matching_devices)} matching interface(s): {[d.get('interface_number', -1) for d in matching_devices]}")
+        else:
+            print(f"[FindDevice] Found {len(matching_devices)} matching interface(s)")
+        
+        # Open all matching interfaces
+        opened_devices = []
+        for device_info in matching_devices:
+            interface_num = device_info.get('interface_number', -1)
+            try:
+                device = hid.device()
+                if 'path' in device_info and device_info['path']:
+                    device.open_path(device_info['path'])
+                    print(f'[FindDevice] Opened interface {interface_num} by path')
+                else:
+                    device.open(device_info['vendor_id'], device_info['product_id'])
+                    print(f'[FindDevice] Opened interface {interface_num} by ID')
+                opened_devices.append((interface_num, device))
+            except Exception as e:
+                print(f'[FindDevice] Error opening interface {interface_num}: {e}')
+        
+        return opened_devices
+        
+    except Exception as e:
+        print(f'[FindDevice] Error enumerating devices: {e}')
+        return []
+
+
 def auto_detect_device(driver_profiles: List[Tuple[str, Dict[str, Any]]]) -> Optional[str]:
     """
     Auto-detect which driver profile matches a connected HID device.

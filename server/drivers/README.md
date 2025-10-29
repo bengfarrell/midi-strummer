@@ -75,6 +75,15 @@ Use inline configuration (backward compatible):
 - `model` - Model number/name
 - `vendorId`, `productId` - USB identifiers (hex strings)
 - `deviceInfo` - HID enumeration filters
+  - `interfaces` - Array of interface numbers to open (e.g., `[2]` or `[0, 1]`)
 - `reportId` - Expected HID Report ID (default: 2)
 - `capabilities` - Device capabilities documentation
+
+### Multiple Interfaces
+
+Some tablets split functionality across multiple HID interfaces:
+- **Linux (Zynthian)**: XP-Pen uses `"interfaces": [0, 1]` (interface 0 for buttons, interface 1 for stylus)
+- **macOS**: XP-Pen uses `"interfaces": [2]` (everything on interface 2)
+
+The `interfaces` array specifies which interface numbers to open and monitor.
 

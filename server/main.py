@@ -10,7 +10,7 @@ import math
 from typing import Dict, Any, Union, Optional, Callable
 from dataclasses import asdict
 
-from finddevice import find_and_open_device, HotplugMonitor
+from finddevice import find_and_open_device, find_and_open_all_interfaces, HotplugMonitor
 from strummer import strummer
 from midi import Midi
 from midievent import MidiNoteEvent, NOTE_EVENT
@@ -24,6 +24,7 @@ from actions import Actions
 
 # Global references for cleanup
 _hid_reader = None
+_hid_readers = []  # Multiple readers for multiple interfaces
 _midi = None
 _socket_server = None
 _web_server = None
@@ -38,7 +39,7 @@ _tablet_device_info = None
 
 def cleanup_resources():
     """Clean up device and MIDI resources"""
-    global _hid_reader, _midi, _socket_server, _web_server, _event_loop, _loop_thread, _hotplug_monitor, _tablet_connected, _tablet_device_info
+    global _hid_reader, _hid_readers, _midi, _socket_server, _web_server, _event_loop, _loop_thread, _hotplug_monitor, _tablet_connected, _tablet_device_info
     
     print("\nCleaning up resources...")
     
@@ -104,6 +105,16 @@ def cleanup_resources():
         except Exception as e:
             print(f"Error closing HID reader: {e}")
             _hid_reader = None
+    
+    # Stop and close all HID readers
+    for reader in _hid_readers:
+        if reader is not None:
+            try:
+                reader.stop()
+                reader.close()
+            except Exception as e:
+                print(f"Error closing HID reader: {e}")
+    _hid_readers = []
     
     # Close MIDI
     if _midi is not None:
@@ -764,11 +775,11 @@ def main():
         
         print(f"[Hotplug] Now using {device_name} for input")
     
-    # Get tablet device (optional)
+    # Get tablet device(s) - open ALL interfaces (stylus + buttons may be separate)
     startup_cfg = cfg.get('startupConfiguration', {})
     drawing_tablet_cfg = startup_cfg.get('drawingTablet', {})
-    device = find_and_open_device(drawing_tablet_cfg)
-    if not device:
+    devices = find_and_open_all_interfaces(drawing_tablet_cfg)
+    if not devices:
         print("HID device not available - continuing with MIDI-only mode")
         
         # Update global tablet connection state
@@ -798,7 +809,7 @@ def main():
         
         print("Strumboli server started (MIDI-only mode). Press Ctrl+C to exit.")
     else:
-        print("Strumboli server started with HID device. Press Ctrl+C to exit.")
+        print(f"Strumboli server started with HID device ({len(devices)} interface(s)). Press Ctrl+C to exit.")
         
         # Update global tablet connection state
         _tablet_connected = True
@@ -835,14 +846,31 @@ def main():
         except Exception as e:
             print(f"[Hotplug] Could not start hotplug monitor: {e}")
         
-        # Create HID reader with callbacks
+        # Create HID readers for all interfaces (buttons may be on separate interface)
         data_handler = create_hid_data_handler(cfg, _midi, _socket_server)
-        _hid_reader = HIDReader(
-            device, 
-            cfg, 
-            data_handler, 
-            warning_callback=lambda msg: broadcast_to_socket(_socket_server, 'warning', {'message': msg})
-        )
+        for interface_num, device in devices:
+            print(f"[HID] Creating reader for interface {interface_num}")
+            reader = HIDReader(
+                device, 
+                cfg, 
+                data_handler, 
+                warning_callback=lambda msg: broadcast_to_socket(_socket_server, 'warning', {'message': msg})
+            )
+            _hid_readers.append(reader)
+            
+            # Start each reader in its own thread
+            def start_reading(r):
+                try:
+                    r.start_reading()
+                except Exception as e:
+                    print(f"[HID] Error in reader: {e}")
+            
+            read_thread = threading.Thread(target=start_reading, args=(reader,), daemon=True)
+            read_thread.start()
+        
+        # Keep reference to first reader for backward compatibility
+        if _hid_readers:
+            _hid_reader = _hid_readers[0]
     
     # Setup signal handler for graceful shutdown
     def signal_handler(sig, frame):
@@ -857,11 +885,12 @@ def main():
     signal.signal(signal.SIGTSTP, signal_handler)  # Ctrl+Z
     signal.signal(signal.SIGHUP, signal_handler)   # Terminal closed
     
-    # Main device reading loop (only if device is available)
+    # Main loop - keep application running
     try:
-        if _hid_reader:
-            # Start reading from HID device (blocking call)
-            _hid_reader.start_reading()
+        if _hid_readers:
+            # Readers are already running in threads, just keep main thread alive
+            while True:
+                time.sleep(1.0)
         else:
             # No device available - just keep the application running for MIDI functionality
             while True:
