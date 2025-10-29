@@ -293,6 +293,10 @@ class Config:
                     if 'byteCodeMappings' in driver_config:
                         tablet_config['byteCodeMappings'] = driver_config['byteCodeMappings']
                     
+                    # Copy report ID (default to 2 if not specified)
+                    if 'reportId' in driver_config:
+                        tablet_config['reportId'] = driver_config['reportId']
+                    
                     # Store driver metadata for reference
                     tablet_config['_driverName'] = driver_name
                     tablet_config['_driverInfo'] = {
@@ -528,4 +532,9 @@ class Config:
     def mappings(self) -> Dict[str, Any]:
         """Get HID byte code mappings."""
         return self._config.get('startupConfiguration', {}).get('drawingTablet', {}).get('byteCodeMappings', {})
+    
+    @property
+    def report_id(self) -> int:
+        """Get HID Report ID (default to 2 if not specified)."""
+        return self._config.get('startupConfiguration', {}).get('drawingTablet', {}).get('reportId', 2)
 

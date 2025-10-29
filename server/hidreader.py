@@ -34,7 +34,8 @@ class HIDReader:
         self.data_callback = data_callback
         self.warning_callback = warning_callback
         self.is_running = False
-        self.expected_report_id = 2  # Expected Report ID for pen data
+        # Use reportId from config, default to 2 if not specified
+        self.expected_report_id = getattr(config, 'report_id', 2)
         self.wrong_report_id_warned = False  # Only warn once
         
     def process_device_data(self, data: bytes) -> Dict[str, Union[str, int, float]]:
