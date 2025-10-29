@@ -493,7 +493,7 @@ def create_hid_data_handler(cfg: Config, midi: Midi, socket_server: Optional[Soc
         current_time = time.time()
         if socket_server and (current_time - throttle_state['last_broadcast_time']) >= throttle_state['throttle_interval']:
             throttle_state['last_broadcast_time'] = current_time
-            tablet_data = {
+            broadcast_to_socket(socket_server, 'tablet_data', {
                 'x': float(x),
                 'y': float(y),
                 'pressure': float(pressure),
@@ -502,12 +502,7 @@ def create_hid_data_handler(cfg: Config, midi: Midi, socket_server: Optional[Soc
                 'tiltXY': tilt_xy_val,
                 'primaryButtonPressed': primary_pressed,
                 'secondaryButtonPressed': secondary_pressed
-            }
-            # DEBUG: Print what we're broadcasting
-            if throttle_state.get('debug_count', 0) < 3:
-                print(f"[WS DEBUG] Broadcasting tablet_data: {tablet_data}")
-                throttle_state['debug_count'] = throttle_state.get('debug_count', 0) + 1
-            broadcast_to_socket(socket_server, 'tablet_data', tablet_data)
+            })
         
         # Create mapping of control names to input values
         control_inputs = {
@@ -841,7 +836,6 @@ def main():
             print(f"[Hotplug] Could not start hotplug monitor: {e}")
         
         # Create HID reader with callbacks
-        print(f"[DEBUG] Creating HID reader with socket_server = {_socket_server}")
         data_handler = create_hid_data_handler(cfg, _midi, _socket_server)
         _hid_reader = HIDReader(
             device, 

@@ -14,11 +14,11 @@ class SocketServer:
         self.initial_notes_callback = initial_notes_callback
         self.device_status_callback = device_status_callback
 
-    async def start(self, port: int = 8080):
+    async def start(self, port: int = 8080, host: str = '0.0.0.0'):
         """Start the WebSocket server"""
         # Store the event loop for cross-thread access
         self.loop = asyncio.get_event_loop()
-        print(f'WebSocket server is running on ws://localhost:{port}')
+        print(f'WebSocket server is running on ws://{host}:{port}')
         
         async def handle_client(websocket):
             print('New client connected')
@@ -76,7 +76,7 @@ class SocketServer:
                 print('Client disconnected')
                 self.sockets.discard(websocket)
         
-        self.server = await websockets.serve(handle_client, "localhost", port)
+        self.server = await websockets.serve(handle_client, host, port)
         return self.server
 
     def stop(self):
