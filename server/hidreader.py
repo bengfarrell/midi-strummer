@@ -84,8 +84,8 @@ class HIDReader:
             if mapping_type == 'bit-flags' and device_state != 'buttons' and not is_button_interface:
                 continue
             
-            # Skip coordinate parsing if in button mode
-            if device_state == 'buttons' and key in ['x', 'y']:
+            # Skip coordinate/pressure/tilt parsing if on button-only interface or in button mode
+            if (is_button_interface or device_state == 'buttons') and key in ['x', 'y', 'pressure', 'tiltX', 'tiltY']:
                 continue
             
             # Skip validation for multi-byte-range as it uses byteIndices instead
@@ -165,20 +165,8 @@ class HIDReader:
                             print(f"[HID] Note: Interface using Report ID {report_id} (config specifies {self.expected_report_id})")
                             self.wrong_report_id_warned = True
                     
-                    # DEBUG: Log ALL packets from Report ID 6 (button interface)
-                    if report_id == 6:
-                        debug_bytes = ' '.join(f'{b:02x}' for b in data[:12])
-                        print(f"[INTERFACE 0 DEBUG] Report ID 6: {debug_bytes}")
-                    
                     # Process the data
                     processed_data = self.process_device_data(bytes(data))
-                    
-                    # DEBUG: Log any button state changes
-                    has_button = any(k.startswith('button') and k != 'button' for k in processed_data.keys())
-                    if has_button or processed_data.get('state') == 'buttons':
-                        debug_bytes = ' '.join(f'{b:02x}' for b in data[:12])
-                        print(f"[BUTTON DEBUG] Raw: {debug_bytes}")
-                        print(f"[BUTTON DEBUG] Parsed: {processed_data}")
                     
                     # Call the callback with processed data
                     if self.data_callback:
