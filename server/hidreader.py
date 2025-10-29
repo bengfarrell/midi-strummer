@@ -161,10 +161,10 @@ class HIDReader:
                             print(f"[HID] Note: Interface using Report ID {report_id} (config specifies {self.expected_report_id})")
                             self.wrong_report_id_warned = True
                     
-                    # DEBUG: Log first 3 packets from Report ID 6 (button interface)
-                    if report_id == 6 and read_count <= 3:
+                    # DEBUG: Log ALL packets from Report ID 6 (button interface)
+                    if report_id == 6:
                         debug_bytes = ' '.join(f'{b:02x}' for b in data[:12])
-                        print(f"[INTERFACE 0 DEBUG #{read_count}] Report ID 6: {debug_bytes}")
+                        print(f"[INTERFACE 0 DEBUG] Report ID 6: {debug_bytes}")
                     
                     # Process the data
                     processed_data = self.process_device_data(bytes(data))
