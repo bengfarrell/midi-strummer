@@ -78,7 +78,7 @@ def find_and_open_device(tablet_config: Dict[str, Any]) -> Optional[Any]:
     
     # Extract only device identification keys, not byte code mappings or metadata
     device_filter = {k: v for k, v in tablet_config.items() 
-                    if k not in ['byteCodeMappings', '_driverName', '_driverInfo']}
+                    if k not in ['byteCodeMappings', '_driverName', '_driverInfo', 'reportId']}
     
     if not device_filter:
         print("[FindDevice] No device filter criteria found in config")
