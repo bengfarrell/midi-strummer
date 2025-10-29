@@ -841,6 +841,7 @@ def main():
             print(f"[Hotplug] Could not start hotplug monitor: {e}")
         
         # Create HID reader with callbacks
+        print(f"[DEBUG] Creating HID reader with socket_server = {_socket_server}")
         data_handler = create_hid_data_handler(cfg, _midi, _socket_server)
         _hid_reader = HIDReader(
             device, 

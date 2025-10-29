@@ -169,8 +169,17 @@ class HIDReader:
                             
                             self.wrong_report_id_warned = True  # Only warn once
                     
+                    # DEBUG: Print first 12 bytes of data (remove this after debugging)
+                    if read_count <= 5 or (read_count % 100 == 0):  # Print first 5 reads, then every 100th
+                        debug_bytes = ' '.join(f'{b:02x}' for b in data[:12])
+                        print(f"[HID DEBUG #{read_count}] First 12 bytes: {debug_bytes}")
+                    
                     # Process the data
                     processed_data = self.process_device_data(bytes(data))
+                    
+                    # DEBUG: Print processed data periodically
+                    if read_count <= 5 or (read_count % 100 == 0):
+                        print(f"[HID DEBUG #{read_count}] Processed: {processed_data}")
                     
                     # Call the callback with processed data
                     if self.data_callback:
