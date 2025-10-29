@@ -107,9 +107,15 @@ def find_and_open_all_interfaces(tablet_config: Dict[str, Any]) -> list:
     # Check if specific interfaces are requested
     requested_interfaces = tablet_config.get('interfaces')
     
+    # DEBUG: Show what we received
+    print(f"[FindDevice DEBUG] tablet_config keys: {list(tablet_config.keys())}")
+    print(f"[FindDevice DEBUG] requested_interfaces: {requested_interfaces}")
+    
     # Extract device identification but remove interface-related filters
     device_filter = {k: v for k, v in tablet_config.items() 
                     if k not in ['byteCodeMappings', '_driverName', '_driverInfo', 'reportId', 'interfaces']}
+    
+    print(f"[FindDevice DEBUG] device_filter: {device_filter}")
     
     if not device_filter:
         print("[FindDevice] No device filter criteria found in config")
@@ -118,15 +124,25 @@ def find_and_open_all_interfaces(tablet_config: Dict[str, Any]) -> list:
     # Get all devices matching filter (without interface requirement)
     try:
         devices = hid.enumerate()
+        print(f"[FindDevice DEBUG] Total HID devices found: {len(devices)}")
+        
         matching_devices = []
         
         for device_info in devices:
+            # DEBUG: Show XP-Pen devices
+            if device_info.get('vendor_id') == 0x28bd:
+                print(f"[FindDevice DEBUG] XP-Pen device: interface={device_info.get('interface_number')}, product_string={device_info.get('product_string')}, usage={device_info.get('usage')}")
+            
             if _device_matches_filter(device_info, device_filter):
                 interface_num = device_info.get('interface_number', -1)
+                print(f"[FindDevice DEBUG] Device matched filter! Interface: {interface_num}")
                 # If specific interfaces requested, filter by them
                 if requested_interfaces is not None:
                     if interface_num in requested_interfaces:
+                        print(f"[FindDevice DEBUG] Interface {interface_num} is in requested list")
                         matching_devices.append(device_info)
+                    else:
+                        print(f"[FindDevice DEBUG] Interface {interface_num} NOT in requested list {requested_interfaces}")
                 else:
                     # No specific interfaces requested, use all matches
                     matching_devices.append(device_info)
