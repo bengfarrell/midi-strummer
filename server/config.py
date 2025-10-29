@@ -126,7 +126,17 @@ class Config:
         processed_config = self._process_device_drivers(config_dict or {})
         # Expand chord progression presets for tabletButtons
         processed_config = self._expand_chord_progressions(processed_config)
-        self._config = self._deep_merge(self.DEFAULTS.copy(), processed_config)
+        
+        # Merge with defaults, but if a driver profile was loaded, don't merge drawingTablet
+        merged = self._deep_merge(self.DEFAULTS.copy(), processed_config)
+        
+        # If we loaded a driver profile, ensure it completely replaces the default
+        if (processed_config.get('startupConfiguration', {}).get('drawingTablet') and 
+            processed_config['startupConfiguration']['drawingTablet'].get('_driverName')):
+            # Driver profile loaded - use it as-is, don't merge with defaults
+            merged['startupConfiguration']['drawingTablet'] = processed_config['startupConfiguration']['drawingTablet']
+        
+        self._config = merged
     
     @classmethod
     def from_file(cls, file_path: str) -> 'Config':
@@ -306,11 +316,13 @@ class Config:
                     }
                     
                     # Replace the string reference with the loaded config
+                    # Don't merge with defaults - use driver config as-is
                     processed['startupConfiguration']['drawingTablet'] = tablet_config
                 else:
                     print(f"[Config] Failed to load driver '{driver_name}', using defaults")
-                    # Remove the invalid reference
-                    del processed['startupConfiguration']['drawingTablet']
+                    # Remove the invalid reference so defaults are used
+                    if 'startupConfiguration' in processed and 'drawingTablet' in processed['startupConfiguration']:
+                        del processed['startupConfiguration']['drawingTablet']
         
         return processed
     
