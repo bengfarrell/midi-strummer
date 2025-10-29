@@ -214,7 +214,9 @@ def auto_detect_device(driver_profiles: List[Tuple[str, Dict[str, Any]]]) -> Opt
             if 'deviceInfo' not in driver_config:
                 continue
             
-            device_filter = driver_config['deviceInfo']
+            # Remove 'interfaces' from filter since enumeration only has 'interface_number'
+            device_filter = {k: v for k, v in driver_config['deviceInfo'].items() 
+                           if k != 'interfaces'}
             
             if _device_matches_filter(device_info, device_filter):
                 device_name = driver_config.get('name', driver_name)
