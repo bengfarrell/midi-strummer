@@ -153,24 +153,24 @@ class HIDReader:
                 if data:
                     empty_read_count = 0  # Reset empty count
                     
-                    # Validate Report ID (byte 0)
+                    # Validate Report ID (byte 0) - log but don't skip
                     if len(data) > 0:
                         report_id = data[0]
                         if report_id != self.expected_report_id and not self.wrong_report_id_warned:
-                            warning_msg = (
-                                f"[HID WARNING] Unexpected Report ID: {report_id} (expected {self.expected_report_id}). "
-                                f"This device may not be compatible with the current configuration."
-                            )
-                            print(warning_msg)
-                            
-                            # Send warning via callback (e.g., to websocket)
-                            if self.warning_callback:
-                                self.warning_callback(warning_msg)
-                            
-                            self.wrong_report_id_warned = True  # Only warn once
+                            # DEBUG: Log all unexpected report IDs (might be button events on different report ID)
+                            debug_bytes = ' '.join(f'{b:02x}' for b in data[:12])
+                            print(f"[HID DEBUG] Report ID {report_id} (expected {self.expected_report_id})")
+                            print(f"[HID DEBUG] Data: {debug_bytes}")
+                            self.wrong_report_id_warned = True
                     
                     # Process the data
                     processed_data = self.process_device_data(bytes(data))
+                    
+                    # DEBUG: Log button events
+                    if processed_data.get('state') == 'buttons':
+                        debug_bytes = ' '.join(f'{b:02x}' for b in data[:12])
+                        print(f"[BUTTON DEBUG] Raw: {debug_bytes}")
+                        print(f"[BUTTON DEBUG] Parsed: {processed_data}")
                     
                     # Call the callback with processed data
                     if self.data_callback:
