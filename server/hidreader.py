@@ -155,14 +155,26 @@ class HIDReader:
                     
                     # Log Report ID for debugging (different interfaces may use different IDs)
                     # On multi-interface devices, buttons and stylus may have different report IDs
+                    report_id = data[0] if len(data) > 0 else 0
                     if len(data) > 0 and not self.wrong_report_id_warned:
-                        report_id = data[0]
                         if report_id != self.expected_report_id:
                             print(f"[HID] Note: Interface using Report ID {report_id} (config specifies {self.expected_report_id})")
                             self.wrong_report_id_warned = True
                     
+                    # DEBUG: Log first 3 packets from Report ID 6 (button interface)
+                    if report_id == 6 and read_count <= 3:
+                        debug_bytes = ' '.join(f'{b:02x}' for b in data[:12])
+                        print(f"[INTERFACE 0 DEBUG #{read_count}] Report ID 6: {debug_bytes}")
+                    
                     # Process the data
                     processed_data = self.process_device_data(bytes(data))
+                    
+                    # DEBUG: Log any button state changes
+                    has_button = any(k.startswith('button') and k != 'button' for k in processed_data.keys())
+                    if has_button or processed_data.get('state') == 'buttons':
+                        debug_bytes = ' '.join(f'{b:02x}' for b in data[:12])
+                        print(f"[BUTTON DEBUG] Raw: {debug_bytes}")
+                        print(f"[BUTTON DEBUG] Parsed: {processed_data}")
                     
                     # Call the callback with processed data
                     if self.data_callback:
