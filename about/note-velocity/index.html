@@ -1,0 +1,315 @@
+<html lang="en-US" dir="ltr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+    <link rel="canonical" href="/about/note-velocity/" />
+    <meta property="og:site_name" content="Strumboli" />
+    <meta property="og:title" content="Strumboli: Note Velocity" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="/about/note-velocity/" />
+    <link rel="icon" href="/img/icon.svg" type="image/svg+xml" />
+    <link rel="icon" type="image/svg+xml" href="/img/icon.svg" />
+
+    <title>Strumboli: Note Velocity</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Lexend:wght@300;400;500;600&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../../docs.css" />
+    <link rel="stylesheet" href="../../prism-okaidia.css" />
+    <link rel="preload" href="../../docs.css" as="style" />
+</head>
+<body>
+
+<header>
+    <button id="mobile-menu" class="mobile-menu-button" aria-label="Open menu">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" role="img" fill="currentColor" height="24" width="24" aria-hidden="true">
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="16"></rect>
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="6"></rect>
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="26"></rect>
+        </svg>
+    </button>
+  
+    <div class="logo-container">
+        <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <!-- Background with rounded corners -->
+            <rect width="100" height="100" fill="#1d1d1d" rx="10" ry="10"/>
+            
+            <!-- Colorful horizontal stripes (every other line with gaps) -->
+            <line x1="15" y1="26" x2="85" y2="26" stroke="#ff6b6b" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="42" x2="85" y2="42" stroke="#ffd93d" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="58" x2="85" y2="58" stroke="#6bcf7f" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="74" x2="85" y2="74" stroke="#4dabf7" stroke-width="5" stroke-linecap="butt"/>
+            
+            <!-- Enclosing U-shape (square with right edge missing) -->
+            <!-- Top edge -->
+            <line x1="15" y1="15" x2="85" y2="15" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Left edge -->
+            <line x1="15" y1="15" x2="15" y2="85" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Bottom edge -->
+            <line x1="15" y1="85" x2="85" y2="85" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Right edge is missing (opening) -->
+        </svg>
+    </div>
+
+    <div class="title">
+        <h1>Strumboli</h1>
+        <h4>Turn your drawing tablet into a MIDI strumming controller</h4>
+    </div>
+
+    <div class="logo-container github">
+        <a href="https://github.com/yourusername/midi-strummer"><img src="/img/github-logo.svg" alt="Github Logo" /></a>
+    </div>
+</header>
+
+<div id="main-wrapper">
+  
+
+
+
+
+
+
+
+
+<nav>
+    <div class="mobile-header">
+        <h1>Strumboli</h1>
+    </div>
+    <h4>Getting Started</h4>
+    
+    <a href="../../">Introduction</a>
+    
+    <a href="../getting-started/">Getting Started</a>
+    
+    <a href="../configuration-overview/">Configuration Overview</a>
+    
+
+    <h4>Server & Startup</h4>
+    
+        <a href="../server-startup/">Overview</a>
+    
+        <a href="../tablet-setup/">Tablet Setup</a>
+    
+        <a href="../web-dashboard/">Web Dashboard</a>
+    
+        <a href="../midi-input/">MIDI Input</a>
+    
+
+    <h4>Features</h4>
+    
+        <a href="../strumming/">Strumming</a>
+    
+        <a href="">Note Velocity</a>
+    
+        <a href="../note-duration/">Note Duration</a>
+    
+        <a href="../pitch-bend/">Pitch Bend</a>
+    
+        <a href="../note-repeater/">Note Repeater</a>
+    
+        <a href="../transpose/">Transpose</a>
+    
+        <a href="../stylus-buttons/">Stylus Buttons</a>
+    
+        <a href="../tablet-buttons/">Tablet Buttons</a>
+    
+        <a href="../strum-release/">Strum Release</a>
+    
+
+    <h4>Misc</h4>
+    
+        <a href="../actions-reference/">Actions Reference</a>
+    
+        <a href="../chords-and-progressions/">Chords &amp; Progressions</a>
+    
+</nav>
+
+  <main>
+      <div class="content">
+        <h2 id="page-title">Control MIDI velocity and note dynamics</h2>
+        <h1>Note Velocity</h1>
+<p>Controls MIDI velocity (note loudness/dynamics) based on tablet input. Velocity is one of the most important parameters for expressive performance.</p>
+<h2>Settings</h2>
+<h3>control</h3>
+<p><strong>Type:</strong> <code>string</code><br>
+<strong>Default:</strong> <code>&quot;pressure&quot;</code><br>
+<strong>Options:</strong> <code>&quot;pressure&quot;</code>, <code>&quot;tiltX&quot;</code>, <code>&quot;tiltY&quot;</code>, <code>&quot;tiltXY&quot;</code>, <code>&quot;xaxis&quot;</code>, <code>&quot;yaxis&quot;</code><br>
+<strong>Description:</strong> Which tablet input controls velocity</p>
+<p><strong>Examples:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"noteVelocity"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"control"</span><span class="token operator">:</span> <span class="token string">"pressure"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p><code>&quot;pressure&quot;</code> is the most natural mapping for dynamics.</p>
+<hr>
+<h3>min</h3>
+<p><strong>Type:</strong> <code>integer</code><br>
+<strong>Default:</strong> <code>0</code><br>
+<strong>Range:</strong> 0-127<br>
+<strong>Description:</strong> Minimum MIDI velocity</p>
+<p><strong>Examples:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"noteVelocity"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"min"</span><span class="token operator">:</span> <span class="token number">20</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Setting above 0 ensures notes are always audible.</p>
+<hr>
+<h3>max</h3>
+<p><strong>Type:</strong> <code>integer</code><br>
+<strong>Default:</strong> <code>127</code><br>
+<strong>Range:</strong> 0-127<br>
+<strong>Description:</strong> Maximum MIDI velocity</p>
+<p><strong>Examples:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"noteVelocity"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"max"</span><span class="token operator">:</span> <span class="token number">100</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Reduce if notes are too loud at full pressure.</p>
+<hr>
+<h3>default</h3>
+<p><strong>Type:</strong> <code>integer</code><br>
+<strong>Default:</strong> <code>64</code><br>
+<strong>Range:</strong> 0-127<br>
+<strong>Description:</strong> Default velocity when control is neutral</p>
+<p><strong>Examples:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"noteVelocity"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"default"</span><span class="token operator">:</span> <span class="token number">64</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<hr>
+<h3>curve</h3>
+<p><strong>Type:</strong> <code>float</code><br>
+<strong>Default:</strong> <code>1.0</code><br>
+<strong>Range:</strong> &gt; 0<br>
+<strong>Description:</strong> Response curve shape</p>
+<p><strong>Values:</strong></p>
+<ul>
+<li><code>1.0</code> - Linear (no curve)</li>
+<li><code>2.0</code> - Gentle curve</li>
+<li><code>3.0</code> - Moderate curve</li>
+<li><code>4.0</code> - Steep curve (very sensitive at low end)</li>
+<li><code>0.5</code> - Compressed (reduces low-end sensitivity)</li>
+</ul>
+<p><strong>Examples:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"noteVelocity"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"curve"</span><span class="token operator">:</span> <span class="token number">4.0</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p><strong>Note:</strong> For velocity, <code>curve: 4.0</code> with <code>spread: &quot;direct&quot;</code> creates very expressive light-touch dynamics.</p>
+<hr>
+<h3>spread</h3>
+<p><strong>Type:</strong> <code>string</code><br>
+<strong>Default:</strong> <code>&quot;direct&quot;</code><br>
+<strong>Options:</strong> <code>&quot;direct&quot;</code>, <code>&quot;inverse&quot;</code>, <code>&quot;central&quot;</code><br>
+<strong>Description:</strong> How input maps to output range</p>
+<p><strong>Values:</strong></p>
+<ul>
+<li><code>&quot;direct&quot;</code> - 0 → min, 1 → max (light = quiet, hard = loud)</li>
+<li><code>&quot;inverse&quot;</code> - 0 → max, 1 → min (light = loud, hard = quiet)</li>
+<li><code>&quot;central&quot;</code> - 0.5 → default, edges → min/max</li>
+</ul>
+<p><strong>Examples:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"noteVelocity"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"spread"</span><span class="token operator">:</span> <span class="token string">"direct"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<hr>
+<h3>multiplier</h3>
+<p><strong>Type:</strong> <code>float</code><br>
+<strong>Default:</strong> <code>1.0</code><br>
+<strong>Range:</strong> &gt; 0<br>
+<strong>Description:</strong> Overall scale factor applied to final value</p>
+<p><strong>Examples:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"noteVelocity"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"multiplier"</span><span class="token operator">:</span> <span class="token number">1.5</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Multiplies the final velocity after all other calculations.</p>
+<h2>Configuration Example</h2>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"noteVelocity"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"min"</span><span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+    <span class="token property">"max"</span><span class="token operator">:</span> <span class="token number">127</span><span class="token punctuation">,</span>
+    <span class="token property">"default"</span><span class="token operator">:</span> <span class="token number">64</span><span class="token punctuation">,</span>
+    <span class="token property">"multiplier"</span><span class="token operator">:</span> <span class="token number">1.0</span><span class="token punctuation">,</span>
+    <span class="token property">"curve"</span><span class="token operator">:</span> <span class="token number">4.0</span><span class="token punctuation">,</span>
+    <span class="token property">"spread"</span><span class="token operator">:</span> <span class="token string">"direct"</span><span class="token punctuation">,</span>
+    <span class="token property">"control"</span><span class="token operator">:</span> <span class="token string">"pressure"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h2>Curve Values for Different Feels</h2>
+<ul>
+<li><strong>Linear (1.0)</strong>: Predictable, technical control</li>
+<li><strong>Gentle (2.0)</strong>: Slight enhancement, natural feel</li>
+<li><strong>Moderate (3.0)</strong>: Good balance of control and expression</li>
+<li><strong>Steep (4.0)</strong>: Very expressive, great for velocity</li>
+</ul>
+<h2>Common Control Mappings</h2>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Best For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pressure</code></td>
+<td>Velocity, dynamics</td>
+</tr>
+<tr>
+<td><code>tiltX</code></td>
+<td>Alternate expression control</td>
+</tr>
+<tr>
+<td><code>tiltY</code></td>
+<td>Alternate expression control</td>
+</tr>
+<tr>
+<td><code>tiltXY</code></td>
+<td>Combined tilt magnitude</td>
+</tr>
+<tr>
+<td><code>yaxis</code></td>
+<td>Position-based dynamics</td>
+</tr>
+<tr>
+<td><code>xaxis</code></td>
+<td>Less common for velocity</td>
+</tr>
+</tbody>
+</table>
+<h2>Related Documentation</h2>
+<ul>
+<li><a href="/about/note-duration/">Note Duration</a> - Control how long notes play</li>
+<li><a href="/about/pitch-bend/">Pitch Bend</a> - Add expressive pitch changes</li>
+<li><a href="/about/strumming/">Strumming</a> - Configure strumming behavior</li>
+</ul>
+
+      </div>
+  </main>
+</div>
+</body>
+<script>
+    document.getElementById('mobile-menu').addEventListener('click', () => {
+        document.getElementById('main-wrapper').classList.add('menu-open');
+    });
+    document.getElementById('main-wrapper').addEventListener('click', () => {
+        document.getElementById('main-wrapper').classList.remove('menu-open');
+    });
+</script>
+</html>

@@ -1,0 +1,607 @@
+<html lang="en-US" dir="ltr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+    <link rel="canonical" href="/about/tablet-setup/" />
+    <meta property="og:site_name" content="Strumboli" />
+    <meta property="og:title" content="Strumboli: Tablet Setup" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="/about/tablet-setup/" />
+    <link rel="icon" href="/img/icon.svg" type="image/svg+xml" />
+    <link rel="icon" type="image/svg+xml" href="/img/icon.svg" />
+
+    <title>Strumboli: Tablet Setup</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Lexend:wght@300;400;500;600&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../../docs.css" />
+    <link rel="stylesheet" href="../../prism-okaidia.css" />
+    <link rel="preload" href="../../docs.css" as="style" />
+</head>
+<body>
+
+<header>
+    <button id="mobile-menu" class="mobile-menu-button" aria-label="Open menu">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" role="img" fill="currentColor" height="24" width="24" aria-hidden="true">
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="16"></rect>
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="6"></rect>
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="26"></rect>
+        </svg>
+    </button>
+  
+    <div class="logo-container">
+        <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <!-- Background with rounded corners -->
+            <rect width="100" height="100" fill="#1d1d1d" rx="10" ry="10"/>
+            
+            <!-- Colorful horizontal stripes (every other line with gaps) -->
+            <line x1="15" y1="26" x2="85" y2="26" stroke="#ff6b6b" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="42" x2="85" y2="42" stroke="#ffd93d" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="58" x2="85" y2="58" stroke="#6bcf7f" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="74" x2="85" y2="74" stroke="#4dabf7" stroke-width="5" stroke-linecap="butt"/>
+            
+            <!-- Enclosing U-shape (square with right edge missing) -->
+            <!-- Top edge -->
+            <line x1="15" y1="15" x2="85" y2="15" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Left edge -->
+            <line x1="15" y1="15" x2="15" y2="85" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Bottom edge -->
+            <line x1="15" y1="85" x2="85" y2="85" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Right edge is missing (opening) -->
+        </svg>
+    </div>
+
+    <div class="title">
+        <h1>Strumboli</h1>
+        <h4>Turn your drawing tablet into a MIDI strumming controller</h4>
+    </div>
+
+    <div class="logo-container github">
+        <a href="https://github.com/yourusername/midi-strummer"><img src="/img/github-logo.svg" alt="Github Logo" /></a>
+    </div>
+</header>
+
+<div id="main-wrapper">
+  
+
+
+
+
+
+
+
+
+<nav>
+    <div class="mobile-header">
+        <h1>Strumboli</h1>
+    </div>
+    <h4>Getting Started</h4>
+    
+    <a href="../../">Introduction</a>
+    
+    <a href="../getting-started/">Getting Started</a>
+    
+    <a href="../configuration-overview/">Configuration Overview</a>
+    
+
+    <h4>Server & Startup</h4>
+    
+        <a href="../server-startup/">Overview</a>
+    
+        <a href="">Tablet Setup</a>
+    
+        <a href="../web-dashboard/">Web Dashboard</a>
+    
+        <a href="../midi-input/">MIDI Input</a>
+    
+
+    <h4>Features</h4>
+    
+        <a href="../strumming/">Strumming</a>
+    
+        <a href="../note-velocity/">Note Velocity</a>
+    
+        <a href="../note-duration/">Note Duration</a>
+    
+        <a href="../pitch-bend/">Pitch Bend</a>
+    
+        <a href="../note-repeater/">Note Repeater</a>
+    
+        <a href="../transpose/">Transpose</a>
+    
+        <a href="../stylus-buttons/">Stylus Buttons</a>
+    
+        <a href="../tablet-buttons/">Tablet Buttons</a>
+    
+        <a href="../strum-release/">Strum Release</a>
+    
+
+    <h4>Misc</h4>
+    
+        <a href="../actions-reference/">Actions Reference</a>
+    
+        <a href="../chords-and-progressions/">Chords &amp; Progressions</a>
+    
+</nav>
+
+  <main>
+      <div class="content">
+        <h2 id="page-title">Configure your drawing tablet for Strumboli</h2>
+        <h1>Tablet Setup</h1>
+<p>This comprehensive guide covers everything you need to configure your drawing tablet to work with Strumboli, from automatic detection to creating custom device profiles.</p>
+<h2>Quick Start: Auto-Detection</h2>
+<p>The easiest way to get started is to use auto-detection:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"drawingTablet"</span><span class="token operator">:</span> <span class="token string">"auto-detect"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Strumboli will automatically:</p>
+<ol>
+<li>Scan connected HID devices</li>
+<li>Match against known device profiles in <code>/server/drivers/</code></li>
+<li>Load the appropriate byte mapping configuration</li>
+<li>Start reading tablet input</li>
+</ol>
+<p>If auto-detection works, you'll see:</p>
+<pre><code>[Config] Auto-detecting device...
+[Config] Loaded device driver: XP-Pen Deco 640
+Device opened successfully
+</code></pre>
+<h2>Supported Tablets</h2>
+<p>Currently included device profiles:</p>
+<ul>
+<li><strong>XP-Pen Deco 640</strong> - Full support with 8 express keys</li>
+</ul>
+<p>More device profiles coming soon! You can also <a href="#creating-custom-device-profiles">create your own</a>.</p>
+<h2>Manual Device Configuration</h2>
+<p>If auto-detection doesn't work or you want to use a specific profile:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"drawingTablet"</span><span class="token operator">:</span> <span class="token string">"xp_pen_deco_640"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>This loads the driver profile from <code>/server/drivers/xp_pen_deco_640.json</code>.</p>
+<h2>Understanding Device Profiles</h2>
+<p>Device profiles are JSON files that tell Strumboli how to interpret the raw bytes from your tablet's HID reports. They're located in <code>/server/drivers/</code>.</p>
+<h3>Device Profile Structure</h3>
+<p>Here's the structure of a device profile:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"XP-Pen Deco 640"</span><span class="token punctuation">,</span>
+  <span class="token property">"manufacturer"</span><span class="token operator">:</span> <span class="token string">"XP-Pen"</span><span class="token punctuation">,</span>
+  <span class="token property">"model"</span><span class="token operator">:</span> <span class="token string">"Deco 640"</span><span class="token punctuation">,</span>
+  <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"XP-Pen Deco 640 graphics tablet with 8 express keys"</span><span class="token punctuation">,</span>
+  <span class="token property">"vendorId"</span><span class="token operator">:</span> <span class="token string">"0x28bd"</span><span class="token punctuation">,</span>
+  <span class="token property">"productId"</span><span class="token operator">:</span> <span class="token string">"0x0914"</span><span class="token punctuation">,</span>
+  <span class="token property">"deviceInfo"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"product"</span><span class="token operator">:</span> <span class="token string">"Deco 640"</span><span class="token punctuation">,</span>
+    <span class="token property">"usage"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+    <span class="token property">"interface"</span><span class="token operator">:</span> <span class="token number">2</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"reportId"</span><span class="token operator">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
+  <span class="token property">"capabilities"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"hasButtons"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"buttonCount"</span><span class="token operator">:</span> <span class="token number">8</span><span class="token punctuation">,</span>
+    <span class="token property">"hasPressure"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"pressureLevels"</span><span class="token operator">:</span> <span class="token number">16384</span><span class="token punctuation">,</span>
+    <span class="token property">"hasTilt"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"resolution"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"x"</span><span class="token operator">:</span> <span class="token number">32000</span><span class="token punctuation">,</span>
+      <span class="token property">"y"</span><span class="token operator">:</span> <span class="token number">18000</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"byteCodeMappings"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token comment">/* ... detailed byte mappings ... */</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h3>Key Sections</h3>
+<h4>Device Identification</h4>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"vendorId"</span><span class="token operator">:</span> <span class="token string">"0x28bd"</span><span class="token punctuation">,</span>
+  <span class="token property">"productId"</span><span class="token operator">:</span> <span class="token string">"0x0914"</span><span class="token punctuation">,</span>
+  <span class="token property">"deviceInfo"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"product"</span><span class="token operator">:</span> <span class="token string">"Deco 640"</span><span class="token punctuation">,</span>
+    <span class="token property">"usage"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+    <span class="token property">"interface"</span><span class="token operator">:</span> <span class="token number">2</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<ul>
+<li><strong><code>vendorId</code></strong> / <strong><code>productId</code></strong>: USB vendor and product IDs (hexadecimal)</li>
+<li><strong><code>deviceInfo.product</code></strong>: Product name string to match</li>
+<li><strong><code>deviceInfo.usage</code></strong>: HID usage page</li>
+<li><strong><code>deviceInfo.interface</code></strong>: Interface number (tablets often have multiple interfaces)</li>
+</ul>
+<h4>Capabilities</h4>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"capabilities"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"hasButtons"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"buttonCount"</span><span class="token operator">:</span> <span class="token number">8</span><span class="token punctuation">,</span>
+    <span class="token property">"hasPressure"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"pressureLevels"</span><span class="token operator">:</span> <span class="token number">16384</span><span class="token punctuation">,</span>
+    <span class="token property">"hasTilt"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"resolution"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"x"</span><span class="token operator">:</span> <span class="token number">32000</span><span class="token punctuation">,</span>
+      <span class="token property">"y"</span><span class="token operator">:</span> <span class="token number">18000</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Describes what the tablet can do (informational, used for validation).</p>
+<h2>Byte Code Mappings</h2>
+<p>The most important part of a device profile is the <strong>byteCodeMappings</strong> section. This tells Strumboli how to extract data from the HID report bytes.</p>
+<h3>Mapping Types</h3>
+<h4>1. Code Mapping (Status/State)</h4>
+<p>Used for discrete values like pen state:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"status"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"byteIndex"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+    <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+    <span class="token property">"values"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"192"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"state"</span><span class="token operator">:</span> <span class="token string">"none"</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token property">"160"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"state"</span><span class="token operator">:</span> <span class="token string">"hover"</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token property">"161"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"state"</span><span class="token operator">:</span> <span class="token string">"contact"</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token property">"163"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"state"</span><span class="token operator">:</span> <span class="token string">"contact"</span><span class="token punctuation">,</span> <span class="token property">"secondaryButtonPressed"</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token property">"165"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"state"</span><span class="token operator">:</span> <span class="token string">"contact"</span><span class="token punctuation">,</span> <span class="token property">"primaryButtonPressed"</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token property">"240"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"state"</span><span class="token operator">:</span> <span class="token string">"buttons"</span> <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<ul>
+<li><strong><code>byteIndex</code></strong>: Which byte in the report to read</li>
+<li><strong><code>type</code></strong>: Set to <code>&quot;code&quot;</code></li>
+<li><strong><code>values</code></strong>: Object mapping byte values to states</li>
+</ul>
+<p><strong>States:</strong></p>
+<ul>
+<li><code>none</code> - Pen not detected</li>
+<li><code>hover</code> - Pen hovering over tablet</li>
+<li><code>contact</code> - Pen touching surface</li>
+<li><code>buttons</code> - Tablet express keys pressed</li>
+</ul>
+<h4>2. Range Mapping (Single Byte)</h4>
+<p>For single-byte values (0-255):</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"exampleValue"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"byteIndex"</span><span class="token operator">:</span> <span class="token number">3</span><span class="token punctuation">,</span>
+    <span class="token property">"max"</span><span class="token operator">:</span> <span class="token number">124</span><span class="token punctuation">,</span>
+    <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"range"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<ul>
+<li><strong><code>byteIndex</code></strong>: Which byte to read</li>
+<li><strong><code>max</code></strong>: Maximum expected value</li>
+<li><strong><code>type</code></strong>: Set to <code>&quot;range&quot;</code></li>
+</ul>
+<h4>3. Multi-Byte Range Mapping</h4>
+<p>For 16-bit values split across two bytes (common for pressure and position):</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"pressure"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"byteIndices"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token number">6</span><span class="token punctuation">,</span> <span class="token number">7</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"max"</span><span class="token operator">:</span> <span class="token number">16383</span><span class="token punctuation">,</span>
+    <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"multi-byte-range"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"x"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"byteIndices"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"max"</span><span class="token operator">:</span> <span class="token number">32000</span><span class="token punctuation">,</span>
+    <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"multi-byte-range"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"y"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"byteIndices"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token number">4</span><span class="token punctuation">,</span> <span class="token number">5</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"max"</span><span class="token operator">:</span> <span class="token number">18000</span><span class="token punctuation">,</span>
+    <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"multi-byte-range"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<ul>
+<li><strong><code>byteIndices</code></strong>: Array of two byte positions <code>[low_byte, high_byte]</code></li>
+<li><strong><code>max</code></strong>: Maximum value for the 16-bit number</li>
+<li><strong><code>type</code></strong>: Set to <code>&quot;multi-byte-range&quot;</code></li>
+</ul>
+<p>The bytes are combined as: <code>value = low_byte + (high_byte * 256)</code></p>
+<h4>4. Bipolar Range Mapping</h4>
+<p>For tilt values that can be positive or negative:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"tiltX"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"byteIndex"</span><span class="token operator">:</span> <span class="token number">8</span><span class="token punctuation">,</span>
+    <span class="token property">"positiveMax"</span><span class="token operator">:</span> <span class="token number">60</span><span class="token punctuation">,</span>
+    <span class="token property">"negativeMin"</span><span class="token operator">:</span> <span class="token number">256</span><span class="token punctuation">,</span>
+    <span class="token property">"negativeMax"</span><span class="token operator">:</span> <span class="token number">196</span><span class="token punctuation">,</span>
+    <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"bipolar-range"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"tiltY"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"byteIndex"</span><span class="token operator">:</span> <span class="token number">9</span><span class="token punctuation">,</span>
+    <span class="token property">"positiveMax"</span><span class="token operator">:</span> <span class="token number">60</span><span class="token punctuation">,</span>
+    <span class="token property">"negativeMin"</span><span class="token operator">:</span> <span class="token number">256</span><span class="token punctuation">,</span>
+    <span class="token property">"negativeMax"</span><span class="token operator">:</span> <span class="token number">196</span><span class="token punctuation">,</span>
+    <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"bipolar-range"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<ul>
+<li><strong><code>positiveMax</code></strong>: Maximum positive tilt value (e.g., 60)</li>
+<li><strong><code>negativeMin</code></strong>: Where negative values start (e.g., 256 - wraps around)</li>
+<li><strong><code>negativeMax</code></strong>: Maximum negative value (e.g., 196 = -60 in 8-bit wrap)</li>
+<li><strong><code>type</code></strong>: Set to <code>&quot;bipolar-range&quot;</code></li>
+</ul>
+<p>Converts to range -1.0 to 1.0.</p>
+<h4>5. Bit Flags (Tablet Buttons)</h4>
+<p>For multiple buttons encoded as bits in a single byte:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"byteIndex"</span><span class="token operator">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
+    <span class="token property">"buttonCount"</span><span class="token operator">:</span> <span class="token number">8</span><span class="token punctuation">,</span>
+    <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"bit-flags"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<ul>
+<li><strong><code>byteIndex</code></strong>: Which byte contains the button flags</li>
+<li><strong><code>buttonCount</code></strong>: Number of buttons</li>
+<li><strong><code>type</code></strong>: Set to <code>&quot;bit-flags&quot;</code></li>
+</ul>
+<p>Each bit represents a button (bit 0 = button 1, bit 1 = button 2, etc.).</p>
+<h2>Creating Custom Device Profiles</h2>
+<p>If your tablet isn't supported, you can create a custom profile. Here's how:</p>
+<h3>Step 1: Identify Your Device</h3>
+<p>Find your tablet's USB vendor and product IDs:</p>
+<p><strong>macOS:</strong></p>
+<pre class="language-bash" tabindex="0"><code class="language-bash">system_profiler SPUSBDataType</code></pre>
+<p><strong>Linux:</strong></p>
+<pre class="language-bash" tabindex="0"><code class="language-bash">lsusb</code></pre>
+<p><strong>Windows:</strong></p>
+<pre class="language-powershell" tabindex="0"><code class="language-powershell"><span class="token function">Get-PnpDevice</span> <span class="token operator">-</span>PresentOnly <span class="token punctuation">|</span> <span class="token function">Where-Object</span> <span class="token punctuation">{</span> <span class="token variable">$_</span><span class="token punctuation">.</span>InstanceId <span class="token operator">-match</span> <span class="token string">'^USB'</span> <span class="token punctuation">}</span></code></pre>
+<p>Look for your tablet's entry and note the vendor ID and product ID.</p>
+<h3>Step 2: Capture HID Reports</h3>
+<p>You need to capture the raw HID reports to understand the byte structure. Tools:</p>
+<p><strong>macOS:</strong></p>
+<ul>
+<li>Use <code>hidapi</code> with Python to print raw reports</li>
+<li>Or use a USB sniffer</li>
+</ul>
+<p><strong>Linux:</strong></p>
+<ul>
+<li>Use <code>hidraw</code> interface</li>
+<li>Monitor with <code>cat /dev/hidraw0 | hexdump -C</code></li>
+</ul>
+<p><strong>All Platforms:</strong></p>
+<ul>
+<li>Run Strumboli in debug mode to see raw reports</li>
+</ul>
+<h3>Step 3: Analyze the Report Structure</h3>
+<p>Move the pen and press buttons while watching the bytes change:</p>
+<ol>
+<li><strong>Find position bytes</strong>: Move pen horizontally and vertically</li>
+<li><strong>Find pressure bytes</strong>: Press harder and lighter</li>
+<li><strong>Find tilt bytes</strong> (if supported): Tilt the pen</li>
+<li><strong>Find button bytes</strong>: Press each express key</li>
+<li><strong>Find status byte</strong>: Hover, touch, and lift the pen</li>
+</ol>
+<p>Document which bytes correspond to which inputs.</p>
+<h3>Step 4: Create the Profile</h3>
+<p>Create a new JSON file in <code>/server/drivers/</code>:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"My Tablet Model"</span><span class="token punctuation">,</span>
+  <span class="token property">"manufacturer"</span><span class="token operator">:</span> <span class="token string">"Brand Name"</span><span class="token punctuation">,</span>
+  <span class="token property">"model"</span><span class="token operator">:</span> <span class="token string">"Model Number"</span><span class="token punctuation">,</span>
+  <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"Description of tablet"</span><span class="token punctuation">,</span>
+  <span class="token property">"vendorId"</span><span class="token operator">:</span> <span class="token string">"0xYOUR_VENDOR_ID"</span><span class="token punctuation">,</span>
+  <span class="token property">"productId"</span><span class="token operator">:</span> <span class="token string">"0xYOUR_PRODUCT_ID"</span><span class="token punctuation">,</span>
+  <span class="token property">"deviceInfo"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"product"</span><span class="token operator">:</span> <span class="token string">"Product String"</span><span class="token punctuation">,</span>
+    <span class="token property">"usage"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+    <span class="token property">"interface"</span><span class="token operator">:</span> <span class="token number">2</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"reportId"</span><span class="token operator">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
+  <span class="token property">"capabilities"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"hasButtons"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"buttonCount"</span><span class="token operator">:</span> <span class="token number">6</span><span class="token punctuation">,</span>
+    <span class="token property">"hasPressure"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"pressureLevels"</span><span class="token operator">:</span> <span class="token number">8192</span><span class="token punctuation">,</span>
+    <span class="token property">"hasTilt"</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+    <span class="token property">"resolution"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"x"</span><span class="token operator">:</span> <span class="token number">20000</span><span class="token punctuation">,</span>
+      <span class="token property">"y"</span><span class="token operator">:</span> <span class="token number">12000</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"byteCodeMappings"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"byteIndex"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+      <span class="token property">"values"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"0"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"state"</span><span class="token operator">:</span> <span class="token string">"none"</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token property">"128"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"state"</span><span class="token operator">:</span> <span class="token string">"hover"</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token property">"129"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"state"</span><span class="token operator">:</span> <span class="token string">"contact"</span> <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"x"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"byteIndices"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token property">"max"</span><span class="token operator">:</span> <span class="token number">20000</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"multi-byte-range"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"y"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"byteIndices"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token number">4</span><span class="token punctuation">,</span> <span class="token number">5</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token property">"max"</span><span class="token operator">:</span> <span class="token number">12000</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"multi-byte-range"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"pressure"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"byteIndices"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token number">6</span><span class="token punctuation">,</span> <span class="token number">7</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token property">"max"</span><span class="token operator">:</span> <span class="token number">8191</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"multi-byte-range"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h3>Step 5: Test Your Profile</h3>
+<p>Use the profile in your settings:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"drawingTablet"</span><span class="token operator">:</span> <span class="token string">"my_tablet_model"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Verify that:</p>
+<ul>
+<li>Position tracking works smoothly</li>
+<li>Pressure responds correctly</li>
+<li>Buttons trigger actions</li>
+<li>Tilt (if supported) provides values</li>
+</ul>
+<h3>Step 6: Share Your Profile</h3>
+<p>Consider contributing your device profile back to the project so others can use it!</p>
+<h2>Troubleshooting</h2>
+<h3>Auto-Detection Fails</h3>
+<p>If auto-detection doesn't find your tablet:</p>
+<ol>
+<li><strong>Check USB connection</strong>: Ensure tablet is powered and connected</li>
+<li><strong>Check HID interface</strong>: Verify the device appears in system USB listings</li>
+<li><strong>Try manual detection</strong>: Create a basic profile with vendor/product IDs</li>
+<li><strong>Check manufacturer software</strong>: Quit any tablet driver software</li>
+<li><strong>Try different USB ports</strong>: Some tablets are picky about USB 2.0 vs 3.0</li>
+</ol>
+<h3>Wrong Interface Selected</h3>
+<p>Some tablets have multiple HID interfaces. If Strumboli connects but doesn't receive input:</p>
+<ol>
+<li>Try different <code>interface</code> values (0, 1, 2, etc.)</li>
+<li>Check <code>usage</code> page (usually 1 or 2)</li>
+<li>Look at the device in system info for clues</li>
+</ol>
+<h3>Values Out of Range</h3>
+<p>If position, pressure, or tilt values seem wrong:</p>
+<ol>
+<li><strong>Check max values</strong>: Ensure they match your tablet's actual range</li>
+<li><strong>Verify byte order</strong>: Try swapping byte indices (e.g., [3,2] instead of [2,3])</li>
+<li><strong>Check for header bytes</strong>: Some tablets have report ID bytes that offset everything</li>
+</ol>
+<h3>Buttons Not Working</h3>
+<p>If express keys don't respond:</p>
+<ol>
+<li><strong>Find button byte</strong>: Use a hex dump to see which byte changes</li>
+<li><strong>Check bit flags</strong>: Buttons might be individual bits, not separate bytes</li>
+<li><strong>Verify button count</strong>: Ensure it matches your tablet</li>
+<li><strong>Check status byte</strong>: Button presses might set a special state</li>
+</ol>
+<h2>Advanced: Inline Configuration</h2>
+<p>For testing, you can define device configuration directly in <code>settings.json</code> without creating a driver file:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"drawingTablet"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"product"</span><span class="token operator">:</span> <span class="token string">"My Tablet"</span><span class="token punctuation">,</span>
+      <span class="token property">"usage"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+      <span class="token property">"interface"</span><span class="token operator">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
+      <span class="token property">"byteCodeMappings"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"status"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token comment">/* ... */</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token property">"x"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token comment">/* ... */</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token property">"y"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token comment">/* ... */</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token property">"pressure"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token comment">/* ... */</span> <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>This is useful for quick iteration but driver files are preferred for reusability.</p>
+<h2>Example: Complete Device Profile</h2>
+<p>Here's the complete XP-Pen Deco 640 profile as a reference:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"XP-Pen Deco 640"</span><span class="token punctuation">,</span>
+  <span class="token property">"manufacturer"</span><span class="token operator">:</span> <span class="token string">"XP-Pen"</span><span class="token punctuation">,</span>
+  <span class="token property">"model"</span><span class="token operator">:</span> <span class="token string">"Deco 640"</span><span class="token punctuation">,</span>
+  <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"XP-Pen Deco 640 graphics tablet with 8 express keys"</span><span class="token punctuation">,</span>
+  <span class="token property">"vendorId"</span><span class="token operator">:</span> <span class="token string">"0x28bd"</span><span class="token punctuation">,</span>
+  <span class="token property">"productId"</span><span class="token operator">:</span> <span class="token string">"0x0914"</span><span class="token punctuation">,</span>
+  <span class="token property">"deviceInfo"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"product"</span><span class="token operator">:</span> <span class="token string">"Deco 640"</span><span class="token punctuation">,</span>
+    <span class="token property">"usage"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+    <span class="token property">"interface"</span><span class="token operator">:</span> <span class="token number">2</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"reportId"</span><span class="token operator">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
+  <span class="token property">"capabilities"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"hasButtons"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"buttonCount"</span><span class="token operator">:</span> <span class="token number">8</span><span class="token punctuation">,</span>
+    <span class="token property">"hasPressure"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"pressureLevels"</span><span class="token operator">:</span> <span class="token number">16384</span><span class="token punctuation">,</span>
+    <span class="token property">"hasTilt"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"resolution"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"x"</span><span class="token operator">:</span> <span class="token number">32000</span><span class="token punctuation">,</span>
+      <span class="token property">"y"</span><span class="token operator">:</span> <span class="token number">18000</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"byteCodeMappings"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"byteIndex"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"code"</span><span class="token punctuation">,</span>
+      <span class="token property">"values"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"192"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"state"</span><span class="token operator">:</span> <span class="token string">"none"</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token property">"160"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"state"</span><span class="token operator">:</span> <span class="token string">"hover"</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token property">"162"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"state"</span><span class="token operator">:</span> <span class="token string">"hover"</span><span class="token punctuation">,</span> <span class="token property">"secondaryButtonPressed"</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token property">"164"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"state"</span><span class="token operator">:</span> <span class="token string">"hover"</span><span class="token punctuation">,</span> <span class="token property">"primaryButtonPressed"</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token property">"161"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"state"</span><span class="token operator">:</span> <span class="token string">"contact"</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token property">"163"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"state"</span><span class="token operator">:</span> <span class="token string">"contact"</span><span class="token punctuation">,</span> <span class="token property">"secondaryButtonPressed"</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token property">"165"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"state"</span><span class="token operator">:</span> <span class="token string">"contact"</span><span class="token punctuation">,</span> <span class="token property">"primaryButtonPressed"</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token property">"240"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"state"</span><span class="token operator">:</span> <span class="token string">"buttons"</span> <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"x"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"byteIndices"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token property">"max"</span><span class="token operator">:</span> <span class="token number">32000</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"multi-byte-range"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"y"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"byteIndices"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token number">4</span><span class="token punctuation">,</span> <span class="token number">5</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token property">"max"</span><span class="token operator">:</span> <span class="token number">18000</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"multi-byte-range"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"pressure"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"byteIndices"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token number">6</span><span class="token punctuation">,</span> <span class="token number">7</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token property">"max"</span><span class="token operator">:</span> <span class="token number">16383</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"multi-byte-range"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"tiltX"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"byteIndex"</span><span class="token operator">:</span> <span class="token number">8</span><span class="token punctuation">,</span>
+      <span class="token property">"positiveMax"</span><span class="token operator">:</span> <span class="token number">60</span><span class="token punctuation">,</span>
+      <span class="token property">"negativeMin"</span><span class="token operator">:</span> <span class="token number">256</span><span class="token punctuation">,</span>
+      <span class="token property">"negativeMax"</span><span class="token operator">:</span> <span class="token number">196</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"bipolar-range"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"tiltY"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"byteIndex"</span><span class="token operator">:</span> <span class="token number">9</span><span class="token punctuation">,</span>
+      <span class="token property">"positiveMax"</span><span class="token operator">:</span> <span class="token number">60</span><span class="token punctuation">,</span>
+      <span class="token property">"negativeMin"</span><span class="token operator">:</span> <span class="token number">256</span><span class="token punctuation">,</span>
+      <span class="token property">"negativeMax"</span><span class="token operator">:</span> <span class="token number">196</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"bipolar-range"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"byteIndex"</span><span class="token operator">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
+      <span class="token property">"buttonCount"</span><span class="token operator">:</span> <span class="token number">8</span><span class="token punctuation">,</span>
+      <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"bit-flags"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h2>Next Steps</h2>
+<p>Now that your tablet is configured:</p>
+<ul>
+<li><strong><a href="/about/configuration-overview/">Configuration Overview</a></strong> - Understand the settings system</li>
+<li><strong><a href="/about/actions-reference/">Actions Reference</a></strong> - Set up button actions</li>
+<li><strong><a href="/about/settings-reference/">Settings Reference</a></strong> - Complete settings documentation</li>
+<li><strong><a href="/about/chords-and-progressions/">Chords &amp; Progressions</a></strong> - Configure chord progressions</li>
+</ul>
+<h2>Additional Resources</h2>
+<ul>
+<li><strong><code>/server/drivers/</code></strong> - Device profile examples</li>
+<li><strong><code>/server/drivers/README.md</code></strong> - Driver development guide</li>
+<li><strong><code>server/finddevice.py</code></strong> - Auto-detection implementation</li>
+<li><strong><code>server/hidreader.py</code></strong> - HID reading implementation</li>
+</ul>
+
+      </div>
+  </main>
+</div>
+</body>
+<script>
+    document.getElementById('mobile-menu').addEventListener('click', () => {
+        document.getElementById('main-wrapper').classList.add('menu-open');
+    });
+    document.getElementById('main-wrapper').addEventListener('click', () => {
+        document.getElementById('main-wrapper').classList.remove('menu-open');
+    });
+</script>
+</html>

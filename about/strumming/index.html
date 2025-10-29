@@ -1,0 +1,295 @@
+<html lang="en-US" dir="ltr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+    <link rel="canonical" href="/about/strumming/" />
+    <meta property="og:site_name" content="Strumboli" />
+    <meta property="og:title" content="Strumboli: Strumming" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="/about/strumming/" />
+    <link rel="icon" href="/img/icon.svg" type="image/svg+xml" />
+    <link rel="icon" type="image/svg+xml" href="/img/icon.svg" />
+
+    <title>Strumboli: Strumming</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Lexend:wght@300;400;500;600&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../../docs.css" />
+    <link rel="stylesheet" href="../../prism-okaidia.css" />
+    <link rel="preload" href="../../docs.css" as="style" />
+</head>
+<body>
+
+<header>
+    <button id="mobile-menu" class="mobile-menu-button" aria-label="Open menu">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" role="img" fill="currentColor" height="24" width="24" aria-hidden="true">
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="16"></rect>
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="6"></rect>
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="26"></rect>
+        </svg>
+    </button>
+  
+    <div class="logo-container">
+        <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <!-- Background with rounded corners -->
+            <rect width="100" height="100" fill="#1d1d1d" rx="10" ry="10"/>
+            
+            <!-- Colorful horizontal stripes (every other line with gaps) -->
+            <line x1="15" y1="26" x2="85" y2="26" stroke="#ff6b6b" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="42" x2="85" y2="42" stroke="#ffd93d" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="58" x2="85" y2="58" stroke="#6bcf7f" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="74" x2="85" y2="74" stroke="#4dabf7" stroke-width="5" stroke-linecap="butt"/>
+            
+            <!-- Enclosing U-shape (square with right edge missing) -->
+            <!-- Top edge -->
+            <line x1="15" y1="15" x2="85" y2="15" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Left edge -->
+            <line x1="15" y1="15" x2="15" y2="85" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Bottom edge -->
+            <line x1="15" y1="85" x2="85" y2="85" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Right edge is missing (opening) -->
+        </svg>
+    </div>
+
+    <div class="title">
+        <h1>Strumboli</h1>
+        <h4>Turn your drawing tablet into a MIDI strumming controller</h4>
+    </div>
+
+    <div class="logo-container github">
+        <a href="https://github.com/yourusername/midi-strummer"><img src="/img/github-logo.svg" alt="Github Logo" /></a>
+    </div>
+</header>
+
+<div id="main-wrapper">
+  
+
+
+
+
+
+
+
+
+<nav>
+    <div class="mobile-header">
+        <h1>Strumboli</h1>
+    </div>
+    <h4>Getting Started</h4>
+    
+    <a href="../../">Introduction</a>
+    
+    <a href="../getting-started/">Getting Started</a>
+    
+    <a href="../configuration-overview/">Configuration Overview</a>
+    
+
+    <h4>Server & Startup</h4>
+    
+        <a href="../server-startup/">Overview</a>
+    
+        <a href="../tablet-setup/">Tablet Setup</a>
+    
+        <a href="../web-dashboard/">Web Dashboard</a>
+    
+        <a href="../midi-input/">MIDI Input</a>
+    
+
+    <h4>Features</h4>
+    
+        <a href="">Strumming</a>
+    
+        <a href="../note-velocity/">Note Velocity</a>
+    
+        <a href="../note-duration/">Note Duration</a>
+    
+        <a href="../pitch-bend/">Pitch Bend</a>
+    
+        <a href="../note-repeater/">Note Repeater</a>
+    
+        <a href="../transpose/">Transpose</a>
+    
+        <a href="../stylus-buttons/">Stylus Buttons</a>
+    
+        <a href="../tablet-buttons/">Tablet Buttons</a>
+    
+        <a href="../strum-release/">Strum Release</a>
+    
+
+    <h4>Misc</h4>
+    
+        <a href="../actions-reference/">Actions Reference</a>
+    
+        <a href="../chords-and-progressions/">Chords &amp; Progressions</a>
+    
+</nav>
+
+  <main>
+      <div class="content">
+        <h2 id="page-title">Core strumming behavior and note configuration</h2>
+        <h1>Strumming</h1>
+<p>Core strumming behavior configuration for how notes are triggered and spread across the tablet.</p>
+<h2>Settings</h2>
+<h3>pluckVelocityScale</h3>
+<p><strong>Type:</strong> <code>float</code><br>
+<strong>Default:</strong> <code>4.0</code><br>
+<strong>Range:</strong> &gt; 0<br>
+<strong>Description:</strong> Multiplier for X-axis movement velocity when calculating pluck velocity</p>
+<p><strong>Examples:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"strumming"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"pluckVelocityScale"</span><span class="token operator">:</span> <span class="token number">6.0</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Higher values = faster X-axis movement required for same velocity.</p>
+<hr>
+<h3>pressureThreshold</h3>
+<p><strong>Type:</strong> <code>float</code><br>
+<strong>Default:</strong> <code>0.1</code><br>
+<strong>Range:</strong> 0.0-1.0<br>
+<strong>Description:</strong> Minimum pressure required to trigger notes</p>
+<p><strong>Examples:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"strumming"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"pressureThreshold"</span><span class="token operator">:</span> <span class="token number">0.05</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Lower values = more sensitive to light touch.<br>
+Higher values = require firmer press to trigger.</p>
+<hr>
+<h3>midiChannel</h3>
+<p><strong>Type:</strong> <code>integer</code> or <code>null</code><br>
+<strong>Default:</strong> <code>null</code><br>
+<strong>Range:</strong> 1-16<br>
+<strong>Description:</strong> MIDI channel for strummed notes</p>
+<p><strong>Examples:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"strumming"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"midiChannel"</span><span class="token operator">:</span> <span class="token number">1</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Set to specific channel to route to different instrument in DAW.<br>
+Set to <code>null</code> to use default channel.</p>
+<hr>
+<h3>initialNotes</h3>
+<p><strong>Type:</strong> <code>array</code> of <code>string</code><br>
+<strong>Default:</strong> <code>[&quot;C4&quot;, &quot;E4&quot;, &quot;G4&quot;]</code><br>
+<strong>Description:</strong> Starting notes when Strumboli launches</p>
+<p><strong>Examples:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"strumming"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"initialNotes"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"E2"</span><span class="token punctuation">,</span> <span class="token string">"B2"</span><span class="token punctuation">,</span> <span class="token string">"E3"</span><span class="token punctuation">,</span> <span class="token string">"G#3"</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Format: <code>&quot;&lt;Note&gt;&lt;Octave&gt;&quot;</code> (e.g., <code>&quot;C4&quot;</code>, <code>&quot;F#5&quot;</code>, <code>&quot;Bb3&quot;</code>)</p>
+<hr>
+<h3>upperNoteSpread</h3>
+<p><strong>Type:</strong> <code>integer</code><br>
+<strong>Default:</strong> <code>3</code><br>
+<strong>Range:</strong> 0+<br>
+<strong>Description:</strong> Number of additional octaves to add above the chord</p>
+<p><strong>Examples:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"strumming"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"upperNoteSpread"</span><span class="token operator">:</span> <span class="token number">5</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>With a C major chord (C4, E4, G4):</p>
+<ul>
+<li><code>0</code> - No additional notes</li>
+<li><code>1</code> - Adds C5, E5, G5</li>
+<li><code>3</code> - Adds C5-G5, C6-G6, C7-G7</li>
+</ul>
+<hr>
+<h3>lowerNoteSpread</h3>
+<p><strong>Type:</strong> <code>integer</code><br>
+<strong>Default:</strong> <code>3</code><br>
+<strong>Range:</strong> 0+<br>
+<strong>Description:</strong> Number of additional octaves to add below the chord</p>
+<p><strong>Examples:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"strumming"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"lowerNoteSpread"</span><span class="token operator">:</span> <span class="token number">1</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>With a C major chord (C4, E4, G4):</p>
+<ul>
+<li><code>0</code> - No additional notes</li>
+<li><code>1</code> - Adds C3, E3, G3</li>
+<li><code>3</code> - Adds C1-G1, C2-G2, C3-G3</li>
+</ul>
+<h2>Configuration Example</h2>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"strumming"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"pluckVelocityScale"</span><span class="token operator">:</span> <span class="token number">4.0</span><span class="token punctuation">,</span>
+    <span class="token property">"pressureThreshold"</span><span class="token operator">:</span> <span class="token number">0.1</span><span class="token punctuation">,</span>
+    <span class="token property">"midiChannel"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+    <span class="token property">"initialNotes"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"C4"</span><span class="token punctuation">,</span> <span class="token string">"E4"</span><span class="token punctuation">,</span> <span class="token string">"G4"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"upperNoteSpread"</span><span class="token operator">:</span> <span class="token number">3</span><span class="token punctuation">,</span>
+    <span class="token property">"lowerNoteSpread"</span><span class="token operator">:</span> <span class="token number">3</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h2>Note Spread Guidelines</h2>
+<table>
+<thead>
+<tr>
+<th>Use Case</th>
+<th>Lower</th>
+<th>Upper</th>
+<th>Total Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Minimal</td>
+<td>0-1</td>
+<td>0-1</td>
+<td>3-9</td>
+</tr>
+<tr>
+<td>Normal</td>
+<td>2-3</td>
+<td>2-3</td>
+<td>15-21</td>
+</tr>
+<tr>
+<td>Wide</td>
+<td>4-5</td>
+<td>4-5</td>
+<td>27-33</td>
+</tr>
+<tr>
+<td>Full Range</td>
+<td>6+</td>
+<td>6+</td>
+<td>39+</td>
+</tr>
+</tbody>
+</table>
+<h2>Related Documentation</h2>
+<ul>
+<li><a href="/about/chords-and-progressions/">Chords &amp; Progressions</a> - Explore the chord system</li>
+<li><a href="/about/tablet-buttons/">Tablet Buttons</a> - Configure button actions for chord changes</li>
+<li><a href="/about/note-velocity/">Note Velocity</a> - Control dynamics</li>
+</ul>
+
+      </div>
+  </main>
+</div>
+</body>
+<script>
+    document.getElementById('mobile-menu').addEventListener('click', () => {
+        document.getElementById('main-wrapper').classList.add('menu-open');
+    });
+    document.getElementById('main-wrapper').addEventListener('click', () => {
+        document.getElementById('main-wrapper').classList.remove('menu-open');
+    });
+</script>
+</html>

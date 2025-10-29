@@ -1,0 +1,456 @@
+<html lang="en-US" dir="ltr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+    <link rel="canonical" href="/about/configuration-overview/" />
+    <meta property="og:site_name" content="Strumboli" />
+    <meta property="og:title" content="Strumboli: Configuration Overview" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="/about/configuration-overview/" />
+    <link rel="icon" href="/img/icon.svg" type="image/svg+xml" />
+    <link rel="icon" type="image/svg+xml" href="/img/icon.svg" />
+
+    <title>Strumboli: Configuration Overview</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Lexend:wght@300;400;500;600&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../../docs.css" />
+    <link rel="stylesheet" href="../../prism-okaidia.css" />
+    <link rel="preload" href="../../docs.css" as="style" />
+</head>
+<body>
+
+<header>
+    <button id="mobile-menu" class="mobile-menu-button" aria-label="Open menu">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" role="img" fill="currentColor" height="24" width="24" aria-hidden="true">
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="16"></rect>
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="6"></rect>
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="26"></rect>
+        </svg>
+    </button>
+  
+    <div class="logo-container">
+        <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <!-- Background with rounded corners -->
+            <rect width="100" height="100" fill="#1d1d1d" rx="10" ry="10"/>
+            
+            <!-- Colorful horizontal stripes (every other line with gaps) -->
+            <line x1="15" y1="26" x2="85" y2="26" stroke="#ff6b6b" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="42" x2="85" y2="42" stroke="#ffd93d" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="58" x2="85" y2="58" stroke="#6bcf7f" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="74" x2="85" y2="74" stroke="#4dabf7" stroke-width="5" stroke-linecap="butt"/>
+            
+            <!-- Enclosing U-shape (square with right edge missing) -->
+            <!-- Top edge -->
+            <line x1="15" y1="15" x2="85" y2="15" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Left edge -->
+            <line x1="15" y1="15" x2="15" y2="85" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Bottom edge -->
+            <line x1="15" y1="85" x2="85" y2="85" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Right edge is missing (opening) -->
+        </svg>
+    </div>
+
+    <div class="title">
+        <h1>Strumboli</h1>
+        <h4>Turn your drawing tablet into a MIDI strumming controller</h4>
+    </div>
+
+    <div class="logo-container github">
+        <a href="https://github.com/yourusername/midi-strummer"><img src="/img/github-logo.svg" alt="Github Logo" /></a>
+    </div>
+</header>
+
+<div id="main-wrapper">
+  
+
+
+
+
+
+
+
+
+<nav>
+    <div class="mobile-header">
+        <h1>Strumboli</h1>
+    </div>
+    <h4>Getting Started</h4>
+    
+    <a href="../../">Introduction</a>
+    
+    <a href="../getting-started/">Getting Started</a>
+    
+    <a href="">Configuration Overview</a>
+    
+
+    <h4>Server & Startup</h4>
+    
+        <a href="../server-startup/">Overview</a>
+    
+        <a href="../tablet-setup/">Tablet Setup</a>
+    
+        <a href="../web-dashboard/">Web Dashboard</a>
+    
+        <a href="../midi-input/">MIDI Input</a>
+    
+
+    <h4>Features</h4>
+    
+        <a href="../strumming/">Strumming</a>
+    
+        <a href="../note-velocity/">Note Velocity</a>
+    
+        <a href="../note-duration/">Note Duration</a>
+    
+        <a href="../pitch-bend/">Pitch Bend</a>
+    
+        <a href="../note-repeater/">Note Repeater</a>
+    
+        <a href="../transpose/">Transpose</a>
+    
+        <a href="../stylus-buttons/">Stylus Buttons</a>
+    
+        <a href="../tablet-buttons/">Tablet Buttons</a>
+    
+        <a href="../strum-release/">Strum Release</a>
+    
+
+    <h4>Misc</h4>
+    
+        <a href="../actions-reference/">Actions Reference</a>
+    
+        <a href="../chords-and-progressions/">Chords &amp; Progressions</a>
+    
+</nav>
+
+  <main>
+      <div class="content">
+        <h2 id="page-title">Understanding Strumboli&#39;s configuration system</h2>
+        <h1>Configuration Overview</h1>
+<p>Strumboli uses a JSON-based configuration system that controls everything from tablet hardware mapping to MIDI expression parameters. This guide explains the structure and key concepts.</p>
+<h2>Configuration File</h2>
+<p>The main configuration file is <strong><code>settings.json</code></strong>, located in:</p>
+<ol>
+<li>The application directory (checked first)</li>
+<li>Parent directory</li>
+<li>Current working directory</li>
+<li>Your home directory</li>
+</ol>
+<h2>Configuration Structure</h2>
+<p>The settings file is organized into logical sections:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token comment">/* System startup options */</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"strumming"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token comment">/* Strumming behavior */</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"noteDuration"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token comment">/* Note length control */</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"noteVelocity"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token comment">/* Velocity/dynamics control */</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"pitchBend"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token comment">/* Pitch bend mapping */</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"noteRepeater"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token comment">/* Repeater effect */</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"stylusButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token comment">/* Stylus button actions */</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token comment">/* Tablet button actions */</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"strumRelease"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token comment">/* Release trigger settings */</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h2>Core Concepts</h2>
+<h3>1. Control Mapping</h3>
+<p>Many settings map tablet inputs to MIDI parameters. Each mapping has these properties:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"control"</span><span class="token operator">:</span> <span class="token string">"pressure"</span><span class="token punctuation">,</span>      <span class="token comment">// Input source</span>
+  <span class="token property">"min"</span><span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">,</span>                   <span class="token comment">// Minimum output value</span>
+  <span class="token property">"max"</span><span class="token operator">:</span> <span class="token number">127</span><span class="token punctuation">,</span>                 <span class="token comment">// Maximum output value</span>
+  <span class="token property">"default"</span><span class="token operator">:</span> <span class="token number">64</span><span class="token punctuation">,</span>              <span class="token comment">// Default when not active</span>
+  <span class="token property">"curve"</span><span class="token operator">:</span> <span class="token number">1.0</span><span class="token punctuation">,</span>               <span class="token comment">// Response curve</span>
+  <span class="token property">"spread"</span><span class="token operator">:</span> <span class="token string">"direct"</span><span class="token punctuation">,</span>         <span class="token comment">// Distribution type</span>
+  <span class="token property">"multiplier"</span><span class="token operator">:</span> <span class="token number">1.0</span>           <span class="token comment">// Scale factor</span>
+<span class="token punctuation">}</span></code></pre>
+<h4>Available Controls</h4>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+<th>Use Cases</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pressure</code></td>
+<td>Stylus pressure</td>
+<td>Velocity, dynamics</td>
+</tr>
+<tr>
+<td><code>tiltX</code></td>
+<td>Left/right tilt</td>
+<td>Pitch bend, modulation</td>
+</tr>
+<tr>
+<td><code>tiltY</code></td>
+<td>Forward/back tilt</td>
+<td>Expression, brightness</td>
+</tr>
+<tr>
+<td><code>tiltXY</code></td>
+<td>Combined tilt</td>
+<td>Note duration</td>
+</tr>
+<tr>
+<td><code>xaxis</code></td>
+<td>Horizontal position</td>
+<td>Pan, filter sweep</td>
+</tr>
+<tr>
+<td><code>yaxis</code></td>
+<td>Vertical position</td>
+<td>Pitch, cutoff</td>
+</tr>
+</tbody>
+</table>
+<h4>Spread Types</h4>
+<table>
+<thead>
+<tr>
+<th>Spread</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>direct</code></td>
+<td>Linear mapping (0→min, 1→max)</td>
+<td>Velocity 0-127</td>
+</tr>
+<tr>
+<td><code>inverse</code></td>
+<td>Inverted (0→max, 1→min)</td>
+<td>Duration (light=long)</td>
+</tr>
+<tr>
+<td><code>central</code></td>
+<td>Center-based (0.5→default, edges→min/max)</td>
+<td>Pitch bend around center</td>
+</tr>
+</tbody>
+</table>
+<h4>Curve Values</h4>
+<p>The <code>curve</code> parameter shapes the response:</p>
+<ul>
+<li><strong><code>1.0</code></strong> - Linear (no curve)</li>
+<li><strong><code>2.0</code></strong> - Gentle logarithmic curve</li>
+<li><strong><code>3.0</code></strong> - Moderate curve (good balance)</li>
+<li><strong><code>4.0</code></strong> - Steep curve (very sensitive at low values)</li>
+<li><strong><code>0.5</code></strong> - Compressed (reduces sensitivity)</li>
+</ul>
+<p><strong>Example:</strong> <code>curve: 4.0</code> for pressure makes light touches more expressive.</p>
+<h3>2. Note Spread</h3>
+<p>The <strong>note spread</strong> system fills out chords with additional octaves:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"strumming"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"initialNotes"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"C4"</span><span class="token punctuation">,</span> <span class="token string">"E4"</span><span class="token punctuation">,</span> <span class="token string">"G4"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"lowerNoteSpread"</span><span class="token operator">:</span> <span class="token number">3</span><span class="token punctuation">,</span>
+    <span class="token property">"upperNoteSpread"</span><span class="token operator">:</span> <span class="token number">3</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>This creates:</p>
+<ul>
+<li>3 notes <strong>below</strong> the chord (C3, E3, G3)</li>
+<li>The chord itself (C4, E4, G4)</li>
+<li>3 notes <strong>above</strong> the chord (C5, E5, G5)</li>
+</ul>
+<p>Total: 9 notes to strum through</p>
+<h3>3. Actions System</h3>
+<p>Actions define what happens when you press buttons. Format:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token comment">// Simple action (no parameters)</span>
+<span class="token string">"toggle-repeater"</span>
+
+<span class="token comment">// Action with parameters</span>
+<span class="token punctuation">[</span><span class="token string">"transpose"</span><span class="token punctuation">,</span> <span class="token number">12</span><span class="token punctuation">]</span>
+
+<span class="token comment">// Action with nested parameters</span>
+<span class="token punctuation">[</span><span class="token string">"set-strum-notes"</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token string">"C4"</span><span class="token punctuation">,</span> <span class="token string">"E4"</span><span class="token punctuation">,</span> <span class="token string">"G4"</span><span class="token punctuation">]</span><span class="token punctuation">]</span>
+
+<span class="token comment">// Chord action</span>
+<span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"Cmaj7"</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">]</span></code></pre>
+<p>See <a href="/about/actions-reference/">Actions Reference</a> for all available actions.</p>
+<h3>4. Chord Progressions</h3>
+<p>Chord progressions can be:</p>
+<p><strong>Preset name</strong> (automatic 8-button setup):</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token string">"c-major-pop"</span>
+<span class="token punctuation">}</span></code></pre>
+<p><strong>Custom configuration</strong> (full control):</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"1"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"C"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"2"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"G"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"3"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"Am"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"4"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"F"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"5"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"transpose"</span><span class="token punctuation">,</span> <span class="token number">12</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"6"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"transpose"</span><span class="token punctuation">,</span> <span class="token number">-12</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"7"</span><span class="token operator">:</span> <span class="token string">"toggle-repeater"</span><span class="token punctuation">,</span>
+    <span class="token property">"8"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-notes"</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token string">"E2"</span><span class="token punctuation">]</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>See <a href="/about/chords-and-progressions/">Chords &amp; Progressions</a> for details.</p>
+<h2>Configuration Sections</h2>
+<h3>startupConfiguration</h3>
+<p>System-level settings for device detection and server startup:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"drawingTablet"</span><span class="token operator">:</span> <span class="token string">"auto-detect"</span><span class="token punctuation">,</span>
+    <span class="token property">"useSocketServer"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"socketServerPort"</span><span class="token operator">:</span> <span class="token number">8080</span><span class="token punctuation">,</span>
+    <span class="token property">"useWebServer"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"webServerPort"</span><span class="token operator">:</span> <span class="token number">82</span><span class="token punctuation">,</span>
+    <span class="token property">"midiInputId"</span><span class="token operator">:</span> <span class="token string">"Your MIDI Device"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<ul>
+<li><strong><code>drawingTablet</code></strong>: Device identifier or <code>&quot;auto-detect&quot;</code> (see <a href="/about/tablet-setup/">Tablet Setup</a>)</li>
+<li><strong><code>useSocketServer</code></strong>: Enable WebSocket server for dashboard</li>
+<li><strong><code>useWebServer</code></strong>: Enable HTTP server for web interface</li>
+<li><strong><code>midiInputId</code></strong>: MIDI input device name (for keyboard input, optional)</li>
+</ul>
+<h3>strumming</h3>
+<p>Controls strumming behavior:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"strumming"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"pluckVelocityScale"</span><span class="token operator">:</span> <span class="token number">4.0</span><span class="token punctuation">,</span>
+    <span class="token property">"pressureThreshold"</span><span class="token operator">:</span> <span class="token number">0.1</span><span class="token punctuation">,</span>
+    <span class="token property">"midiChannel"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+    <span class="token property">"initialNotes"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"C4"</span><span class="token punctuation">,</span> <span class="token string">"E4"</span><span class="token punctuation">,</span> <span class="token string">"G4"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"upperNoteSpread"</span><span class="token operator">:</span> <span class="token number">3</span><span class="token punctuation">,</span>
+    <span class="token property">"lowerNoteSpread"</span><span class="token operator">:</span> <span class="token number">3</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<ul>
+<li><strong><code>pluckVelocityScale</code></strong>: Velocity multiplier for X-axis movement</li>
+<li><strong><code>pressureThreshold</code></strong>: Minimum pressure to trigger notes (0.0-1.0)</li>
+<li><strong><code>midiChannel</code></strong>: MIDI channel for note output</li>
+<li><strong><code>initialNotes</code></strong>: Starting chord/notes</li>
+<li><strong><code>upperNoteSpread</code></strong>: Notes added above chord</li>
+<li><strong><code>lowerNoteSpread</code></strong>: Notes added below chord</li>
+</ul>
+<h3>Expression Controls</h3>
+<p>Map tablet inputs to MIDI expression:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"noteVelocity"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"control"</span><span class="token operator">:</span> <span class="token string">"pressure"</span><span class="token punctuation">,</span>
+    <span class="token property">"min"</span><span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+    <span class="token property">"max"</span><span class="token operator">:</span> <span class="token number">127</span><span class="token punctuation">,</span>
+    <span class="token property">"default"</span><span class="token operator">:</span> <span class="token number">64</span><span class="token punctuation">,</span>
+    <span class="token property">"curve"</span><span class="token operator">:</span> <span class="token number">4.0</span><span class="token punctuation">,</span>
+    <span class="token property">"spread"</span><span class="token operator">:</span> <span class="token string">"direct"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"noteDuration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"control"</span><span class="token operator">:</span> <span class="token string">"yaxis"</span><span class="token punctuation">,</span>
+    <span class="token property">"min"</span><span class="token operator">:</span> <span class="token number">0.15</span><span class="token punctuation">,</span>
+    <span class="token property">"max"</span><span class="token operator">:</span> <span class="token number">1.5</span><span class="token punctuation">,</span>
+    <span class="token property">"default"</span><span class="token operator">:</span> <span class="token number">1.0</span><span class="token punctuation">,</span>
+    <span class="token property">"curve"</span><span class="token operator">:</span> <span class="token number">1.0</span><span class="token punctuation">,</span>
+    <span class="token property">"spread"</span><span class="token operator">:</span> <span class="token string">"central"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"pitchBend"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"control"</span><span class="token operator">:</span> <span class="token string">"tiltXY"</span><span class="token punctuation">,</span>
+    <span class="token property">"min"</span><span class="token operator">:</span> <span class="token number">-1.0</span><span class="token punctuation">,</span>
+    <span class="token property">"max"</span><span class="token operator">:</span> <span class="token number">1.0</span><span class="token punctuation">,</span>
+    <span class="token property">"default"</span><span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+    <span class="token property">"curve"</span><span class="token operator">:</span> <span class="token number">4.0</span><span class="token punctuation">,</span>
+    <span class="token property">"spread"</span><span class="token operator">:</span> <span class="token string">"direct"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h3>noteRepeater</h3>
+<p>Enables note repetition based on pressure:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"noteRepeater"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"active"</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+    <span class="token property">"pressureMultiplier"</span><span class="token operator">:</span> <span class="token number">1.0</span><span class="token punctuation">,</span>
+    <span class="token property">"frequencyMultiplier"</span><span class="token operator">:</span> <span class="token number">5.0</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<ul>
+<li><strong><code>active</code></strong>: Enable/disable repeater</li>
+<li><strong><code>pressureMultiplier</code></strong>: How pressure affects repetition</li>
+<li><strong><code>frequencyMultiplier</code></strong>: Repetition speed multiplier</li>
+</ul>
+<h3>Button Configuration</h3>
+<p>Configure stylus and tablet buttons:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"stylusButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"active"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"primaryButtonAction"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"transpose"</span><span class="token punctuation">,</span> <span class="token number">12</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"secondaryButtonAction"</span><span class="token operator">:</span> <span class="token string">"toggle-repeater"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token string">"c-major-pop"</span>
+<span class="token punctuation">}</span></code></pre>
+<p>See <a href="/about/actions-reference/">Actions Reference</a> for all button action options.</p>
+<h2>Configuration Tips</h2>
+<h3>Starting Simple</h3>
+<p>Begin with a minimal configuration:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"drawingTablet"</span><span class="token operator">:</span> <span class="token string">"auto-detect"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"strumming"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"midiChannel"</span><span class="token operator">:</span> <span class="token number">1</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token string">"c-major-pop"</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Everything else will use sensible defaults.</p>
+<h3>Common Configurations</h3>
+<p><strong>Guitar-like strumming:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"noteVelocity"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"control"</span><span class="token operator">:</span> <span class="token string">"pressure"</span><span class="token punctuation">,</span> <span class="token property">"curve"</span><span class="token operator">:</span> <span class="token number">4.0</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"pitchBend"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"control"</span><span class="token operator">:</span> <span class="token string">"tiltX"</span><span class="token punctuation">,</span> <span class="token property">"curve"</span><span class="token operator">:</span> <span class="token number">3.0</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"strumming"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"upperNoteSpread"</span><span class="token operator">:</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token property">"lowerNoteSpread"</span><span class="token operator">:</span> <span class="token number">1</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p><strong>Bass performance:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"strumming"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"initialNotes"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"E1"</span><span class="token punctuation">,</span> <span class="token string">"A1"</span><span class="token punctuation">,</span> <span class="token string">"D2"</span><span class="token punctuation">,</span> <span class="token string">"G2"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"upperNoteSpread"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+    <span class="token property">"lowerNoteSpread"</span><span class="token operator">:</span> <span class="token number">0</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"noteDuration"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"max"</span><span class="token operator">:</span> <span class="token number">4.0</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p><strong>Ambient pad:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"noteRepeater"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"active"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> <span class="token property">"frequencyMultiplier"</span><span class="token operator">:</span> <span class="token number">2.0</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"noteDuration"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"min"</span><span class="token operator">:</span> <span class="token number">2.0</span><span class="token punctuation">,</span> <span class="token property">"max"</span><span class="token operator">:</span> <span class="token number">8.0</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"noteVelocity"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"max"</span><span class="token operator">:</span> <span class="token number">80</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h2>Live Configuration Changes</h2>
+<p>Some settings can be changed in real-time:</p>
+<ul>
+<li>Chord/note selection (via button actions)</li>
+<li>Transpose (via button actions)</li>
+<li>Note repeater on/off (via button actions)</li>
+</ul>
+<p>Most other settings require restarting Strumboli to take effect.</p>
+<h2>Next Steps</h2>
+<ul>
+<li><strong><a href="/about/tablet-setup/">Tablet Setup</a></strong> - Configure your specific tablet hardware</li>
+<li><strong><a href="/about/settings-reference/">Settings Reference</a></strong> - Complete documentation of all settings</li>
+<li><strong><a href="/about/actions-reference/">Actions Reference</a></strong> - Learn about button actions</li>
+<li><strong><a href="/about/chords-and-progressions/">Chords &amp; Progressions</a></strong> - Explore the chord system</li>
+</ul>
+
+      </div>
+  </main>
+</div>
+</body>
+<script>
+    document.getElementById('mobile-menu').addEventListener('click', () => {
+        document.getElementById('main-wrapper').classList.add('menu-open');
+    });
+    document.getElementById('main-wrapper').addEventListener('click', () => {
+        document.getElementById('main-wrapper').classList.remove('menu-open');
+    });
+</script>
+</html>

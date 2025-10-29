@@ -1,0 +1,1004 @@
+<html lang="en-US" dir="ltr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+    <link rel="canonical" href="/about/chords-and-progressions/" />
+    <meta property="og:site_name" content="Strumboli" />
+    <meta property="og:title" content="Strumboli: Chords &amp; Progressions" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="/about/chords-and-progressions/" />
+    <link rel="icon" href="/img/icon.svg" type="image/svg+xml" />
+    <link rel="icon" type="image/svg+xml" href="/img/icon.svg" />
+
+    <title>Strumboli: Chords &amp; Progressions</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Lexend:wght@300;400;500;600&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../../docs.css" />
+    <link rel="stylesheet" href="../../prism-okaidia.css" />
+    <link rel="preload" href="../../docs.css" as="style" />
+</head>
+<body>
+
+<header>
+    <button id="mobile-menu" class="mobile-menu-button" aria-label="Open menu">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" role="img" fill="currentColor" height="24" width="24" aria-hidden="true">
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="16"></rect>
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="6"></rect>
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="26"></rect>
+        </svg>
+    </button>
+  
+    <div class="logo-container">
+        <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <!-- Background with rounded corners -->
+            <rect width="100" height="100" fill="#1d1d1d" rx="10" ry="10"/>
+            
+            <!-- Colorful horizontal stripes (every other line with gaps) -->
+            <line x1="15" y1="26" x2="85" y2="26" stroke="#ff6b6b" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="42" x2="85" y2="42" stroke="#ffd93d" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="58" x2="85" y2="58" stroke="#6bcf7f" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="74" x2="85" y2="74" stroke="#4dabf7" stroke-width="5" stroke-linecap="butt"/>
+            
+            <!-- Enclosing U-shape (square with right edge missing) -->
+            <!-- Top edge -->
+            <line x1="15" y1="15" x2="85" y2="15" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Left edge -->
+            <line x1="15" y1="15" x2="15" y2="85" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Bottom edge -->
+            <line x1="15" y1="85" x2="85" y2="85" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Right edge is missing (opening) -->
+        </svg>
+    </div>
+
+    <div class="title">
+        <h1>Strumboli</h1>
+        <h4>Turn your drawing tablet into a MIDI strumming controller</h4>
+    </div>
+
+    <div class="logo-container github">
+        <a href="https://github.com/yourusername/midi-strummer"><img src="/img/github-logo.svg" alt="Github Logo" /></a>
+    </div>
+</header>
+
+<div id="main-wrapper">
+  
+
+
+
+
+
+
+
+
+<nav>
+    <div class="mobile-header">
+        <h1>Strumboli</h1>
+    </div>
+    <h4>Getting Started</h4>
+    
+    <a href="../../">Introduction</a>
+    
+    <a href="../getting-started/">Getting Started</a>
+    
+    <a href="../configuration-overview/">Configuration Overview</a>
+    
+
+    <h4>Server & Startup</h4>
+    
+        <a href="../server-startup/">Overview</a>
+    
+        <a href="../tablet-setup/">Tablet Setup</a>
+    
+        <a href="../web-dashboard/">Web Dashboard</a>
+    
+        <a href="../midi-input/">MIDI Input</a>
+    
+
+    <h4>Features</h4>
+    
+        <a href="../strumming/">Strumming</a>
+    
+        <a href="../note-velocity/">Note Velocity</a>
+    
+        <a href="../note-duration/">Note Duration</a>
+    
+        <a href="../pitch-bend/">Pitch Bend</a>
+    
+        <a href="../note-repeater/">Note Repeater</a>
+    
+        <a href="../transpose/">Transpose</a>
+    
+        <a href="../stylus-buttons/">Stylus Buttons</a>
+    
+        <a href="../tablet-buttons/">Tablet Buttons</a>
+    
+        <a href="../strum-release/">Strum Release</a>
+    
+
+    <h4>Misc</h4>
+    
+        <a href="../actions-reference/">Actions Reference</a>
+    
+        <a href="">Chords &amp; Progressions</a>
+    
+</nav>
+
+  <main>
+      <div class="content">
+        <h2 id="page-title">Complete guide to the chord system in Strumboli</h2>
+        <h1>Chords &amp; Progressions</h1>
+<p>Strumboli includes a comprehensive chord system with built-in progressions and flexible chord notation. This guide covers everything from basic chord types to creating custom progressions.</p>
+<h2>Chord Notation</h2>
+<h3>Supported Chord Types</h3>
+<h4>Triads (3-note chords)</h4>
+<table>
+<thead>
+<tr>
+<th>Notation</th>
+<th>Name</th>
+<th>Intervals</th>
+<th>Example</th>
+<th>Notes (Octave 4)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>maj</code> or <em>(none)</em></td>
+<td>Major</td>
+<td>0, 4, 7</td>
+<td><code>C</code> or <code>Cmaj</code></td>
+<td>C4, E4, G4</td>
+</tr>
+<tr>
+<td><code>m</code> or <code>min</code></td>
+<td>Minor</td>
+<td>0, 3, 7</td>
+<td><code>Cm</code> or <code>Cmin</code></td>
+<td>C4, Eb4, G4</td>
+</tr>
+<tr>
+<td><code>dim</code></td>
+<td>Diminished</td>
+<td>0, 3, 6</td>
+<td><code>Cdim</code></td>
+<td>C4, Eb4, Gb4</td>
+</tr>
+<tr>
+<td><code>aug</code></td>
+<td>Augmented</td>
+<td>0, 4, 8</td>
+<td><code>Caug</code></td>
+<td>C4, E4, G#4</td>
+</tr>
+<tr>
+<td><code>sus2</code></td>
+<td>Suspended 2nd</td>
+<td>0, 2, 7</td>
+<td><code>Csus2</code></td>
+<td>C4, D4, G4</td>
+</tr>
+<tr>
+<td><code>sus4</code></td>
+<td>Suspended 4th</td>
+<td>0, 5, 7</td>
+<td><code>Csus4</code></td>
+<td>C4, F4, G4</td>
+</tr>
+<tr>
+<td><code>5</code></td>
+<td>Power chord</td>
+<td>0, 7</td>
+<td><code>C5</code></td>
+<td>C4, G4</td>
+</tr>
+</tbody>
+</table>
+<h4>Seventh Chords (4-note chords)</h4>
+<table>
+<thead>
+<tr>
+<th>Notation</th>
+<th>Name</th>
+<th>Intervals</th>
+<th>Example</th>
+<th>Notes (Octave 4)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>7</code></td>
+<td>Dominant 7th</td>
+<td>0, 4, 7, 10</td>
+<td><code>C7</code></td>
+<td>C4, E4, G4, Bb4</td>
+</tr>
+<tr>
+<td><code>maj7</code></td>
+<td>Major 7th</td>
+<td>0, 4, 7, 11</td>
+<td><code>Cmaj7</code></td>
+<td>C4, E4, G4, B4</td>
+</tr>
+<tr>
+<td><code>m7</code> or <code>min7</code></td>
+<td>Minor 7th</td>
+<td>0, 3, 7, 10</td>
+<td><code>Cm7</code></td>
+<td>C4, Eb4, G4, Bb4</td>
+</tr>
+<tr>
+<td><code>dim7</code></td>
+<td>Diminished 7th</td>
+<td>0, 3, 6, 9</td>
+<td><code>Cdim7</code></td>
+<td>C4, Eb4, Gb4, A4</td>
+</tr>
+<tr>
+<td><code>aug7</code></td>
+<td>Augmented 7th</td>
+<td>0, 4, 8, 10</td>
+<td><code>Caug7</code></td>
+<td>C4, E4, G#4, Bb4</td>
+</tr>
+</tbody>
+</table>
+<h4>Extended Chords (5+ notes)</h4>
+<table>
+<thead>
+<tr>
+<th>Notation</th>
+<th>Name</th>
+<th>Intervals</th>
+<th>Example</th>
+<th>Notes (Octave 4-5)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>9</code></td>
+<td>Dominant 9th</td>
+<td>0, 4, 7, 10, 14</td>
+<td><code>C9</code></td>
+<td>C4, E4, G4, Bb4, D5</td>
+</tr>
+<tr>
+<td><code>maj9</code></td>
+<td>Major 9th</td>
+<td>0, 4, 7, 11, 14</td>
+<td><code>Cmaj9</code></td>
+<td>C4, E4, G4, B4, D5</td>
+</tr>
+<tr>
+<td><code>m9</code> or <code>min9</code></td>
+<td>Minor 9th</td>
+<td>0, 3, 7, 10, 14</td>
+<td><code>Cm9</code></td>
+<td>C4, Eb4, G4, Bb4, D5</td>
+</tr>
+<tr>
+<td><code>add9</code></td>
+<td>Major add 9</td>
+<td>0, 4, 7, 14</td>
+<td><code>Cadd9</code></td>
+<td>C4, E4, G4, D5</td>
+</tr>
+<tr>
+<td><code>6</code></td>
+<td>Major 6th</td>
+<td>0, 4, 7, 9</td>
+<td><code>C6</code></td>
+<td>C4, E4, G4, A4</td>
+</tr>
+<tr>
+<td><code>m6</code> or <code>min6</code></td>
+<td>Minor 6th</td>
+<td>0, 3, 7, 9</td>
+<td><code>Cm6</code></td>
+<td>C4, Eb4, G4, A4</td>
+</tr>
+</tbody>
+</table>
+<h3>Root Notes</h3>
+<p>All 12 chromatic notes are supported:</p>
+<p><strong>Sharp notation:</strong> <code>C</code>, <code>C#</code>, <code>D</code>, <code>D#</code>, <code>E</code>, <code>F</code>, <code>F#</code>, <code>G</code>, <code>G#</code>, <code>A</code>, <code>A#</code>, <code>B</code></p>
+<p><strong>Flat notation:</strong> <code>C</code>, <code>Db</code>, <code>D</code>, <code>Eb</code>, <code>E</code>, <code>F</code>, <code>Gb</code>, <code>G</code>, <code>Ab</code>, <code>A</code>, <code>Bb</code>, <code>B</code></p>
+<p>Both notations produce identical results (e.g., <code>C#</code> = <code>Db</code>).</p>
+<h3>Octave Range</h3>
+<p>When using chord notation with actions, you can specify octave 0-9. Default is octave 4 (middle C).</p>
+<h2>Using Chords</h2>
+<h3>In Button Actions</h3>
+<p>Use <code>set-strum-chord</code> action:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"1"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"C"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>        <span class="token comment">// C major, octave 4</span>
+    <span class="token property">"2"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"Am7"</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token comment">// A minor 7th, octave 3</span>
+    <span class="token property">"3"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"G9"</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">]</span>     <span class="token comment">// G dominant 9th, octave 2</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h3>Examples by Style</h3>
+<p><strong>Pop/Rock:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"1"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"C"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"2"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"G"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"3"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"Am"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"4"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"F"</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p><strong>Jazz:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"1"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"Cmaj7"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"2"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"Dm7"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"3"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"G7"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"4"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"Cmaj9"</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p><strong>Blues:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"1"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"E7"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"2"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"A7"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"3"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"B7"</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p><strong>Rock/Metal Power Chords:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"1"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"E5"</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"2"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"G5"</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"3"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"A5"</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"4"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"C5"</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h2>Chord Progression Presets</h2>
+<p>Chord progressions are pre-configured sets of chords that automatically fill all 8 tablet buttons. They're perfect for playing in a specific key or style.</p>
+<h3>How Progressions Work</h3>
+<p>When you set <code>tabletButtons</code> to a progression name:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token string">"c-major-pop"</span>
+<span class="token punctuation">}</span></code></pre>
+<p>It expands to individual button actions:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"1"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"C"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"2"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"G"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"3"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"Am"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"4"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"F"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"5"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"C"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>    <span class="token comment">// Wraps back to start</span>
+    <span class="token property">"6"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"G"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"7"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"Am"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"8"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"F"</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p><strong>Wrapping:</strong> If a progression has fewer chords than buttons (8), it repeats from the beginning to fill all buttons.</p>
+<h3>Major Key Progressions</h3>
+<h4>C Major</h4>
+<table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>Chords</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>c-major-basic</code></td>
+<td>C, F, G, Am</td>
+<td>Classic I-IV-V-vi</td>
+</tr>
+<tr>
+<td><code>c-major-pop</code></td>
+<td>C, G, Am, F</td>
+<td>Popular I-V-vi-IV</td>
+</tr>
+<tr>
+<td><code>c-major-jazz</code></td>
+<td>Cmaj7, Dm7, Em7, Fmaj7, G7, Am7, Bm7</td>
+<td>Diatonic 7th chords</td>
+</tr>
+</tbody>
+</table>
+<h4>G Major</h4>
+<table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>Chords</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>g-major-basic</code></td>
+<td>G, C, D, Em</td>
+<td>Classic I-IV-V-vi</td>
+</tr>
+<tr>
+<td><code>g-major-pop</code></td>
+<td>G, D, Em, C</td>
+<td>Popular I-V-vi-IV</td>
+</tr>
+<tr>
+<td><code>g-major-jazz</code></td>
+<td>Gmaj7, Am7, Bm7, Cmaj7, D7, Em7, F#m7</td>
+<td>Diatonic 7th chords</td>
+</tr>
+</tbody>
+</table>
+<h4>D Major</h4>
+<table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>Chords</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>d-major-basic</code></td>
+<td>D, G, A, Bm</td>
+<td>Classic I-IV-V-vi</td>
+</tr>
+<tr>
+<td><code>d-major-pop</code></td>
+<td>D, A, Bm, G</td>
+<td>Popular I-V-vi-IV</td>
+</tr>
+<tr>
+<td><code>d-major-jazz</code></td>
+<td>Dmaj7, Em7, F#m7, Gmaj7, A7, Bm7, C#m7</td>
+<td>Diatonic 7th chords</td>
+</tr>
+</tbody>
+</table>
+<h4>A Major</h4>
+<table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>Chords</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>a-major-basic</code></td>
+<td>A, D, E, F#m</td>
+<td>Classic I-IV-V-vi</td>
+</tr>
+<tr>
+<td><code>a-major-pop</code></td>
+<td>A, E, F#m, D</td>
+<td>Popular I-V-vi-IV</td>
+</tr>
+</tbody>
+</table>
+<h4>E Major</h4>
+<table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>Chords</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>e-major-basic</code></td>
+<td>E, A, B, C#m</td>
+<td>Classic I-IV-V-vi</td>
+</tr>
+<tr>
+<td><code>e-major-pop</code></td>
+<td>E, B, C#m, A</td>
+<td>Popular I-V-vi-IV</td>
+</tr>
+</tbody>
+</table>
+<h4>F Major</h4>
+<table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>Chords</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>f-major-basic</code></td>
+<td>F, Bb, C, Dm</td>
+<td>Classic I-IV-V-vi</td>
+</tr>
+<tr>
+<td><code>f-major-pop</code></td>
+<td>F, C, Dm, Bb</td>
+<td>Popular I-V-vi-IV</td>
+</tr>
+</tbody>
+</table>
+<h3>Minor Key Progressions</h3>
+<h4>A Minor</h4>
+<table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>Chords</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>a-minor-basic</code></td>
+<td>Am, Dm, Em, F, E</td>
+<td>Classic i-iv-v</td>
+</tr>
+<tr>
+<td><code>a-minor-pop</code></td>
+<td>Am, F, C, G, E</td>
+<td>Popular minor progression</td>
+</tr>
+<tr>
+<td><code>a-minor-sad</code></td>
+<td>Am, Em, F, C, G, Dm, E</td>
+<td>Melancholic 7-chord progression</td>
+</tr>
+</tbody>
+</table>
+<h4>E Minor</h4>
+<table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>Chords</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>e-minor-basic</code></td>
+<td>Em, Am, Bm, C, B</td>
+<td>Classic i-iv-v</td>
+</tr>
+<tr>
+<td><code>e-minor-pop</code></td>
+<td>Em, C, G, D, B</td>
+<td>Popular minor progression</td>
+</tr>
+</tbody>
+</table>
+<h4>D Minor</h4>
+<table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>Chords</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>d-minor-basic</code></td>
+<td>Dm, Gm, Am, Bb, A</td>
+<td>Classic i-iv-v</td>
+</tr>
+<tr>
+<td><code>d-minor-pop</code></td>
+<td>Dm, Bb, F, C, A</td>
+<td>Popular minor progression</td>
+</tr>
+</tbody>
+</table>
+<h3>Blues Progressions</h3>
+<table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>Chords</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>blues-e</code></td>
+<td>E7, A7, B7</td>
+<td>12-bar blues in E</td>
+</tr>
+<tr>
+<td><code>blues-a</code></td>
+<td>A7, D7, E7</td>
+<td>12-bar blues in A</td>
+</tr>
+<tr>
+<td><code>blues-g</code></td>
+<td>G7, C7, D7</td>
+<td>12-bar blues in G</td>
+</tr>
+</tbody>
+</table>
+<h3>Rock Progressions</h3>
+<table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>Chords</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rock-classic</code></td>
+<td>E, A, D, B</td>
+<td>Classic rock changes</td>
+</tr>
+<tr>
+<td><code>rock-power</code></td>
+<td>E5, G5, A5, C5, D5</td>
+<td>Power chord progression</td>
+</tr>
+</tbody>
+</table>
+<h3>Jazz Progressions</h3>
+<table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>Chords</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>jazz-251-c</code></td>
+<td>Dm7, G7, Cmaj7, Em7, A7</td>
+<td>ii-V-I in C major</td>
+</tr>
+<tr>
+<td><code>jazz-251-f</code></td>
+<td>Gm7, C7, Fmaj7, Am7, D7</td>
+<td>ii-V-I in F major</td>
+</tr>
+</tbody>
+</table>
+<h3>Gospel Progressions</h3>
+<table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>Chords</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gospel-c</code></td>
+<td>C, Am7, Dm7, G7, F</td>
+<td>Gospel in C</td>
+</tr>
+<tr>
+<td><code>gospel-g</code></td>
+<td>G, Em7, Am7, D7, C</td>
+<td>Gospel in G</td>
+</tr>
+</tbody>
+</table>
+<h2>Note Spread</h2>
+<p>When you set a chord, Strumboli automatically adds octaves above and below based on your <code>strumming</code> configuration:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"strumming"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"initialNotes"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"C4"</span><span class="token punctuation">,</span> <span class="token string">"E4"</span><span class="token punctuation">,</span> <span class="token string">"G4"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"upperNoteSpread"</span><span class="token operator">:</span> <span class="token number">3</span><span class="token punctuation">,</span>
+    <span class="token property">"lowerNoteSpread"</span><span class="token operator">:</span> <span class="token number">3</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>With these settings, setting a C major chord (<code>C4, E4, G4</code>) creates:</p>
+<p><strong>Lower spread (3 notes):</strong></p>
+<ul>
+<li>C3, E3, G3</li>
+</ul>
+<p><strong>Core chord:</strong></p>
+<ul>
+<li>C4, E4, G4</li>
+</ul>
+<p><strong>Upper spread (3 notes):</strong></p>
+<ul>
+<li>C5, E5, G5</li>
+</ul>
+<p><strong>Total: 9 notes</strong> to strum through</p>
+<h3>Adjusting Note Spread</h3>
+<p><strong>Wide spread (more notes):</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"strumming"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"upperNoteSpread"</span><span class="token operator">:</span> <span class="token number">5</span><span class="token punctuation">,</span>
+    <span class="token property">"lowerNoteSpread"</span><span class="token operator">:</span> <span class="token number">5</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Creates a fuller, richer sound with more notes.</p>
+<p><strong>Narrow spread (fewer notes):</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"strumming"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"upperNoteSpread"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+    <span class="token property">"lowerNoteSpread"</span><span class="token operator">:</span> <span class="token number">1</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>More focused, easier to control.</p>
+<p><strong>Asymmetric spread:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"strumming"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"upperNoteSpread"</span><span class="token operator">:</span> <span class="token number">4</span><span class="token punctuation">,</span>
+    <span class="token property">"lowerNoteSpread"</span><span class="token operator">:</span> <span class="token number">1</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Emphasizes higher octaves.</p>
+<p><strong>No spread (chord only):</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"strumming"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"upperNoteSpread"</span><span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+    <span class="token property">"lowerNoteSpread"</span><span class="token operator">:</span> <span class="token number">0</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Only the core chord notes.</p>
+<h2>Custom Progressions</h2>
+<p>You can create your own chord progressions by editing <code>/server/chord_progressions.json</code>.</p>
+<h3>File Structure</h3>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"category-name"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"progression-name"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"Chord1"</span><span class="token punctuation">,</span> <span class="token string">"Chord2"</span><span class="token punctuation">,</span> <span class="token string">"Chord3"</span><span class="token punctuation">,</span> ...<span class="token punctuation">]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h3>Adding a Custom Progression</h3>
+<p>Open <code>/server/chord_progressions.json</code> and add your progression:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"major"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"c-major-basic"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"C"</span><span class="token punctuation">,</span> <span class="token string">"F"</span><span class="token punctuation">,</span> <span class="token string">"G"</span><span class="token punctuation">,</span> <span class="token string">"Am"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"my-custom-c"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"C"</span><span class="token punctuation">,</span> <span class="token string">"Em"</span><span class="token punctuation">,</span> <span class="token string">"F"</span><span class="token punctuation">,</span> <span class="token string">"G"</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"custom"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"my-favorite"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"Cmaj7"</span><span class="token punctuation">,</span> <span class="token string">"Fmaj7"</span><span class="token punctuation">,</span> <span class="token string">"Dm7"</span><span class="token punctuation">,</span> <span class="token string">"G7"</span><span class="token punctuation">,</span> <span class="token string">"Am7"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"experimental"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"Cmaj9"</span><span class="token punctuation">,</span> <span class="token string">"Eb7"</span><span class="token punctuation">,</span> <span class="token string">"Abmaj7"</span><span class="token punctuation">,</span> <span class="token string">"Dbmaj7"</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Then use it:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token string">"my-custom-c"</span>
+<span class="token punctuation">}</span></code></pre>
+<h3>Progression Best Practices</h3>
+<ol>
+<li>
+<p><strong>Length:</strong> Any length works (3-8 chords is typical)</p>
+<ul>
+<li>Short (3-4): Repeats more often, good for loops</li>
+<li>Long (5-7): More variety before repeating</li>
+</ul>
+</li>
+<li>
+<p><strong>Naming:</strong> Use lowercase with hyphens</p>
+<ul>
+<li>✅ <code>my-custom-progression</code></li>
+<li>❌ <code>My Custom Progression</code></li>
+</ul>
+</li>
+<li>
+<p><strong>Avoid duplicates:</strong> Don't repeat chords in the same progression</p>
+<ul>
+<li>The wrap-around feature handles repetition automatically</li>
+</ul>
+</li>
+<li>
+<p><strong>Categories:</strong> Organize by style or key</p>
+<ul>
+<li><code>major</code>, <code>minor</code>, <code>blues</code>, <code>jazz</code>, <code>rock</code>, <code>gospel</code>, <code>custom</code></li>
+</ul>
+</li>
+</ol>
+<h3>Example: Creating a Progression Collection</h3>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"my-songs"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"verse-a"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"C"</span><span class="token punctuation">,</span> <span class="token string">"G"</span><span class="token punctuation">,</span> <span class="token string">"Am"</span><span class="token punctuation">,</span> <span class="token string">"F"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"chorus-a"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"F"</span><span class="token punctuation">,</span> <span class="token string">"C"</span><span class="token punctuation">,</span> <span class="token string">"G"</span><span class="token punctuation">,</span> <span class="token string">"Am"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"bridge-a"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"Dm"</span><span class="token punctuation">,</span> <span class="token string">"G"</span><span class="token punctuation">,</span> <span class="token string">"C"</span><span class="token punctuation">,</span> <span class="token string">"Am"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"outro-a"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"F"</span><span class="token punctuation">,</span> <span class="token string">"G"</span><span class="token punctuation">,</span> <span class="token string">"C"</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Use in settings:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token string">"verse-a"</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Switch progressions by changing settings and restarting, or use buttons with <code>set-chord-in-progression</code> to access different progressions dynamically.</p>
+<h2>Progression Performance Techniques</h2>
+<h3>Technique 1: Static Progression (Preset)</h3>
+<p>Use a preset for a consistent key:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token string">"c-major-pop"</span>
+<span class="token punctuation">}</span></code></pre>
+<p><strong>Best for:</strong></p>
+<ul>
+<li>Single-key songs</li>
+<li>Practice and learning</li>
+<li>Simple performances</li>
+</ul>
+<h3>Technique 2: Dynamic Progression (Increment Actions)</h3>
+<p>Use buttons to navigate through a progression:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"stylusButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"primaryButtonAction"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"increment-chord-in-progression"</span><span class="token punctuation">,</span> <span class="token string">"c-major-pop"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"secondaryButtonAction"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"increment-chord-in-progression"</span><span class="token punctuation">,</span> <span class="token string">"c-major-pop"</span><span class="token punctuation">,</span> <span class="token number">-1</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"1"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-chord-in-progression"</span><span class="token punctuation">,</span> <span class="token string">"c-major-pop"</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span>  <span class="token comment">// Reset to C</span>
+    <span class="token property">"2"</span><span class="token operator">:</span> <span class="token string">"toggle-repeater"</span><span class="token punctuation">,</span>
+    <span class="token property">"3"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"transpose"</span><span class="token punctuation">,</span> <span class="token number">12</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"4"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"transpose"</span><span class="token punctuation">,</span> <span class="token number">-12</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p><strong>Best for:</strong></p>
+<ul>
+<li>Sequential chord changes</li>
+<li>Foot pedal control</li>
+<li>Following song structure</li>
+</ul>
+<h3>Technique 3: Mixed Chords and Utilities</h3>
+<p>Combine specific chords with utility actions:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"1"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"C"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"2"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"G"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"3"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"Am"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"4"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"F"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"5"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"Dm7"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"6"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"transpose"</span><span class="token punctuation">,</span> <span class="token number">12</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"7"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"transpose"</span><span class="token punctuation">,</span> <span class="token number">-12</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"8"</span><span class="token operator">:</span> <span class="token string">"toggle-repeater"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p><strong>Best for:</strong></p>
+<ul>
+<li>Custom song arrangements</li>
+<li>Mixing common chords with special features</li>
+<li>Performance flexibility</li>
+</ul>
+<h3>Technique 4: Multiple Progressions</h3>
+<p>Access different progressions for song sections:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"1"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-chord-in-progression"</span><span class="token punctuation">,</span> <span class="token string">"c-major-pop"</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span>      <span class="token comment">// Verse: C</span>
+    <span class="token property">"2"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-chord-in-progression"</span><span class="token punctuation">,</span> <span class="token string">"c-major-pop"</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span>      <span class="token comment">// Verse: G</span>
+    <span class="token property">"3"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-chord-in-progression"</span><span class="token punctuation">,</span> <span class="token string">"c-major-pop"</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">,</span>      <span class="token comment">// Verse: Am</span>
+    <span class="token property">"4"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-chord-in-progression"</span><span class="token punctuation">,</span> <span class="token string">"c-major-pop"</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">]</span><span class="token punctuation">,</span>      <span class="token comment">// Verse: F</span>
+    <span class="token property">"5"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-chord-in-progression"</span><span class="token punctuation">,</span> <span class="token string">"a-minor-sad"</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span>      <span class="token comment">// Bridge: Am</span>
+    <span class="token property">"6"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-chord-in-progression"</span><span class="token punctuation">,</span> <span class="token string">"a-minor-sad"</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span>      <span class="token comment">// Bridge: Em</span>
+    <span class="token property">"7"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"increment-chord-in-progression"</span><span class="token punctuation">,</span> <span class="token string">"c-major-pop"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token comment">// Next</span>
+    <span class="token property">"8"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"increment-chord-in-progression"</span><span class="token punctuation">,</span> <span class="token string">"a-minor-sad"</span><span class="token punctuation">]</span>    <span class="token comment">// Next (bridge)</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p><strong>Best for:</strong></p>
+<ul>
+<li>Complex song structures</li>
+<li>Switching between verse/chorus/bridge</li>
+<li>Multi-section performances</li>
+</ul>
+<h2>Common Chord Progressions</h2>
+<p>Here are some classic progressions you can create:</p>
+<h3>Pop/Rock Standards</h3>
+<p><strong>I-V-vi-IV</strong> (most popular):</p>
+<ul>
+<li>C major: C, G, Am, F (<code>c-major-pop</code>)</li>
+<li>G major: G, D, Em, C (<code>g-major-pop</code>)</li>
+<li>D major: D, A, Bm, G (<code>d-major-pop</code>)</li>
+</ul>
+<p><strong>I-IV-V</strong> (classic rock):</p>
+<ul>
+<li>C major: C, F, G (<code>c-major-basic</code>)</li>
+<li>E major: E, A, B (<code>e-major-basic</code>)</li>
+</ul>
+<h3>Blues</h3>
+<p><strong>12-bar blues</strong> (3-chord):</p>
+<ul>
+<li>E blues: E7, A7, B7 (<code>blues-e</code>)</li>
+<li>A blues: A7, D7, E7 (<code>blues-a</code>)</li>
+</ul>
+<h3>Jazz</h3>
+<p><strong>ii-V-I</strong> (foundational):</p>
+<ul>
+<li>C major: Dm7, G7, Cmaj7 (<code>jazz-251-c</code>)</li>
+<li>F major: Gm7, C7, Fmaj7 (<code>jazz-251-f</code>)</li>
+</ul>
+<h3>Minor Keys</h3>
+<p><strong>Natural minor</strong> (sad/emotional):</p>
+<ul>
+<li>A minor: Am, F, C, G (<code>a-minor-pop</code>)</li>
+<li>E minor: Em, C, G, D (<code>e-minor-pop</code>)</li>
+</ul>
+<h2>Tips for Working with Chords</h2>
+<h3>Learning Chord Notation</h3>
+<p>Start with basic triads:</p>
+<ol>
+<li>Major: <code>C</code>, <code>G</code>, <code>F</code>, <code>D</code></li>
+<li>Minor: <code>Am</code>, <code>Em</code>, <code>Dm</code></li>
+<li>Then add 7ths: <code>Cmaj7</code>, <code>G7</code>, <code>Am7</code></li>
+</ol>
+<h3>Voicing Considerations</h3>
+<p><strong>Lower octaves</strong> (1-3): Bass, foundations
+<strong>Middle octaves</strong> (3-5): Chords, melody
+<strong>Upper octaves</strong> (5-7): Leads, texture</p>
+<h3>Combining with Note Spread</h3>
+<ul>
+<li><strong>Wide spread</strong> (5+ notes): Fuller chords, ambient</li>
+<li><strong>Narrow spread</strong> (1-2 notes): Focused, clear</li>
+<li><strong>Asymmetric spread</strong>: Emphasize range</li>
+</ul>
+<h3>Performance Tips</h3>
+<ol>
+<li><strong>Practice progressions</strong> before performing</li>
+<li><strong>Mark buttons</strong> with tape/stickers for visual reference</li>
+<li><strong>Test octaves</strong> to find the right range for your sound</li>
+<li><strong>Combine</strong> with transpose for even more flexibility</li>
+</ol>
+<h2>Troubleshooting</h2>
+<h3>Chord Sounds Wrong</h3>
+<ul>
+<li><strong>Check octave:</strong> Too high or low octaves sound unusual</li>
+<li><strong>Verify notation:</strong> Ensure spelling is correct (case-sensitive)</li>
+<li><strong>Check spread:</strong> Very wide spreads can sound muddy</li>
+</ul>
+<h3>Progression Not Loading</h3>
+<ul>
+<li><strong>Check name:</strong> Must match exactly (case-sensitive, use hyphens)</li>
+<li><strong>Verify file:</strong> Ensure <code>chord_progressions.json</code> is valid JSON</li>
+<li><strong>Restart:</strong> Changes to progressions require restarting Strumboli</li>
+</ul>
+<h3>Button Not Playing Chord</h3>
+<ul>
+<li><strong>Verify button number:</strong> Must match your tablet (1-8 typically)</li>
+<li><strong>Check action format:</strong> Ensure proper array format</li>
+<li><strong>Look at console:</strong> Error messages will indicate the problem</li>
+</ul>
+<h2>Next Steps</h2>
+<ul>
+<li><strong><a href="/about/actions-reference/">Actions Reference</a></strong> - Full action documentation</li>
+<li><strong><a href="/about/settings-reference/">Settings Reference</a></strong> - Complete settings guide</li>
+<li><strong><a href="/about/configuration-overview/">Configuration Overview</a></strong> - Understanding the config system</li>
+<li><strong><a href="/about/getting-started/">Getting Started</a></strong> - Installation and setup</li>
+</ul>
+<h2>Chord Reference Tables</h2>
+<p>Quick reference for copying into configurations:</p>
+<h3>Major Chords (All Keys)</h3>
+<pre><code>C, D, E, F, G, A, B
+C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb
+</code></pre>
+<h3>Minor Chords (All Keys)</h3>
+<pre><code>Cm, Dm, Em, Fm, Gm, Am, Bm
+C#m/Dbm, D#m/Ebm, F#m/Gbm, G#m/Abm, A#m/Bbm
+</code></pre>
+<h3>Common 7th Chords</h3>
+<pre><code>Cmaj7, Dm7, Em7, Fmaj7, G7, Am7, Bm7b5
+C7, D7, E7, F7, G7, A7, B7
+</code></pre>
+<h3>Power Chords</h3>
+<pre><code>C5, D5, E5, F5, G5, A5, B5
+</code></pre>
+
+      </div>
+  </main>
+</div>
+</body>
+<script>
+    document.getElementById('mobile-menu').addEventListener('click', () => {
+        document.getElementById('main-wrapper').classList.add('menu-open');
+    });
+    document.getElementById('main-wrapper').addEventListener('click', () => {
+        document.getElementById('main-wrapper').classList.remove('menu-open');
+    });
+</script>
+</html>

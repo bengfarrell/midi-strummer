@@ -1,0 +1,251 @@
+<html lang="en-US" dir="ltr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+    <link rel="canonical" href="/about/stylus-buttons/" />
+    <meta property="og:site_name" content="Strumboli" />
+    <meta property="og:title" content="Strumboli: Stylus Buttons" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="/about/stylus-buttons/" />
+    <link rel="icon" href="/img/icon.svg" type="image/svg+xml" />
+    <link rel="icon" type="image/svg+xml" href="/img/icon.svg" />
+
+    <title>Strumboli: Stylus Buttons</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Lexend:wght@300;400;500;600&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../../docs.css" />
+    <link rel="stylesheet" href="../../prism-okaidia.css" />
+    <link rel="preload" href="../../docs.css" as="style" />
+</head>
+<body>
+
+<header>
+    <button id="mobile-menu" class="mobile-menu-button" aria-label="Open menu">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" role="img" fill="currentColor" height="24" width="24" aria-hidden="true">
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="16"></rect>
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="6"></rect>
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="26"></rect>
+        </svg>
+    </button>
+  
+    <div class="logo-container">
+        <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <!-- Background with rounded corners -->
+            <rect width="100" height="100" fill="#1d1d1d" rx="10" ry="10"/>
+            
+            <!-- Colorful horizontal stripes (every other line with gaps) -->
+            <line x1="15" y1="26" x2="85" y2="26" stroke="#ff6b6b" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="42" x2="85" y2="42" stroke="#ffd93d" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="58" x2="85" y2="58" stroke="#6bcf7f" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="74" x2="85" y2="74" stroke="#4dabf7" stroke-width="5" stroke-linecap="butt"/>
+            
+            <!-- Enclosing U-shape (square with right edge missing) -->
+            <!-- Top edge -->
+            <line x1="15" y1="15" x2="85" y2="15" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Left edge -->
+            <line x1="15" y1="15" x2="15" y2="85" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Bottom edge -->
+            <line x1="15" y1="85" x2="85" y2="85" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Right edge is missing (opening) -->
+        </svg>
+    </div>
+
+    <div class="title">
+        <h1>Strumboli</h1>
+        <h4>Turn your drawing tablet into a MIDI strumming controller</h4>
+    </div>
+
+    <div class="logo-container github">
+        <a href="https://github.com/yourusername/midi-strummer"><img src="/img/github-logo.svg" alt="Github Logo" /></a>
+    </div>
+</header>
+
+<div id="main-wrapper">
+  
+
+
+
+
+
+
+
+
+<nav>
+    <div class="mobile-header">
+        <h1>Strumboli</h1>
+    </div>
+    <h4>Getting Started</h4>
+    
+    <a href="../../">Introduction</a>
+    
+    <a href="../getting-started/">Getting Started</a>
+    
+    <a href="../configuration-overview/">Configuration Overview</a>
+    
+
+    <h4>Server & Startup</h4>
+    
+        <a href="../server-startup/">Overview</a>
+    
+        <a href="../tablet-setup/">Tablet Setup</a>
+    
+        <a href="../web-dashboard/">Web Dashboard</a>
+    
+        <a href="../midi-input/">MIDI Input</a>
+    
+
+    <h4>Features</h4>
+    
+        <a href="../strumming/">Strumming</a>
+    
+        <a href="../note-velocity/">Note Velocity</a>
+    
+        <a href="../note-duration/">Note Duration</a>
+    
+        <a href="../pitch-bend/">Pitch Bend</a>
+    
+        <a href="../note-repeater/">Note Repeater</a>
+    
+        <a href="../transpose/">Transpose</a>
+    
+        <a href="">Stylus Buttons</a>
+    
+        <a href="../tablet-buttons/">Tablet Buttons</a>
+    
+        <a href="../strum-release/">Strum Release</a>
+    
+
+    <h4>Misc</h4>
+    
+        <a href="../actions-reference/">Actions Reference</a>
+    
+        <a href="../chords-and-progressions/">Chords &amp; Progressions</a>
+    
+</nav>
+
+  <main>
+      <div class="content">
+        <h2 id="page-title">Configure your stylus pen buttons</h2>
+        <h1>Stylus Buttons</h1>
+<p>Configuration for stylus pen buttons. Most drawing tablets have one or two buttons on the stylus itself, providing quick access to common actions without interrupting your playing.</p>
+<h2>Settings</h2>
+<h3>active</h3>
+<p><strong>Type:</strong> <code>boolean</code><br>
+<strong>Default:</strong> <code>true</code><br>
+<strong>Description:</strong> Enable stylus button handling</p>
+<p><strong>Examples:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"stylusButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"active"</span><span class="token operator">:</span> <span class="token boolean">true</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Set to <code>false</code> to disable stylus button actions.</p>
+<hr>
+<h3>primaryButtonAction</h3>
+<p><strong>Type:</strong> <code>string</code>, <code>array</code>, or <code>null</code><br>
+<strong>Default:</strong> <code>&quot;toggle-transpose&quot;</code><br>
+<strong>Description:</strong> Action for primary stylus button (typically front button)</p>
+<p><strong>Examples:</strong></p>
+<p>Simple action:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"stylusButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"primaryButtonAction"</span><span class="token operator">:</span> <span class="token string">"toggle-repeater"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Action with parameters:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"stylusButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"primaryButtonAction"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"transpose"</span><span class="token punctuation">,</span> <span class="token number">12</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Disabled:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"stylusButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"primaryButtonAction"</span><span class="token operator">:</span> <span class="token null keyword">null</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>See <a href="/about/actions-reference/">Actions Reference</a> for all available actions.</p>
+<hr>
+<h3>secondaryButtonAction</h3>
+<p><strong>Type:</strong> <code>string</code>, <code>array</code>, or <code>null</code><br>
+<strong>Default:</strong> <code>&quot;toggle-repeater&quot;</code><br>
+<strong>Description:</strong> Action for secondary stylus button (typically back button)</p>
+<p><strong>Examples:</strong></p>
+<p>Simple action:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"stylusButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"secondaryButtonAction"</span><span class="token operator">:</span> <span class="token string">"toggle-transpose"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Action with parameters:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"stylusButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"secondaryButtonAction"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"transpose"</span><span class="token punctuation">,</span> <span class="token number">-12</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Disabled:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"stylusButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"secondaryButtonAction"</span><span class="token operator">:</span> <span class="token null keyword">null</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>See <a href="/about/actions-reference/">Actions Reference</a> for all available actions.</p>
+<h2>Configuration Example</h2>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"stylusButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"active"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"primaryButtonAction"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"transpose"</span><span class="token punctuation">,</span> <span class="token number">12</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"secondaryButtonAction"</span><span class="token operator">:</span> <span class="token string">"toggle-repeater"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h2>Common Configurations</h2>
+<h3>Octave Switching</h3>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"stylusButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"primaryButtonAction"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"transpose"</span><span class="token punctuation">,</span> <span class="token number">12</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"secondaryButtonAction"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"transpose"</span><span class="token punctuation">,</span> <span class="token number">-12</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h3>Repeater and Transpose</h3>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"stylusButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"primaryButtonAction"</span><span class="token operator">:</span> <span class="token string">"toggle-transpose"</span><span class="token punctuation">,</span>
+    <span class="token property">"secondaryButtonAction"</span><span class="token operator">:</span> <span class="token string">"toggle-repeater"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h3>Chord Changes</h3>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"stylusButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"primaryButtonAction"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"G"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"secondaryButtonAction"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"set-strum-chord"</span><span class="token punctuation">,</span> <span class="token string">"Am"</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h2>Related Documentation</h2>
+<ul>
+<li><a href="/about/actions-reference/">Actions Reference</a> - Complete list of available actions</li>
+<li><a href="/about/tablet-buttons/">Tablet Buttons</a> - Configure tablet express keys</li>
+<li><a href="/about/transpose/">Transpose</a> - Transpose settings</li>
+<li><a href="/about/note-repeater/">Note Repeater</a> - Repeater settings</li>
+</ul>
+
+      </div>
+  </main>
+</div>
+</body>
+<script>
+    document.getElementById('mobile-menu').addEventListener('click', () => {
+        document.getElementById('main-wrapper').classList.add('menu-open');
+    });
+    document.getElementById('main-wrapper').addEventListener('click', () => {
+        document.getElementById('main-wrapper').classList.remove('menu-open');
+    });
+</script>
+</html>

@@ -1,0 +1,312 @@
+<html lang="en-US" dir="ltr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+    <link rel="canonical" href="/about/getting-started/" />
+    <meta property="og:site_name" content="Strumboli" />
+    <meta property="og:title" content="Strumboli: Getting Started" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="/about/getting-started/" />
+    <link rel="icon" href="/img/icon.svg" type="image/svg+xml" />
+    <link rel="icon" type="image/svg+xml" href="/img/icon.svg" />
+
+    <title>Strumboli: Getting Started</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Lexend:wght@300;400;500;600&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../../docs.css" />
+    <link rel="stylesheet" href="../../prism-okaidia.css" />
+    <link rel="preload" href="../../docs.css" as="style" />
+</head>
+<body>
+
+<header>
+    <button id="mobile-menu" class="mobile-menu-button" aria-label="Open menu">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" role="img" fill="currentColor" height="24" width="24" aria-hidden="true">
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="16"></rect>
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="6"></rect>
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="26"></rect>
+        </svg>
+    </button>
+  
+    <div class="logo-container">
+        <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <!-- Background with rounded corners -->
+            <rect width="100" height="100" fill="#1d1d1d" rx="10" ry="10"/>
+            
+            <!-- Colorful horizontal stripes (every other line with gaps) -->
+            <line x1="15" y1="26" x2="85" y2="26" stroke="#ff6b6b" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="42" x2="85" y2="42" stroke="#ffd93d" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="58" x2="85" y2="58" stroke="#6bcf7f" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="74" x2="85" y2="74" stroke="#4dabf7" stroke-width="5" stroke-linecap="butt"/>
+            
+            <!-- Enclosing U-shape (square with right edge missing) -->
+            <!-- Top edge -->
+            <line x1="15" y1="15" x2="85" y2="15" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Left edge -->
+            <line x1="15" y1="15" x2="15" y2="85" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Bottom edge -->
+            <line x1="15" y1="85" x2="85" y2="85" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Right edge is missing (opening) -->
+        </svg>
+    </div>
+
+    <div class="title">
+        <h1>Strumboli</h1>
+        <h4>Turn your drawing tablet into a MIDI strumming controller</h4>
+    </div>
+
+    <div class="logo-container github">
+        <a href="https://github.com/yourusername/midi-strummer"><img src="/img/github-logo.svg" alt="Github Logo" /></a>
+    </div>
+</header>
+
+<div id="main-wrapper">
+  
+
+
+
+
+
+
+
+
+<nav>
+    <div class="mobile-header">
+        <h1>Strumboli</h1>
+    </div>
+    <h4>Getting Started</h4>
+    
+    <a href="../../">Introduction</a>
+    
+    <a href="">Getting Started</a>
+    
+    <a href="../configuration-overview/">Configuration Overview</a>
+    
+
+    <h4>Server & Startup</h4>
+    
+        <a href="../server-startup/">Overview</a>
+    
+        <a href="../tablet-setup/">Tablet Setup</a>
+    
+        <a href="../web-dashboard/">Web Dashboard</a>
+    
+        <a href="../midi-input/">MIDI Input</a>
+    
+
+    <h4>Features</h4>
+    
+        <a href="../strumming/">Strumming</a>
+    
+        <a href="../note-velocity/">Note Velocity</a>
+    
+        <a href="../note-duration/">Note Duration</a>
+    
+        <a href="../pitch-bend/">Pitch Bend</a>
+    
+        <a href="../note-repeater/">Note Repeater</a>
+    
+        <a href="../transpose/">Transpose</a>
+    
+        <a href="../stylus-buttons/">Stylus Buttons</a>
+    
+        <a href="../tablet-buttons/">Tablet Buttons</a>
+    
+        <a href="../strum-release/">Strum Release</a>
+    
+
+    <h4>Misc</h4>
+    
+        <a href="../actions-reference/">Actions Reference</a>
+    
+        <a href="../chords-and-progressions/">Chords &amp; Progressions</a>
+    
+</nav>
+
+  <main>
+      <div class="content">
+        <h2 id="page-title">Install and run Strumboli on your system</h2>
+        <h1>Getting Started</h1>
+<p>This guide will help you install and run Strumboli on your system.</p>
+<h2>Prerequisites</h2>
+<p>Before you begin, ensure you have:</p>
+<ul>
+<li><strong>Python 3.7 or higher</strong> installed on your system</li>
+<li>A <strong>drawing tablet</strong> (XP-Pen, Wacom, etc.) connected via USB</li>
+<li><strong>MIDI output</strong> capability (built-in MIDI or virtual MIDI like IAC Driver on macOS)</li>
+</ul>
+<h2>Installation</h2>
+<h3>Method 1: Pre-Built Application (Recommended)</h3>
+<p><strong>Coming Soon:</strong> Pre-built standalone applications for easy installation!</p>
+<p>Once available, simply:</p>
+<ol>
+<li>Download the app for your platform (macOS/Windows/Linux)</li>
+<li>Install system dependencies (see below)</li>
+<li>Download or create your <code>settings.json</code> configuration file</li>
+<li>Double-click to run!</li>
+</ol>
+<h3>Method 2: Run from Source (Current Method)</h3>
+<h4>Step 1: Install System Dependencies</h4>
+<p><strong>macOS:</strong></p>
+<pre class="language-bash" tabindex="0"><code class="language-bash">brew <span class="token function">install</span> hidapi</code></pre>
+<p><strong>Linux (Debian/Ubuntu):</strong></p>
+<pre class="language-bash" tabindex="0"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> libhidapi-hidraw0 libhidapi-dev</code></pre>
+<p><strong>Linux (Fedora):</strong></p>
+<pre class="language-bash" tabindex="0"><code class="language-bash"><span class="token function">sudo</span> dnf <span class="token function">install</span> hidapi-devel</code></pre>
+<h4>Step 2: Clone or Download the Repository</h4>
+<pre class="language-bash" tabindex="0"><code class="language-bash"><span class="token function">git</span> clone https://github.com/yourusername/midi-strummer.git
+<span class="token builtin class-name">cd</span> midi-strummer</code></pre>
+<h4>Step 3: Set Up Python Virtual Environment</h4>
+<pre class="language-bash" tabindex="0"><code class="language-bash">python3 <span class="token parameter variable">-m</span> venv venv
+<span class="token builtin class-name">source</span> venv/bin/activate  <span class="token comment"># On Windows: venv\Scripts\activate</span></code></pre>
+<h4>Step 4: Install Python Dependencies</h4>
+<pre class="language-bash" tabindex="0"><code class="language-bash">pip <span class="token function">install</span> <span class="token parameter variable">-r</span> requirements.txt</code></pre>
+<h2>Configuration</h2>
+<h3>Quick Start Configuration</h3>
+<p>Create a <code>settings.json</code> file in the project root (or copy the provided example):</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"drawingTablet"</span><span class="token operator">:</span> <span class="token string">"auto-detect"</span><span class="token punctuation">,</span>
+    <span class="token property">"useSocketServer"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"useWebServer"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"socketServerPort"</span><span class="token operator">:</span> <span class="token number">8080</span><span class="token punctuation">,</span>
+    <span class="token property">"webServerPort"</span><span class="token operator">:</span> <span class="token number">82</span><span class="token punctuation">,</span>
+    <span class="token property">"midiInputId"</span><span class="token operator">:</span> <span class="token string">"Your MIDI Device Name"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"strumming"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"midiChannel"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+    <span class="token property">"initialNotes"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"C4"</span><span class="token punctuation">,</span> <span class="token string">"E4"</span><span class="token punctuation">,</span> <span class="token string">"G4"</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token string">"c-major-pop"</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Key settings:</p>
+<ul>
+<li><strong><code>drawingTablet</code></strong>: Use <code>&quot;auto-detect&quot;</code> to automatically find your tablet</li>
+<li><strong><code>midiInputId</code></strong>: Name of your MIDI input device (optional, for receiving keyboard input)</li>
+<li><strong><code>tabletButtons</code></strong>: Chord progression preset for your tablet buttons</li>
+</ul>
+<p>For detailed configuration options, see the <a href="/about/configuration-overview/">Configuration Overview</a>.</p>
+<h2>Running Strumboli</h2>
+<h3>Start the Server</h3>
+<pre class="language-bash" tabindex="0"><code class="language-bash"><span class="token builtin class-name">cd</span> server
+python main.py</code></pre>
+<p>Or from the project root:</p>
+<pre class="language-bash" tabindex="0"><code class="language-bash">python server/main.py</code></pre>
+<p>You should see output like:</p>
+<pre><code>[Config] Auto-detecting device...
+[Config] Loaded device driver: XP-Pen Deco 640
+Loaded configuration from 'settings.json'
+[WebSocket Server] Starting on port 8080...
+[Web Server] Starting on port 82...
+Opening MIDI output: IAC Driver Bus 1
+Device opened successfully
+</code></pre>
+<h3>Access the Web Dashboard (Optional)</h3>
+<p>If <code>useWebServer</code> is enabled, open your browser to:</p>
+<pre><code>http://localhost:82
+</code></pre>
+<p>The dashboard shows:</p>
+<ul>
+<li>Current chord/notes being strummed</li>
+<li>Real-time tablet input values</li>
+<li>Active settings and configuration</li>
+<li>Connection status</li>
+</ul>
+<h2>Basic Usage</h2>
+<p>Once running:</p>
+<ol>
+<li><strong>Touch your tablet</strong> with the stylus to start playing</li>
+<li><strong>Move across the X-axis</strong> to strum through notes</li>
+<li><strong>Press harder</strong> for louder notes (if pressure is mapped to velocity)</li>
+<li><strong>Tilt the stylus</strong> for pitch bend or other expressions</li>
+<li><strong>Press tablet buttons</strong> to change chords (if configured)</li>
+<li><strong>Use stylus buttons</strong> for quick actions like transpose</li>
+</ol>
+<h2>Stopping the Server</h2>
+<p>To properly stop the server:</p>
+<ol>
+<li>Press <strong>Ctrl+C</strong> in the terminal</li>
+<li>Wait for the &quot;Device should be released now&quot; message</li>
+<li>The server will automatically close MIDI and device connections</li>
+</ol>
+<p><strong>Important:</strong> Don't use Ctrl+Z (suspend), as it won't properly release the device. If you accidentally suspend:</p>
+<ul>
+<li>Type <code>fg</code> to bring the process back</li>
+<li>Then press Ctrl+C to exit properly</li>
+</ul>
+<h2>Troubleshooting</h2>
+<h3>Device Not Found</h3>
+<p>If auto-detection fails:</p>
+<ol>
+<li>Ensure your tablet is plugged in and powered on</li>
+<li>Check that no other software is using the tablet exclusively</li>
+<li>Try unplugging and replugging the tablet</li>
+<li>See <a href="/about/tablet-setup/">Tablet Setup</a> for manual configuration</li>
+</ol>
+<h3>&quot;Open Failed&quot; or Device Already in Use</h3>
+<p>This usually means another process is holding the device. Common causes:</p>
+<ul>
+<li><strong>XPPen driver software is running</strong> (most common)</li>
+<li>Previous Strumboli process wasn't stopped properly</li>
+<li>Multiple instances running</li>
+</ul>
+<p><strong>Solution:</strong></p>
+<ol>
+<li>Check for suspended processes: <code>jobs -l</code></li>
+<li>Quit tablet manufacturer's software</li>
+<li>On macOS, quit the XPPen driver from Activity Monitor</li>
+<li>Restart Strumboli</li>
+</ol>
+<h3>MIDI Not Working</h3>
+<p>If MIDI notes aren't being sent:</p>
+<ol>
+<li>Check your DAW/MIDI software is listening to the correct MIDI port</li>
+<li>Verify <code>midiChannel</code> in settings matches your DAW channel</li>
+<li>Check that your tablet is being detected (watch console output)</li>
+<li>Try using a MIDI monitor application to verify output</li>
+</ol>
+<h3>Web Dashboard Not Loading</h3>
+<p>If the web dashboard won't load:</p>
+<ol>
+<li>Check that <code>useWebServer</code> is set to <code>true</code> in settings</li>
+<li>Verify the <code>webServerPort</code> isn't already in use</li>
+<li>Try a different port number (8080, 3000, etc.)</li>
+<li>Check your firewall settings</li>
+</ol>
+<h2>Next Steps</h2>
+<p>Now that Strumboli is running:</p>
+<ul>
+<li><strong><a href="/about/configuration-overview/">Configuration Overview</a></strong> - Learn about all available settings</li>
+<li><strong><a href="/about/tablet-setup/">Tablet Setup</a></strong> - Configure your specific tablet</li>
+<li><strong><a href="/about/actions-reference/">Actions Reference</a></strong> - Set up button actions</li>
+<li><strong><a href="/about/chords-and-progressions/">Chords &amp; Progressions</a></strong> - Explore the chord system</li>
+<li><strong><a href="/about/settings-reference/">Settings Reference</a></strong> - Complete settings documentation</li>
+</ul>
+<h2>Additional Resources</h2>
+<ul>
+<li><strong>README.md</strong> - Project overview and quick reference</li>
+<li><strong>BUILD.md</strong> - Instructions for building standalone applications</li>
+<li><strong>DISTRIBUTION.md</strong> - Packaging and distribution guide</li>
+</ul>
+
+      </div>
+  </main>
+</div>
+</body>
+<script>
+    document.getElementById('mobile-menu').addEventListener('click', () => {
+        document.getElementById('main-wrapper').classList.add('menu-open');
+    });
+    document.getElementById('main-wrapper').addEventListener('click', () => {
+        document.getElementById('main-wrapper').classList.remove('menu-open');
+    });
+</script>
+</html>

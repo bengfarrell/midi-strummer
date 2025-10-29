@@ -1,0 +1,366 @@
+<html lang="en-US" dir="ltr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+    <link rel="canonical" href="/about/midi-input/" />
+    <meta property="og:site_name" content="Strumboli" />
+    <meta property="og:title" content="Strumboli: MIDI Input" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="/about/midi-input/" />
+    <link rel="icon" href="/img/icon.svg" type="image/svg+xml" />
+    <link rel="icon" type="image/svg+xml" href="/img/icon.svg" />
+
+    <title>Strumboli: MIDI Input</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Lexend:wght@300;400;500;600&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../../docs.css" />
+    <link rel="stylesheet" href="../../prism-okaidia.css" />
+    <link rel="preload" href="../../docs.css" as="style" />
+</head>
+<body>
+
+<header>
+    <button id="mobile-menu" class="mobile-menu-button" aria-label="Open menu">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" role="img" fill="currentColor" height="24" width="24" aria-hidden="true">
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="16"></rect>
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="6"></rect>
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="26"></rect>
+        </svg>
+    </button>
+  
+    <div class="logo-container">
+        <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <!-- Background with rounded corners -->
+            <rect width="100" height="100" fill="#1d1d1d" rx="10" ry="10"/>
+            
+            <!-- Colorful horizontal stripes (every other line with gaps) -->
+            <line x1="15" y1="26" x2="85" y2="26" stroke="#ff6b6b" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="42" x2="85" y2="42" stroke="#ffd93d" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="58" x2="85" y2="58" stroke="#6bcf7f" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="74" x2="85" y2="74" stroke="#4dabf7" stroke-width="5" stroke-linecap="butt"/>
+            
+            <!-- Enclosing U-shape (square with right edge missing) -->
+            <!-- Top edge -->
+            <line x1="15" y1="15" x2="85" y2="15" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Left edge -->
+            <line x1="15" y1="15" x2="15" y2="85" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Bottom edge -->
+            <line x1="15" y1="85" x2="85" y2="85" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Right edge is missing (opening) -->
+        </svg>
+    </div>
+
+    <div class="title">
+        <h1>Strumboli</h1>
+        <h4>Turn your drawing tablet into a MIDI strumming controller</h4>
+    </div>
+
+    <div class="logo-container github">
+        <a href="https://github.com/yourusername/midi-strummer"><img src="/img/github-logo.svg" alt="Github Logo" /></a>
+    </div>
+</header>
+
+<div id="main-wrapper">
+  
+
+
+
+
+
+
+
+
+<nav>
+    <div class="mobile-header">
+        <h1>Strumboli</h1>
+    </div>
+    <h4>Getting Started</h4>
+    
+    <a href="../../">Introduction</a>
+    
+    <a href="../getting-started/">Getting Started</a>
+    
+    <a href="../configuration-overview/">Configuration Overview</a>
+    
+
+    <h4>Server & Startup</h4>
+    
+        <a href="../server-startup/">Overview</a>
+    
+        <a href="../tablet-setup/">Tablet Setup</a>
+    
+        <a href="../web-dashboard/">Web Dashboard</a>
+    
+        <a href="">MIDI Input</a>
+    
+
+    <h4>Features</h4>
+    
+        <a href="../strumming/">Strumming</a>
+    
+        <a href="../note-velocity/">Note Velocity</a>
+    
+        <a href="../note-duration/">Note Duration</a>
+    
+        <a href="../pitch-bend/">Pitch Bend</a>
+    
+        <a href="../note-repeater/">Note Repeater</a>
+    
+        <a href="../transpose/">Transpose</a>
+    
+        <a href="../stylus-buttons/">Stylus Buttons</a>
+    
+        <a href="../tablet-buttons/">Tablet Buttons</a>
+    
+        <a href="../strum-release/">Strum Release</a>
+    
+
+    <h4>Misc</h4>
+    
+        <a href="../actions-reference/">Actions Reference</a>
+    
+        <a href="../chords-and-progressions/">Chords &amp; Progressions</a>
+    
+</nav>
+
+  <main>
+      <div class="content">
+        <h2 id="page-title">Connect MIDI keyboards and controllers</h2>
+        <h1>MIDI Input</h1>
+<p>Configure Strumboli to receive MIDI input from keyboards or controllers, allowing you to combine keyboard note selection with tablet expression.</p>
+<h2>midiInputId</h2>
+<p><strong>Type:</strong> <code>string</code> or <code>null</code><br>
+<strong>Default:</strong> <code>null</code><br>
+<strong>Description:</strong> MIDI input device name for receiving keyboard input</p>
+<p>When configured, Strumboli listens to the specified MIDI device for note messages. The incoming notes determine which notes are strummed when you use the tablet.</p>
+<hr>
+<h2>How It Works</h2>
+<h3>Normal Mode (No MIDI Input)</h3>
+<ol>
+<li>Tablet buttons select chords</li>
+<li>Tablet strumming plays those chord notes</li>
+<li>Expression comes from tablet (pressure, tilt, position)</li>
+</ol>
+<h3>MIDI Input Mode</h3>
+<ol>
+<li><strong>MIDI keyboard</strong> selects which notes to play</li>
+<li><strong>Tablet strumming</strong> triggers those notes</li>
+<li><strong>Expression</strong> still comes from tablet (pressure, tilt)</li>
+</ol>
+<p>This gives you the best of both worlds: keyboard note selection + tablet expression!</p>
+<hr>
+<h2>Configuration</h2>
+<h3>Disable MIDI Input (Default)</h3>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"midiInputId"</span><span class="token operator">:</span> <span class="token null keyword">null</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h3>Enable MIDI Input</h3>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"midiInputId"</span><span class="token operator">:</span> <span class="token string">"Launchkey MK4 25 MIDI Out"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p><strong>Finding your device name:</strong></p>
+<ol>
+<li>Run Strumboli without <code>midiInputId</code> set</li>
+<li>Check console output for available MIDI devices</li>
+<li>Copy exact device name into configuration</li>
+<li>Restart Strumboli</li>
+</ol>
+<hr>
+<h2>Use Cases</h2>
+<h3>Piano-Style Performance</h3>
+<p>Play chords on keyboard, strum with tablet for dynamics:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"midiInputId"</span><span class="token operator">:</span> <span class="token string">"Digital Piano MIDI Out"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"noteVelocity"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"control"</span><span class="token operator">:</span> <span class="token string">"pressure"</span><span class="token punctuation">,</span>
+    <span class="token property">"curve"</span><span class="token operator">:</span> <span class="token number">4.0</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h3>Bass Lines</h3>
+<p>Play bass notes on keyboard with tablet expression:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"midiInputId"</span><span class="token operator">:</span> <span class="token string">"MIDI Controller"</span><span class="token punctuation">,</span>
+    <span class="token property">"strumming"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"upperNoteSpread"</span><span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+      <span class="token property">"lowerNoteSpread"</span><span class="token operator">:</span> <span class="token number">1</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h3>Melody with Expression</h3>
+<p>Keyboard for melody, tablet for articulation:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"midiInputId"</span><span class="token operator">:</span> <span class="token string">"MIDI Keyboard"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"noteDuration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"control"</span><span class="token operator">:</span> <span class="token string">"yaxis"</span><span class="token punctuation">,</span>
+    <span class="token property">"min"</span><span class="token operator">:</span> <span class="token number">0.1</span><span class="token punctuation">,</span>
+    <span class="token property">"max"</span><span class="token operator">:</span> <span class="token number">2.0</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"pitchBend"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"control"</span><span class="token operator">:</span> <span class="token string">"tiltX"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<hr>
+<h2>Common MIDI Devices</h2>
+<h3>MIDI Keyboards</h3>
+<ul>
+<li>Novation Launchkey series</li>
+<li>Arturia KeyLab series</li>
+<li>M-Audio Keystation series</li>
+<li>Roland A-series</li>
+<li>Native Instruments Komplete Kontrol</li>
+</ul>
+<h3>MIDI Controllers</h3>
+<ul>
+<li>AKAI MPK Mini</li>
+<li>Novation Launchpad</li>
+<li>Arturia BeatStep</li>
+<li>Korg nanoKEY</li>
+</ul>
+<h3>Virtual MIDI</h3>
+<ul>
+<li><strong>macOS</strong>: IAC Driver (Audio MIDI Setup)</li>
+<li><strong>Windows</strong>: loopMIDI, MIDI-OX</li>
+<li><strong>Linux</strong>: ALSA virtual ports</li>
+</ul>
+<hr>
+<h2>MIDI Input Behavior</h2>
+<h3>Note On Messages</h3>
+<ul>
+<li><strong>Single note</strong>: Plays that note with tablet expression</li>
+<li><strong>Multiple notes</strong> (chord): Plays all notes simultaneously</li>
+<li><strong>Note spread</strong>: Affected by <code>upperNoteSpread</code> and <code>lowerNoteSpread</code> settings</li>
+</ul>
+<h3>Note Off Messages</h3>
+<ul>
+<li>Releases notes based on <code>noteDuration</code> settings</li>
+<li>Can be overridden by tablet release</li>
+</ul>
+<h3>Velocity</h3>
+<ul>
+<li>MIDI velocity is <strong>ignored</strong> by default</li>
+<li>Tablet pressure controls velocity via <code>noteVelocity</code> settings</li>
+<li>This allows consistent dynamics regardless of keyboard touch</li>
+</ul>
+<h3>Sustain/Hold Pedal</h3>
+<ul>
+<li>Hold pedal extends note duration</li>
+<li>Overrides <code>noteDuration</code> settings while held</li>
+<li>Notes release when pedal is released</li>
+</ul>
+<hr>
+<h2>Configuration Examples</h2>
+<h3>Simple Keyboard Input</h3>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"midiInputId"</span><span class="token operator">:</span> <span class="token string">"USB MIDI Keyboard"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h3>Keyboard + Tablet Buttons</h3>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"midiInputId"</span><span class="token operator">:</span> <span class="token string">"MIDI Keyboard"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"tabletButtons"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"1"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"transpose"</span><span class="token punctuation">,</span> <span class="token number">12</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"2"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"transpose"</span><span class="token punctuation">,</span> <span class="token number">-12</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"3"</span><span class="token operator">:</span> <span class="token string">"toggle-repeater"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h3>Virtual MIDI from DAW</h3>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"midiInputId"</span><span class="token operator">:</span> <span class="token string">"IAC Driver Bus 1"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<hr>
+<h2>Troubleshooting</h2>
+<h3>Device Not Found</h3>
+<ol>
+<li>Check device is connected and powered on</li>
+<li>Verify device name spelling (case-sensitive)</li>
+<li>Check Strumboli console output for available devices</li>
+<li>Try disconnecting and reconnecting device</li>
+<li>Restart Strumboli after connecting device</li>
+</ol>
+<h3>No Notes Triggering</h3>
+<ol>
+<li>Verify MIDI input is connected</li>
+<li>Check <code>midiInputId</code> matches device name exactly</li>
+<li>Test device in another MIDI application</li>
+<li>Look for error messages in console</li>
+<li>Verify MIDI channels match (if applicable)</li>
+</ol>
+<h3>Notes Stuck</h3>
+<ol>
+<li>Press keys again to send Note Off</li>
+<li>Check for MIDI feedback loops</li>
+<li>Restart Strumboli</li>
+<li>Disconnect and reconnect MIDI device</li>
+</ol>
+<h3>Wrong Notes Playing</h3>
+<ol>
+<li>Verify <code>upperNoteSpread</code> and <code>lowerNoteSpread</code> settings</li>
+<li>Check transpose settings</li>
+<li>Ensure correct MIDI octave on keyboard</li>
+<li>Test with simple single notes first</li>
+</ol>
+<hr>
+<h2>Advanced: Virtual MIDI Setup</h2>
+<h3>macOS</h3>
+<ol>
+<li>Open <strong>Audio MIDI Setup</strong></li>
+<li>Window → Show MIDI Studio</li>
+<li>Double-click <strong>IAC Driver</strong></li>
+<li>Check &quot;Device is online&quot;</li>
+<li>Use <code>&quot;midiInputId&quot;: &quot;IAC Driver Bus 1&quot;</code></li>
+</ol>
+<h3>Windows (loopMIDI)</h3>
+<ol>
+<li>Download and install loopMIDI</li>
+<li>Create new virtual port</li>
+<li>Use that port name in <code>midiInputId</code></li>
+</ol>
+<h3>Linux (ALSA)</h3>
+<pre class="language-bash" tabindex="0"><code class="language-bash"><span class="token comment"># Create virtual port</span>
+aconnect <span class="token parameter variable">-l</span>
+<span class="token comment"># Note port numbers, then:</span>
+aconnect <span class="token punctuation">[</span>source<span class="token punctuation">]</span> <span class="token punctuation">[</span>destination<span class="token punctuation">]</span></code></pre>
+<hr>
+<h2>Related Documentation</h2>
+<ul>
+<li><a href="/about/server-startup/">Server &amp; Startup</a> - Overview of startup features</li>
+<li><a href="/about/strumming/">Strumming</a> - Note spread configuration</li>
+<li><a href="/about/note-velocity/">Note Velocity</a> - Dynamics control</li>
+<li><a href="/about/tablet-buttons/">Tablet Buttons</a> - Button configuration</li>
+</ul>
+
+      </div>
+  </main>
+</div>
+</body>
+<script>
+    document.getElementById('mobile-menu').addEventListener('click', () => {
+        document.getElementById('main-wrapper').classList.add('menu-open');
+    });
+    document.getElementById('main-wrapper').addEventListener('click', () => {
+        document.getElementById('main-wrapper').classList.remove('menu-open');
+    });
+</script>
+</html>

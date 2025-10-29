@@ -1,0 +1,354 @@
+<html lang="en-US" dir="ltr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+    <link rel="canonical" href="/about/web-dashboard/" />
+    <meta property="og:site_name" content="Strumboli" />
+    <meta property="og:title" content="Strumboli: Web Dashboard" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="/about/web-dashboard/" />
+    <link rel="icon" href="/img/icon.svg" type="image/svg+xml" />
+    <link rel="icon" type="image/svg+xml" href="/img/icon.svg" />
+
+    <title>Strumboli: Web Dashboard</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Lexend:wght@300;400;500;600&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../../docs.css" />
+    <link rel="stylesheet" href="../../prism-okaidia.css" />
+    <link rel="preload" href="../../docs.css" as="style" />
+</head>
+<body>
+
+<header>
+    <button id="mobile-menu" class="mobile-menu-button" aria-label="Open menu">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" role="img" fill="currentColor" height="24" width="24" aria-hidden="true">
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="16"></rect>
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="6"></rect>
+            <rect height="4" rx="1" ry="1" width="28" x="4" y="26"></rect>
+        </svg>
+    </button>
+  
+    <div class="logo-container">
+        <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <!-- Background with rounded corners -->
+            <rect width="100" height="100" fill="#1d1d1d" rx="10" ry="10"/>
+            
+            <!-- Colorful horizontal stripes (every other line with gaps) -->
+            <line x1="15" y1="26" x2="85" y2="26" stroke="#ff6b6b" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="42" x2="85" y2="42" stroke="#ffd93d" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="58" x2="85" y2="58" stroke="#6bcf7f" stroke-width="5" stroke-linecap="butt"/>
+            <line x1="15" y1="74" x2="85" y2="74" stroke="#4dabf7" stroke-width="5" stroke-linecap="butt"/>
+            
+            <!-- Enclosing U-shape (square with right edge missing) -->
+            <!-- Top edge -->
+            <line x1="15" y1="15" x2="85" y2="15" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Left edge -->
+            <line x1="15" y1="15" x2="15" y2="85" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Bottom edge -->
+            <line x1="15" y1="85" x2="85" y2="85" stroke="#adb5bd" stroke-width="3" stroke-linecap="butt"/>
+            <!-- Right edge is missing (opening) -->
+        </svg>
+    </div>
+
+    <div class="title">
+        <h1>Strumboli</h1>
+        <h4>Turn your drawing tablet into a MIDI strumming controller</h4>
+    </div>
+
+    <div class="logo-container github">
+        <a href="https://github.com/yourusername/midi-strummer"><img src="/img/github-logo.svg" alt="Github Logo" /></a>
+    </div>
+</header>
+
+<div id="main-wrapper">
+  
+
+
+
+
+
+
+
+
+<nav>
+    <div class="mobile-header">
+        <h1>Strumboli</h1>
+    </div>
+    <h4>Getting Started</h4>
+    
+    <a href="../../">Introduction</a>
+    
+    <a href="../getting-started/">Getting Started</a>
+    
+    <a href="../configuration-overview/">Configuration Overview</a>
+    
+
+    <h4>Server & Startup</h4>
+    
+        <a href="../server-startup/">Overview</a>
+    
+        <a href="../tablet-setup/">Tablet Setup</a>
+    
+        <a href="">Web Dashboard</a>
+    
+        <a href="../midi-input/">MIDI Input</a>
+    
+
+    <h4>Features</h4>
+    
+        <a href="../strumming/">Strumming</a>
+    
+        <a href="../note-velocity/">Note Velocity</a>
+    
+        <a href="../note-duration/">Note Duration</a>
+    
+        <a href="../pitch-bend/">Pitch Bend</a>
+    
+        <a href="../note-repeater/">Note Repeater</a>
+    
+        <a href="../transpose/">Transpose</a>
+    
+        <a href="../stylus-buttons/">Stylus Buttons</a>
+    
+        <a href="../tablet-buttons/">Tablet Buttons</a>
+    
+        <a href="../strum-release/">Strum Release</a>
+    
+
+    <h4>Misc</h4>
+    
+        <a href="../actions-reference/">Actions Reference</a>
+    
+        <a href="../chords-and-progressions/">Chords &amp; Progressions</a>
+    
+</nav>
+
+  <main>
+      <div class="content">
+        <h2 id="page-title">Enable and configure the web interface and WebSocket server</h2>
+        <h1>Web Dashboard</h1>
+<p>Configure Strumboli's built-in web server and dashboard for real-time monitoring and control.</p>
+<h2>Web Server Settings</h2>
+<h3>useWebServer</h3>
+<p><strong>Type:</strong> <code>boolean</code><br>
+<strong>Default:</strong> <code>false</code><br>
+<strong>Description:</strong> Enable HTTP web server for dashboard UI</p>
+<p>When enabled, Strumboli starts an HTTP server that hosts the web dashboard interface.</p>
+<p><strong>Examples:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"useWebServer"</span><span class="token operator">:</span> <span class="token boolean">true</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p><strong>Access the dashboard:</strong></p>
+<ul>
+<li>Local: <code>http://localhost:&lt;webServerPort&gt;</code></li>
+<li>Network: <code>http://&lt;your-ip&gt;:&lt;webServerPort&gt;</code></li>
+</ul>
+<hr>
+<h3>webServerPort</h3>
+<p><strong>Type:</strong> <code>integer</code><br>
+<strong>Default:</strong> <code>80</code><br>
+<strong>Range:</strong> 1-65535<br>
+<strong>Description:</strong> Port number for HTTP web server</p>
+<p><strong>Examples:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"webServerPort"</span><span class="token operator">:</span> <span class="token number">82</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p><strong>Port recommendations:</strong></p>
+<ul>
+<li><strong>80</strong> - Standard HTTP (requires admin/sudo)</li>
+<li><strong>3000</strong> - Common dev port</li>
+<li><strong>8000</strong> - Alternative standard</li>
+<li><strong>8080</strong> - Common HTTP alternative</li>
+<li><strong>82</strong> - Our default (accessible without admin)</li>
+</ul>
+<p><strong>Note:</strong> Ports below 1024 typically require administrator/root privileges.</p>
+<hr>
+<h2>WebSocket Server Settings</h2>
+<p>The WebSocket server enables real-time bidirectional communication between Strumboli and the web dashboard (or custom applications).</p>
+<h3>useSocketServer</h3>
+<p><strong>Type:</strong> <code>boolean</code><br>
+<strong>Default:</strong> <code>true</code><br>
+<strong>Description:</strong> Enable WebSocket server for real-time communication</p>
+<p><strong>Examples:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"useSocketServer"</span><span class="token operator">:</span> <span class="token boolean">true</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Set to <code>false</code> if you don't need the web dashboard or real-time monitoring.</p>
+<hr>
+<h3>socketServerPort</h3>
+<p><strong>Type:</strong> <code>integer</code><br>
+<strong>Default:</strong> <code>8080</code><br>
+<strong>Range:</strong> 1-65535<br>
+<strong>Description:</strong> Port number for WebSocket server</p>
+<p><strong>Examples:</strong></p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"socketServerPort"</span><span class="token operator">:</span> <span class="token number">8080</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Change if port 8080 is already in use by another application.</p>
+<hr>
+<h2>Configuration Examples</h2>
+<h3>Minimal Dashboard Setup</h3>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"useWebServer"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"webServerPort"</span><span class="token operator">:</span> <span class="token number">82</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h3>Complete Dashboard Configuration</h3>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"useSocketServer"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"socketServerPort"</span><span class="token operator">:</span> <span class="token number">8080</span><span class="token punctuation">,</span>
+    <span class="token property">"useWebServer"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"webServerPort"</span><span class="token operator">:</span> <span class="token number">82</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h3>Dashboard Disabled</h3>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"useWebServer"</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
+    <span class="token property">"useSocketServer"</span><span class="token operator">:</span> <span class="token boolean">false</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h3>Custom Ports</h3>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"startupConfiguration"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"useWebServer"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"webServerPort"</span><span class="token operator">:</span> <span class="token number">3000</span><span class="token punctuation">,</span>
+    <span class="token property">"useSocketServer"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"socketServerPort"</span><span class="token operator">:</span> <span class="token number">3001</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<hr>
+<h2>What's in the Dashboard?</h2>
+<h3>Real-Time Monitoring</h3>
+<ul>
+<li><strong>Tablet Input</strong>: Live visualization of X/Y position, pressure, and tilt</li>
+<li><strong>Current Notes</strong>: Display of active chord and individual notes</li>
+<li><strong>MIDI Output</strong>: Real-time MIDI message stream</li>
+<li><strong>Performance Metrics</strong>: Latency, event rates</li>
+</ul>
+<h3>Configuration Display</h3>
+<ul>
+<li>Active settings overview</li>
+<li>Feature status (repeater, transpose, etc.)</li>
+<li>Tablet button mappings</li>
+<li>Current chord progression</li>
+</ul>
+<h3>Visual Feedback</h3>
+<ul>
+<li>Pressure gradient visualization</li>
+<li>Position tracking</li>
+<li>Tilt angle indicators</li>
+<li>Note velocity bars</li>
+</ul>
+<hr>
+<h2>Network Access</h2>
+<h3>Local Machine Only</h3>
+<pre><code>http://localhost:82
+</code></pre>
+<h3>Same Network (LAN)</h3>
+<p>Find your local IP address:</p>
+<ul>
+<li><strong>macOS/Linux</strong>: <code>ifconfig</code> or <code>ip addr</code></li>
+<li><strong>Windows</strong>: <code>ipconfig</code></li>
+</ul>
+<p>Then access from another device:</p>
+<pre><code>http://192.168.1.xxx:82
+</code></pre>
+<h3>Firewall Configuration</h3>
+<p>You may need to allow incoming connections:</p>
+<ul>
+<li><strong>macOS</strong>: System Preferences → Security &amp; Privacy → Firewall</li>
+<li><strong>Windows</strong>: Windows Defender Firewall → Allow an app</li>
+<li><strong>Linux</strong>: <code>ufw allow 82/tcp</code> or <code>firewall-cmd --add-port=82/tcp</code></li>
+</ul>
+<hr>
+<h2>WebSocket Protocol</h2>
+<p>The WebSocket server uses JSON messages for communication.</p>
+<h3>Message Types (Server → Client)</h3>
+<ul>
+<li><code>tablet_input</code> - Raw tablet data</li>
+<li><code>midi_event</code> - MIDI output events</li>
+<li><code>state_change</code> - Configuration changes</li>
+<li><code>chord_change</code> - Chord/note updates</li>
+</ul>
+<h3>Example Message</h3>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"tablet_input"</span><span class="token punctuation">,</span>
+  <span class="token property">"timestamp"</span><span class="token operator">:</span> <span class="token number">1234567890</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"x"</span><span class="token operator">:</span> <span class="token number">0.5</span><span class="token punctuation">,</span>
+    <span class="token property">"y"</span><span class="token operator">:</span> <span class="token number">0.7</span><span class="token punctuation">,</span>
+    <span class="token property">"pressure"</span><span class="token operator">:</span> <span class="token number">0.8</span><span class="token punctuation">,</span>
+    <span class="token property">"tiltX"</span><span class="token operator">:</span> <span class="token number">0.1</span><span class="token punctuation">,</span>
+    <span class="token property">"tiltY"</span><span class="token operator">:</span> <span class="token number">-0.2</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<hr>
+<h2>Troubleshooting</h2>
+<h3>Can't Access Dashboard</h3>
+<ol>
+<li>Verify web server is enabled</li>
+<li>Check correct port in URL</li>
+<li>Test localhost first: <code>http://localhost:82</code></li>
+<li>Check firewall settings</li>
+<li>Verify Strumboli is running</li>
+</ol>
+<h3>Port Already in Use</h3>
+<p>Change to different port:</p>
+<pre class="language-json" tabindex="0"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"webServerPort"</span><span class="token operator">:</span> <span class="token number">3000</span><span class="token punctuation">,</span>
+  <span class="token property">"socketServerPort"</span><span class="token operator">:</span> <span class="token number">3001</span>
+<span class="token punctuation">}</span></code></pre>
+<h3>WebSocket Connection Failed</h3>
+<ol>
+<li>Verify <code>useSocketServer</code> is <code>true</code></li>
+<li>Check <code>socketServerPort</code> matches client configuration</li>
+<li>Ensure firewall allows WebSocket connections</li>
+<li>Check browser console for errors</li>
+</ol>
+<h3>Slow/Laggy Dashboard</h3>
+<ol>
+<li>Close other bandwidth-intensive applications</li>
+<li>Reduce visualization complexity</li>
+<li>Check network connection quality</li>
+<li>Consider local-only access</li>
+</ol>
+<hr>
+<h2>Related Documentation</h2>
+<ul>
+<li><a href="/about/server-startup/">Server &amp; Startup</a> - Overview of server features</li>
+<li><a href="/about/getting-started/">Getting Started</a> - Initial setup</li>
+<li><a href="/about/configuration-overview/">Configuration Overview</a> - Config system basics</li>
+</ul>
+
+      </div>
+  </main>
+</div>
+</body>
+<script>
+    document.getElementById('mobile-menu').addEventListener('click', () => {
+        document.getElementById('main-wrapper').classList.add('menu-open');
+    });
+    document.getElementById('main-wrapper').addEventListener('click', () => {
+        document.getElementById('main-wrapper').classList.remove('menu-open');
+    });
+</script>
+</html>
