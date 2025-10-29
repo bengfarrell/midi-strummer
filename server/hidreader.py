@@ -53,7 +53,11 @@ class HIDReader:
 
         result: Dict[str, Union[str, int, float]] = {}
         
-        # First, parse the status to determine device state
+        # Check Report ID - some interfaces (like button interface) don't use status codes
+        report_id = data_list[0] if len(data_list) > 0 else 0
+        is_button_interface = (report_id == 6)  # Report ID 6 is button-only interface on Linux
+        
+        # First, parse the status to determine device state (if using single-interface mode)
         device_state = None
         for key, mapping in self.config.mappings.items():
             if mapping.get('type') == 'code':
@@ -76,8 +80,8 @@ class HIDReader:
             if mapping_type == 'code':
                 continue
             
-            # Skip button parsing if not in button mode
-            if mapping_type == 'bit-flags' and device_state != 'buttons':
+            # Skip button parsing if not in button mode (unless we're on button-only interface)
+            if mapping_type == 'bit-flags' and device_state != 'buttons' and not is_button_interface:
                 continue
             
             # Skip coordinate parsing if in button mode
