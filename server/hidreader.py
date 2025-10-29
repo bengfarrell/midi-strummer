@@ -177,8 +177,8 @@ class HIDReader:
                     # Process the data
                     processed_data = self.process_device_data(bytes(data))
                     
-                    # DEBUG: Print processed data for first few reads
-                    if read_count <= 5:
+                    # DEBUG: Print processed data periodically
+                    if read_count <= 5 or (read_count % 100 == 0):
                         print(f"[HID DEBUG #{read_count}] Processed: {processed_data}")
                     
                     # Call the callback with processed data
