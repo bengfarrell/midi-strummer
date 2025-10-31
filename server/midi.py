@@ -38,10 +38,13 @@ class Midi(EventEmitter):
             self.midi_out = rtmidi.MidiOut()
             available_outputs = self.midi_out.get_ports()
             
+            print(f"[MIDI] Available output ports: {available_outputs}")
+            
             output_port = None
             if available_outputs:
                 self.midi_out.open_port(0)
                 output_port = available_outputs[0]
+                print(f"[MIDI] Using output port 0: {output_port}")
             else:
                 print("WARNING: No MIDI output ports available")
             
