@@ -1,26 +1,26 @@
 {
-  "name": "XP-Pen Deco 640",
-  "manufacturer": "XP-Pen",
-  "model": "Deco 640",
-  "description": "XP-Pen Deco 640 graphics tablet with 8 express keys",
+  "name": "Deco 640",
+  "manufacturer": "XPPen",
   "vendorId": "0x28bd",
   "productId": "0x2904",
   "deviceInfo": {
     "product_string": "Deco 640",
     "usage": 0,
-    "interfaces": [0, 1]
+    "interfaces": [
+      0,
+      1
+    ]
   },
-  "reportId": 7,
-  "reportIdNote": "Interface 1 (stylus) uses Report ID 7, Interface 0 (buttons) uses Report ID 6",
+  "reportId": 6,
   "capabilities": {
     "hasButtons": true,
     "buttonCount": 8,
     "hasPressure": true,
-    "pressureLevels": 16384,
     "hasTilt": true,
+    "pressureLevels": 16383,
     "resolution": {
-      "x": 32000,
-      "y": 18000
+      "x": 15999,
+      "y": 8999
     }
   },
   "byteCodeMappings": {
@@ -59,17 +59,25 @@
       }
     },
     "x": {
-      "byteIndices": [2, 3],
-      "max": 32000,
+      "byteIndices": [
+        2,
+        3
+      ],
+      "max": 15999,
       "type": "multi-byte-range"
     },
     "y": {
-      "byteIndices": [4, 5],
-      "max": 18000,
+      "byteIndices": [
+        4,
+        5
+      ],
+      "max": 8999,
       "type": "multi-byte-range"
-    },
-    "pressure": {
-      "byteIndices": [6, 7],
+    },  "pressure": {
+      "byteIndices": [
+        6,
+        7
+      ],
       "max": 16383,
       "type": "multi-byte-range"
     },
@@ -90,8 +98,20 @@
     "tabletButtons": {
       "byteIndex": 2,
       "buttonCount": 8,
-      "type": "bit-flags"
+      "type": "code",
+      "values": {
+        "5": {"button": 1},
+        "8": {"button": 2},
+        "47": {"button": 3},
+        "48": {"button": 4},
+        "86": {"button": 5},
+        "87": {"button": 6},
+        "29": {"button": 7}
+      },
+      "_note": "Raspberry Pi uses non-standard button codes. Button 8 may share code 29 with button 7."
     }
-  }
+  },
+  "reportIdNote": "Interface 0: Report ID 6, Interface 1: Report ID 7"
 }
+
 

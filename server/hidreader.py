@@ -76,8 +76,22 @@ class HIDReader:
             mapping_type = mapping.get('type')
             byte_index = mapping.get('byteIndex', 0)
             
-            # Skip if already processed (status/code)
-            if mapping_type == 'code':
+            # Skip if already processed (status/code), unless it's tabletButtons with code type
+            if mapping_type == 'code' and key != 'tabletButtons':
+                continue
+            
+            # Handle tabletButtons with code type (custom value mapping)
+            if key == 'tabletButtons' and mapping_type == 'code':
+                if byte_index < len(data_list):
+                    byte_value = str(data_list[byte_index])
+                    values_map = mapping.get('values', {})
+                    if byte_value in values_map:
+                        button_num = values_map[byte_value].get('button')
+                        if button_num:
+                            # Set only this button as pressed
+                            button_count = mapping.get('buttonCount', 8)
+                            for i in range(1, button_count + 1):
+                                result[f'button{i}'] = (i == button_num)
                 continue
             
             # Skip button parsing if not in button mode (unless we're on button-only interface)
