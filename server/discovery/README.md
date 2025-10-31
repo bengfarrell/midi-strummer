@@ -2,6 +2,17 @@
 
 Interactive tools for discovering and configuring new drawing tablets and HID devices for Strumboli.
 
+## Standalone Installers Available
+
+Pre-built installers are available for easy installation:
+
+**macOS:** Download `Strumboli-Discover-Installer.dmg`  
+**Linux/Raspberry Pi:** Download `strumboli-discover-VERSION-raspberry-pi.deb`
+
+See **[DISCOVERY-INSTALLER-README.md](../../DISCOVERY-INSTALLER-README.md)** for installation instructions.
+
+Or build from source using the instructions below.
+
 ## Tools
 
 ### 1. discover_device.py

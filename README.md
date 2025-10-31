@@ -27,10 +27,48 @@ Want to package this as a distributable application? See:
 - **[BUILD.md](BUILD.md)** - Detailed build instructions for developers
 
 **Quick build:**
+
+**macOS:**
 ```bash
+# Using npm
+npm run build:osx    # Build standalone app
+npm run build:dmg    # Build app + create DMG installer
+
+# Or using shell scripts directly
 ./build.sh           # Build standalone app
-./create-dmg.sh      # Create macOS installer (macOS only)
+./create-dmg.sh      # Create macOS installer
 ```
+
+**Linux/Raspberry Pi:**
+```bash
+# Using npm
+npm run build:linux  # Build standalone app
+npm run build:deb    # Build app + create Debian package
+
+# Or using shell scripts directly
+./build-linux.sh     # Build standalone app
+./create-deb.sh      # Create Debian package installer
+```
+
+See **[RASPBERRY-PI-QUICKSTART.md](RASPBERRY-PI-QUICKSTART.md)** for Raspberry Pi setup guide!
+
+### Device Discovery Tool
+
+The discovery tool helps you create driver configs for new tablets:
+
+**macOS:**
+```bash
+npm run build:discover:osx  # Build discovery tool
+npm run build:discover:dmg  # Build + create DMG
+```
+
+**Linux/Raspberry Pi:**
+```bash
+npm run build:discover:linux  # Build discovery tool
+npm run build:discover:deb    # Build + create .deb package
+```
+
+See **[DISCOVERY-INSTALLER-README.md](DISCOVERY-INSTALLER-README.md)** for details!
 
 ## Installation
 
@@ -189,15 +227,29 @@ midi-strummer/
 
 To create distributable applications:
 
+**macOS:**
 ```bash
 # Build standalone app
 ./build.sh
 
-# Create installer (macOS)
+# Create DMG installer
 ./create-dmg.sh
 ```
 
-For complete distribution instructions, see [DISTRIBUTION.md](DISTRIBUTION.md) and [BUILD.md](BUILD.md).
+**Linux/Raspberry Pi:**
+```bash
+# Build standalone app
+./build-linux.sh
+
+# Create Debian package
+./create-deb.sh
+```
+
+For complete distribution instructions, see:
+- [DISTRIBUTION.md](DISTRIBUTION.md) - General distribution guide
+- [BUILD.md](BUILD.md) - macOS build instructions
+- [LINUX-INSTALL.md](LINUX-INSTALL.md) - Linux installation and configuration
+- [RASPBERRY-PI-QUICKSTART.md](RASPBERRY-PI-QUICKSTART.md) - Raspberry Pi quick start
 
 ## Contributing
 
