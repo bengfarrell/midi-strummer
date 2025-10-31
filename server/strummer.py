@@ -103,6 +103,18 @@ class Strummer(EventEmitter):
                 self.last_timestamp = current_time
                 return None  # Don't trigger yet, need to buffer
             
+            # Handle case where pressure is already high on first sample (Raspberry Pi timing issue)
+            # If we have sufficient pressure but no previous strum, treat this as an initial tap
+            if has_sufficient_pressure and self.last_strummed_index == -1 and self.pending_tap_index == -1:
+                # Start buffering with current sample
+                self.pressure_buffer = [(pressure, current_time)]
+                self.pending_tap_index = index
+                self.last_x = x
+                self.last_pressure = pressure
+                self.last_timestamp = current_time
+                print(f"[STRUM] Late start detected: pressure={pressure:.4f}, starting buffer")
+                return None  # Start buffering
+            
             # Continue buffering if we have a pending tap
             if self.pending_tap_index != -1 and len(self.pressure_buffer) < self.buffer_max_samples:
                 self.pressure_buffer.append((pressure, current_time))
