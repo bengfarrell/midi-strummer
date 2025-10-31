@@ -99,11 +99,13 @@ class Strummer(EventEmitter):
             # Handle new tap - start buffering
             if pressure_down and (self.last_strummed_index == -1 or self.last_strummed_index != index):
                 # Include the previous pressure (before threshold) to capture the initial velocity spike
+                # Store the initial low pressure to measure from the beginning
                 self.pressure_buffer = [(self.last_pressure, self.last_timestamp), (pressure, current_time)]
                 self.pending_tap_index = index
                 self.last_x = x
                 self.last_pressure = pressure
                 self.last_timestamp = current_time
+                print(f"[STRUM] Tap start: initial_pressure={self.last_pressure:.4f}")
                 return None  # Don't trigger yet, need to buffer
             
             # Handle case where pressure is already high on first sample (Raspberry Pi timing issue)
@@ -127,25 +129,23 @@ class Strummer(EventEmitter):
                 
                 # Once buffer is full, trigger the note with calculated velocity
                 if len(self.pressure_buffer) >= self.buffer_max_samples:
-                    # Calculate velocity from overall pressure rise in buffer
-                    # This is more stable than sample-to-sample calculations
-                    first_pressure = self.pressure_buffer[0][0]
-                    last_pressure = self.pressure_buffer[-1][0]
-                    first_time = self.pressure_buffer[0][1]
-                    last_time = self.pressure_buffer[-1][1]
+                    # Use current pressure as the main velocity indicator
+                    # This is more intuitive - harder press = louder note
+                    # Map pressure (0.0-1.0) to MIDI velocity (20-127)
+                    # Pressure at trigger point is a better indicator than rate of change
+                    current_pressure = pressure
                     
-                    total_pressure_delta = last_pressure - first_pressure
-                    total_time_delta = last_time - first_time
+                    # Apply velocity scaling and map to MIDI range
+                    # Pressure range: 0.1 (threshold) to 1.0 → Velocity: 20 to 127
+                    normalized_pressure = (current_pressure - self.pressure_threshold) / (1.0 - self.pressure_threshold)
+                    normalized_pressure = max(0.0, min(1.0, normalized_pressure))
                     
-                    velocity = total_pressure_delta / total_time_delta if total_time_delta > 0 else 0.0
-                    
-                    # Calculate MIDI velocity
-                    calculated_velocity = int(max(0.0, velocity) * self.velocity_scale)
-                    # Clamp to MIDI range 1-127
-                    midi_velocity = max(1, min(127, calculated_velocity))
+                    # Scale to velocity range (20-127)
+                    midi_velocity = int(20 + normalized_pressure * 107)
+                    midi_velocity = max(20, min(127, midi_velocity))
                     
                     # Debug logging for velocity calculation
-                    print(f"[STRUM] Pressure delta: {total_pressure_delta:.4f}, Time delta: {total_time_delta:.4f}, Velocity: {velocity:.4f}, Calculated: {calculated_velocity}, MIDI: {midi_velocity}")
+                    print(f"[STRUM] Pressure: {current_pressure:.4f}, Normalized: {normalized_pressure:.4f}, MIDI velocity: {midi_velocity}")
                     
                     # Store velocity for potential release event
                     self.last_strum_velocity = midi_velocity
@@ -166,7 +166,8 @@ class Strummer(EventEmitter):
             # Handle strumming across strings (index changed while pressure maintained)
             if has_sufficient_pressure and self.last_strummed_index != -1 and self.last_strummed_index != index:
                 # Strumming across strings - use current pressure
-                midi_velocity = int(pressure * 127)
+                # Minimum velocity of 20 for audibility
+                midi_velocity = max(20, int(pressure * 127))
                 print(f"[STRUM] Cross-string: pressure={pressure:.4f}, midi_velocity={midi_velocity}")
                 notes_to_play = []
 
