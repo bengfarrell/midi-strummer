@@ -82,16 +82,19 @@ class HIDReader:
             
             # Handle tabletButtons with code type (custom value mapping)
             if key == 'tabletButtons' and mapping_type == 'code':
-                if byte_index < len(data_list):
-                    byte_value = str(data_list[byte_index])
-                    values_map = mapping.get('values', {})
-                    if byte_value in values_map:
-                        button_num = values_map[byte_value].get('button')
-                        if button_num:
-                            # Set only this button as pressed
-                            button_count = mapping.get('buttonCount', 8)
-                            for i in range(1, button_count + 1):
-                                result[f'button{i}'] = (i == button_num)
+                # ONLY process button codes from the button interface (Report ID 6)
+                # This prevents false button detections from stylus coordinate data
+                if is_button_interface:
+                    if byte_index < len(data_list):
+                        byte_value = str(data_list[byte_index])
+                        values_map = mapping.get('values', {})
+                        if byte_value in values_map:
+                            button_num = values_map[byte_value].get('button')
+                            if button_num:
+                                # Set only this button as pressed
+                                button_count = mapping.get('buttonCount', 8)
+                                for i in range(1, button_count + 1):
+                                    result[f'button{i}'] = (i == button_num)
                 continue
             
             # Skip button parsing if not in button mode (unless we're on button-only interface)
