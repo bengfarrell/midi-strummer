@@ -513,6 +513,10 @@ def create_hid_data_handler(cfg: Config, midi: Midi, socket_server: Optional[Soc
             'tiltXY': tilt_xy_val
         }
         
+        # Debug: Log pressure values when strumming
+        if pressure_val > 0.05:  # Only log when there's meaningful pressure
+            print(f"[HID] Pressure: {pressure_val:.4f}, X: {x:.4f}")
+        
         # Get effect configurations
         pitch_bend_cfg = cfg.get('pitchBend', {})
         note_duration_cfg = cfg.get('noteDuration', {})

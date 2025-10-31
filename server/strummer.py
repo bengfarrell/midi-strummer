@@ -129,6 +129,9 @@ class Strummer(EventEmitter):
                     # Clamp to MIDI range 1-127
                     midi_velocity = max(1, min(127, calculated_velocity))
                     
+                    # Debug logging for velocity calculation
+                    print(f"[STRUM] Pressure delta: {total_pressure_delta:.4f}, Time delta: {total_time_delta:.4f}, Velocity: {velocity:.4f}, Calculated: {calculated_velocity}, MIDI: {midi_velocity}")
+                    
                     # Store velocity for potential release event
                     self.last_strum_velocity = midi_velocity
                     
@@ -150,6 +153,7 @@ class Strummer(EventEmitter):
             if has_sufficient_pressure and self.last_strummed_index != -1 and self.last_strummed_index != index:
                 # Strumming across strings - use current pressure
                 midi_velocity = int(pressure * 127)
+                print(f"[STRUM] Cross-string: pressure={pressure:.4f}, midi_velocity={midi_velocity}")
                 notes_to_play = []
 
                 # Determine direction for proper ordering
