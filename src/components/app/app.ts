@@ -87,6 +87,9 @@ export class StrummerApp extends LitElement {
     @state()
     protected tabletDeviceInfo: any = null;
 
+    @state()
+    protected hasReceivedDeviceStatus: boolean = false;
+
     constructor() {
         super();
         // Register this component with the settings controller
@@ -278,6 +281,7 @@ export class StrummerApp extends LitElement {
                         // Update tablet connection status
                         this.tabletConnected = data.connected;
                         this.tabletDeviceInfo = data.device;
+                        this.hasReceivedDeviceStatus = true;
                         console.log('[Device Status]', data.connected ? 'Connected' : 'Disconnected', data.device);
                         break;
                 }
@@ -327,6 +331,7 @@ export class StrummerApp extends LitElement {
             this.webSocket = undefined;
             this.connectionStatus = 'disconnected';
             this.connectionError = '';
+            this.hasReceivedDeviceStatus = false; // Reset when disconnecting
             
             // Open the websocket panel when manually disconnected
             this.panelMinimized = {
@@ -528,6 +533,7 @@ export class StrummerApp extends LitElement {
                         .errorMessage="${this.connectionError}"
                         .tabletConnected=${this.tabletConnected}
                         .tabletDeviceInfo=${this.tabletDeviceInfo}
+                        .hasReceivedDeviceStatus=${this.hasReceivedDeviceStatus}
                         @connect="${this.handleConnect}"
                         @disconnect="${this.handleDisconnect}">
                     </websocket-connection>
@@ -603,10 +609,15 @@ export class StrummerApp extends LitElement {
         let panelTitle = schema.title;
         if (panelId === 'websocket-connection') {
             const connectionStatus = this.getConnectionStatusDisplay();
-            const tabletStatus = this.tabletConnected 
-                ? `🟢 ${this.tabletDeviceInfo?.name || 'Tablet'}` 
-                : '🔴 No Tablet';
-            panelTitle = `${schema.title} - ${connectionStatus} | ${tabletStatus}`;
+            // Only show tablet status if we've actually received device status from server
+            if (this.hasReceivedDeviceStatus) {
+                const tabletStatus = this.tabletConnected 
+                    ? `🟢 ${this.tabletDeviceInfo?.name || 'Tablet'}` 
+                    : '🔴 No Tablet';
+                panelTitle = `${schema.title} - ${connectionStatus} | ${tabletStatus}`;
+            } else {
+                panelTitle = `${schema.title} - ${connectionStatus}`;
+            }
         }
         
         // Determine if panel is closable (panel-controls and websocket-connection are not)

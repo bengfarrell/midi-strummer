@@ -341,6 +341,29 @@ class HotplugMonitor:
             self._thread.join(timeout=self.check_interval + 1.0)
         print("[Hotplug] Monitor stopped")
     
+    def register_connected_device(self, tablet_config: Dict[str, Any]):
+        """
+        Register a device that was opened at startup so the monitor knows to watch for its disconnection.
+        
+        Args:
+            tablet_config: The tablet configuration with device info
+        """
+        try:
+            devices = hid.enumerate()
+            device_filter = {k: v for k, v in tablet_config.items() 
+                           if k not in ['byteCodeMappings', '_driverName', '_driverInfo', 'reportId', 'interfaces']}
+            
+            for device_info in devices:
+                if _device_matches_filter(device_info, device_filter):
+                    device_id = self._get_device_id(device_info)
+                    self._connected_device_id = device_id
+                    print(f"[Hotplug] Registered initial device with ID: {device_id}")
+                    return
+            
+            print(f"[Hotplug] Warning: Could not find device to register")
+        except Exception as e:
+            print(f"[Hotplug] Error registering initial device: {e}")
+    
     def _get_device_id(self, device_info: Dict[str, Any]) -> str:
         """Generate a unique ID for a device."""
         # Use path if available, otherwise use vendor/product/interface
@@ -372,17 +395,18 @@ class HotplugMonitor:
                     
                     # Check if this is a newly connected device
                     if device_id not in self._known_devices:
-                        print(f"[Hotplug] New device detected: {device_info.get('product_string', 'Unknown')}")
-                        
                         # Check if it matches any driver profile
                         for driver_name, driver_config in self.driver_profiles:
                             if 'deviceInfo' not in driver_config:
                                 continue
                             
-                            device_filter = driver_config['deviceInfo']
+                            # Remove 'interfaces' from filter since enumeration only has 'interface_number'
+                            device_filter = {k: v for k, v in driver_config['deviceInfo'].items() 
+                                           if k != 'interfaces'}
+                            
                             if _device_matches_filter(device_info, device_filter):
                                 device_name = driver_config.get('name', driver_name)
-                                print(f"[Hotplug] ✓ Matched driver: {device_name}")
+                                print(f"[Hotplug] New device detected: {device_name}")
                                 
                                 # Try to open the device
                                 try:
@@ -403,7 +427,6 @@ class HotplugMonitor:
                 
                 # Check if the connected device was disconnected
                 if self._connected_device_id and self._connected_device_id not in current_device_ids:
-                    print(f"[Hotplug] Device disconnected")
                     if self.on_device_disconnected:
                         self.on_device_disconnected()
                     self._connected_device_id = None

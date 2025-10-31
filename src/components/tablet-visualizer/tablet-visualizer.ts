@@ -606,8 +606,8 @@ export class TabletVisualizer extends LitElement {
                 <rect x="${button1X}" y="${penWidth/2 - buttonWidth/2}" 
                       width="${buttonHeight}" height="${buttonWidth}"
                       rx="2"
-                      fill="${(this.socketMode ? this.externalTabletData.primaryButtonPressed : this.primaryButtonPressed) ? '#51cf66' : '#495057'}"
-                      stroke="${(this.socketMode ? this.externalTabletData.primaryButtonPressed : this.primaryButtonPressed) ? '#40c057' : '#6c757d'}"
+                      fill="${(this.socketMode ? this.externalTabletData.secondaryButtonPressed : this.secondaryButtonPressed) ? '#51cf66' : '#495057'}"
+                      stroke="${(this.socketMode ? this.externalTabletData.secondaryButtonPressed : this.secondaryButtonPressed) ? '#40c057' : '#6c757d'}"
                       stroke-width="1"
                       pointer-events="${this.socketMode ? 'none' : 'auto'}"
                       @mousedown=${(e: MouseEvent) => this.handleStylusButtonMouseDown(true, e)}
@@ -618,8 +618,8 @@ export class TabletVisualizer extends LitElement {
                 <rect x="${button2X}" y="${penWidth/2 - buttonWidth/2}" 
                       width="${buttonHeight}" height="${buttonWidth}"
                       rx="2"
-                      fill="${(this.socketMode ? this.externalTabletData.secondaryButtonPressed : this.secondaryButtonPressed) ? '#51cf66' : '#495057'}"
-                      stroke="${(this.socketMode ? this.externalTabletData.secondaryButtonPressed : this.secondaryButtonPressed) ? '#40c057' : '#6c757d'}"
+                      fill="${(this.socketMode ? this.externalTabletData.primaryButtonPressed : this.primaryButtonPressed) ? '#51cf66' : '#495057'}"
+                      stroke="${(this.socketMode ? this.externalTabletData.primaryButtonPressed : this.primaryButtonPressed) ? '#40c057' : '#6c757d'}"
                       stroke-width="1"
                       pointer-events="${this.socketMode ? 'none' : 'auto'}"
                       @mousedown=${(e: MouseEvent) => this.handleStylusButtonMouseDown(false, e)}

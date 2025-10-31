@@ -30,6 +30,9 @@ export class WebSocketConnectionComponent extends LitElement {
     })
     tabletDeviceInfo: any = null;
 
+    @property({ type: Boolean })
+    hasReceivedDeviceStatus: boolean = false;
+
     @state()
     private address: string = `ws://${window.location.hostname}:8080`;
 
@@ -96,7 +99,7 @@ export class WebSocketConnectionComponent extends LitElement {
                     </div>
                 ` : ''}
 
-                ${isConnected ? html`
+                ${isConnected && this.hasReceivedDeviceStatus ? html`
                     <div class="device-status-panel">
                         <div class="status-row">
                             <span class="status-label">Drawing Tablet:</span>
@@ -119,6 +122,11 @@ export class WebSocketConnectionComponent extends LitElement {
                                 ` : ''}
                             </div>
                         ` : ''}
+                    </div>
+                ` : isConnected && !this.hasReceivedDeviceStatus ? html`
+                    <div class="connection-info">
+                        <p>✅ Connected to server</p>
+                        <p>Waiting for device status...</p>
                     </div>
                 ` : html`
                     <div class="connection-info">

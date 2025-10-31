@@ -23,8 +23,7 @@ from config import Config
 from actions import Actions
 
 # Global references for cleanup
-_hid_reader = None
-_hid_readers = []  # Multiple readers for multiple interfaces
+_hid_readers = []  # Multiple readers for multiple interfaces (stylus, buttons, etc.)
 _midi = None
 _socket_server = None
 _web_server = None
@@ -39,7 +38,7 @@ _tablet_device_info = None
 
 def cleanup_resources():
     """Clean up device and MIDI resources"""
-    global _hid_reader, _hid_readers, _midi, _socket_server, _web_server, _event_loop, _loop_thread, _hotplug_monitor, _tablet_connected, _tablet_device_info
+    global _hid_readers, _midi, _socket_server, _web_server, _event_loop, _loop_thread, _hotplug_monitor, _tablet_connected, _tablet_device_info
     
     print("\nCleaning up resources...")
     
@@ -95,16 +94,6 @@ def cleanup_resources():
             print("Event loop stopped successfully")
         except Exception as e:
             print(f"Error stopping event loop: {e}")
-    
-    # Stop and close HID reader
-    if _hid_reader is not None:
-        try:
-            _hid_reader.stop()
-            _hid_reader.close()
-            _hid_reader = None
-        except Exception as e:
-            print(f"Error closing HID reader: {e}")
-            _hid_reader = None
     
     # Stop and close all HID readers
     for reader in _hid_readers:
@@ -629,7 +618,7 @@ def create_hid_data_handler(cfg: Config, midi: Midi, socket_server: Optional[Soc
 
 def main():
     """Main application entry point"""
-    global _hid_reader, _midi, _socket_server, _web_server, _event_loop, _loop_thread, _hotplug_monitor, _tablet_connected, _tablet_device_info
+    global _hid_readers, _midi, _socket_server, _web_server, _event_loop, _loop_thread, _hotplug_monitor, _tablet_connected, _tablet_device_info
     
     # Register cleanup function to run on exit
     atexit.register(cleanup_resources)
@@ -680,7 +669,7 @@ def main():
     # Create callbacks for hotplug device connection/disconnection
     def on_device_disconnected():
         """Handle device disconnection from hotplug monitor"""
-        global _hid_reader, _tablet_connected, _tablet_device_info
+        global _hid_readers, _tablet_connected, _tablet_device_info
         
         print("\n[Hotplug] Device disconnected")
         
@@ -689,24 +678,30 @@ def main():
         _tablet_device_info = None
         
         # Notify via websocket
-        print("[Device Status] Broadcasting: Connected = False (hotplug detected)")
         broadcast_to_socket(_socket_server, 'device_status', {
             'connected': False,
             'device': None
         })
         
-        # Stop HID reader if running
-        if _hid_reader is not None:
-            try:
-                _hid_reader.stop()
-                _hid_reader.close()
-                _hid_reader = None
-            except Exception as e:
-                print(f"[Hotplug] Error stopping HID reader: {e}")
+        # Stop all HID readers if running
+        if _hid_readers:
+            for reader in _hid_readers:
+                try:
+                    reader.stop()
+                    reader.close()
+                except Exception as e:
+                    print(f"[Hotplug] Error stopping HID reader: {e}")
+            _hid_readers = []
     
     def on_device_plugged_in(driver_name: str, driver_config: Dict[str, Any], device):
         """Handle device connection from hotplug monitor"""
-        global _hid_reader, _tablet_connected, _tablet_device_info
+        global _hid_readers, _tablet_connected, _tablet_device_info
+        
+        # Close the device opened by hotplug monitor - we'll reopen all interfaces properly
+        try:
+            device.close()
+        except:
+            pass
         
         device_name = driver_config.get('name', driver_name)
         print(f"\n[Hotplug] Device connected: {device_name}")
@@ -727,13 +722,15 @@ def main():
             'device': _tablet_device_info
         })
         
-        # Stop existing HID reader if any
-        if _hid_reader is not None:
-            try:
-                _hid_reader.stop()
-                _hid_reader.close()
-            except:
-                pass
+        # Stop existing HID readers if any
+        if _hid_readers:
+            for reader in _hid_readers:
+                try:
+                    reader.stop()
+                    reader.close()
+                except:
+                    pass
+            _hid_readers = []
         
         # Update config with new device configuration
         startup_cfg = cfg.get('startupConfiguration', {})
@@ -744,6 +741,8 @@ def main():
             tablet_config.update(driver_config['deviceInfo'])
         if 'byteCodeMappings' in driver_config:
             tablet_config['byteCodeMappings'] = driver_config['byteCodeMappings']
+        if 'reportId' in driver_config:
+            tablet_config['reportId'] = driver_config['reportId']
         tablet_config['_driverName'] = driver_name
         tablet_config['_driverInfo'] = {
             'name': driver_config.get('name'),
@@ -753,25 +752,47 @@ def main():
         
         startup_cfg['drawingTablet'] = tablet_config
         
-        # Create HID reader with the new device
+        # Find and open all interfaces for this device
+        devices = find_and_open_all_interfaces(tablet_config)
+        
+        if not devices:
+            print(f"[Hotplug] Error: Could not reopen device interfaces")
+            return
+        
+        print(f"[Hotplug] Opened {len(devices)} interface(s)")
+        
+        # Create HID readers for all interfaces
         data_handler = create_hid_data_handler(cfg, _midi, _socket_server)
-        _hid_reader = HIDReader(
-            device, 
-            cfg, 
-            data_handler, 
-            warning_callback=lambda msg: broadcast_to_socket(_socket_server, 'warning', {'message': msg})
-        )
         
-        # Start reading in a background thread
-        import threading
-        def start_reading():
-            try:
-                _hid_reader.start_reading()
-            except Exception as e:
-                print(f"[Hotplug] Error starting HID reader: {e}")
+        # devices is a list of tuples: [(interface_num, device), ...]
+        for interface_num, device in devices:
+            print(f"[Hotplug] Creating reader for interface {interface_num}")
+            
+            reader = HIDReader(
+                device, 
+                cfg, 
+                data_handler, 
+                warning_callback=lambda msg: broadcast_to_socket(_socket_server, 'warning', {'message': msg})
+            )
+            _hid_readers.append(reader)
+            
+            # Start reading in a background thread
+            def start_reading(reader=reader, interface=interface_num):
+                try:
+                    reader.start_reading()
+                except Exception as e:
+                    print(f"[Hotplug] Error starting HID reader for interface {interface}: {e}")
+            
+            read_thread = threading.Thread(target=start_reading, daemon=True)
+            read_thread.start()
         
-        read_thread = threading.Thread(target=start_reading, daemon=True)
-        read_thread.start()
+        print(f"[Hotplug] All {len(_hid_readers)} reader(s) started")
+        
+        # Broadcast device status to WebSocket clients
+        broadcast_to_socket(_socket_server, 'device_status', {
+            'connected': True,
+            'device': _tablet_device_info
+        })
         
         print(f"[Hotplug] Now using {device_name} for input")
     
@@ -842,6 +863,8 @@ def main():
                     check_interval=2.0
                 )
                 _hotplug_monitor.start()
+                # Register the currently connected device so monitor knows to watch for its disconnection
+                _hotplug_monitor.register_connected_device(drawing_tablet_cfg)
                 print("[Hotplug] Monitor started to watch for disconnections")
         except Exception as e:
             print(f"[Hotplug] Could not start hotplug monitor: {e}")
@@ -868,9 +891,6 @@ def main():
             read_thread = threading.Thread(target=start_reading, args=(reader,), daemon=True)
             read_thread.start()
         
-        # Keep reference to first reader for backward compatibility
-        if _hid_readers:
-            _hid_reader = _hid_readers[0]
     
     # Setup signal handler for graceful shutdown
     def signal_handler(sig, frame):
