@@ -69,6 +69,9 @@ class Strummer(EventEmitter):
             pressure_delta = pressure - self.last_pressure
             self.pressure_velocity = pressure_delta / time_delta if time_delta > 0 else 0.0
             
+            # Check if we have sufficient pressure (used in multiple places)
+            has_sufficient_pressure = pressure >= self.pressure_threshold
+            
             # Detect pressure transitions (pen down/up)
             pressure_down = self.last_pressure < self.pressure_threshold and pressure >= self.pressure_threshold
             pressure_up = self.last_pressure >= self.pressure_threshold and pressure < self.pressure_threshold
@@ -161,7 +164,6 @@ class Strummer(EventEmitter):
             self.last_timestamp = current_time
             
             # Handle strumming across strings (index changed while pressure maintained)
-            has_sufficient_pressure = pressure >= self.pressure_threshold
             if has_sufficient_pressure and self.last_strummed_index != -1 and self.last_strummed_index != index:
                 # Strumming across strings - use current pressure
                 midi_velocity = int(pressure * 127)
