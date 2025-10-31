@@ -1,6 +1,8 @@
 /.idea
 /node_modules
 /dist
+/server/dist
+/server/build
 /dmg-temp
 /docs
 /server/public
