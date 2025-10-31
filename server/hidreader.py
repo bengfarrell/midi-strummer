@@ -124,7 +124,8 @@ class HIDReader:
                         data_list,
                         byte_indices,
                         mapping.get('min', 0),
-                        mapping.get('max', 0)
+                        mapping.get('max', 0),
+                        debug_name=key  # Pass the key name for debug logging
                     )
             elif mapping_type == 'bipolar-range':
                 result[key] = parse_bipolar_range_data(

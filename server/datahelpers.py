@@ -11,7 +11,7 @@ def parse_range_data(data: List[int], byte_index: int, min_val: int = 0, max_val
 
 
 def parse_multi_byte_range_data(data: List[int], byte_indices: List[int], 
-                                 min_val: int = 0, max_val: int = 0) -> float:
+                                 min_val: int = 0, max_val: int = 0, debug_name: str = None) -> float:
     """
     Parse multi-byte range data from byte array.
     
@@ -23,6 +23,7 @@ def parse_multi_byte_range_data(data: List[int], byte_indices: List[int],
         byte_indices: List of byte indices to combine [low_byte_index, high_byte_index, ...]
         min_val: Minimum value in the combined range
         max_val: Maximum value in the combined range
+        debug_name: Optional name for debug logging
         
     Returns:
         Normalized float value (0.0 to 1.0)
@@ -39,7 +40,13 @@ def parse_multi_byte_range_data(data: List[int], byte_indices: List[int],
     if max_val == min_val:
         return 0.0
     
-    return (value - min_val) / (max_val - min_val)
+    normalized = (value - min_val) / (max_val - min_val)
+    
+    # Debug logging for pressure values
+    if debug_name == "pressure" and value > 1000:  # Only log when there's significant pressure
+        print(f"[PRESSURE] Raw value: {value}, Max: {max_val}, Normalized: {normalized:.4f}")
+    
+    return normalized
 
 
 def parse_bipolar_range_data(data: List[int], byte_index: int, 
