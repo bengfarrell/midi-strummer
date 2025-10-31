@@ -522,9 +522,9 @@ def create_hid_data_handler(cfg: Config, midi: Midi, socket_server: Optional[Soc
         note_duration_cfg = cfg.get('noteDuration', {})
         note_velocity_cfg = cfg.get('noteVelocity', {})
         
-        # Apply pitch bend effect
-        bend_value = apply_effect(pitch_bend_cfg, control_inputs, 'pitchBend')
-        midi.send_pitch_bend(bend_value)
+        # Apply pitch bend effect (TEMPORARILY DISABLED FOR DEBUGGING)
+        # bend_value = apply_effect(pitch_bend_cfg, control_inputs, 'pitchBend')
+        # midi.send_pitch_bend(bend_value)
         
         # Apply note duration and velocity effects
         duration = apply_effect(note_duration_cfg, control_inputs, 'noteDuration')
