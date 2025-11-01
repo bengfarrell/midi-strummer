@@ -12,7 +12,7 @@ Get up and running with Strumboli quickly. Choose your installation method and s
 
 - **Python 3.8 or higher** (for running from source)
 - **Drawing tablet** - XP-Pen Deco 640 (currently supported)
-- **MIDI capability** - Built-in or virtual MIDI output
+- **MIDI capability** - Built-in or virtual MIDI output (or Jack MIDI for professional setups)
 - **Operating System** - macOS, Linux, or Windows
 
 ### Supported Tablet
@@ -83,6 +83,8 @@ See **[Run from Source](/about/run-from-source/#1-install-system-dependencies)**
 
 ## Quick Configuration
 
+### Standard MIDI Output (Default)
+
 Create a minimal `settings.json` file:
 
 ```json
@@ -97,6 +99,26 @@ Create a minimal `settings.json` file:
 ```
 
 This auto-detects your tablet and sets up basic MIDI output on channel 1.
+
+### Jack MIDI for Zynthian
+
+For Zynthian or other Jack-based systems:
+
+```json
+{
+  "startupConfiguration": {
+    "midiOutputBackend": "jack",
+    "jackClientName": "strumboli",
+    "jackAutoConnect": "chain0",
+    "drawingTablet": "auto-detect"
+  },
+  "strumming": {
+    "midiChannel": 10
+  }
+}
+```
+
+See **[Jack MIDI Setup](/about/jack-midi/)** for complete Jack configuration and Zynthian integration.
 
 See **[Settings File](/about/configuration-settings/)** for complete configuration options including chord progressions, expression controls, and button mappings.
 
@@ -114,12 +136,23 @@ Double-click the application icon or run from terminal.
 python server/main.py
 ```
 
-**Expected Output:**
+**Expected Output (rtmidi backend):**
 ```
 [Config] Auto-detecting device...
 [Config] Loaded device driver: XP-Pen Deco 640
 Loaded configuration from 'settings.json'
 Opening MIDI output: IAC Driver Bus 1
+Device opened successfully
+```
+
+**Expected Output (Jack backend on Zynthian):**
+```
+[Config] Auto-detecting device...
+[Config] Loaded device driver: XP-Pen Deco 640
+Loaded configuration from 'settings.json'
+[Jack MIDI] ✓ Client activated: strumboli
+[Jack MIDI] ✓ MIDI output: midi_out
+[Jack MIDI] ✓ Connected to Zynthian (Chain 0)
 Device opened successfully
 ```
 

@@ -19,6 +19,7 @@ Strumboli reads input from HID-compatible drawing tablets (like XP-Pen, Wacom, e
 - **Chord Progressions**: Built-in chord progression presets spanning major, minor, blues, jazz, rock, and gospel styles
 - **Tablet Buttons**: Configure your tablet's express keys to switch chords, transpose, or toggle effects
 - **Stylus Buttons**: Quick access to common actions with your stylus buttons
+- **Jack MIDI Support**: Native integration with Zynthian and other Jack-based audio systems for professional setups
 - **Flexible Configuration**: Comprehensive JSON-based configuration system with auto-detection for supported tablets
 - **Web Dashboard**: Optional web interface for real-time monitoring and control
 
@@ -46,11 +47,12 @@ Press a tablet button to select a chord from the C Major Pop progression, then s
 ## Getting Started
 
 1. **[Installation](/about/getting-started/)** - Set up Strumboli on your system
-2. **[Running the Application](/about/running-overview/)** - Terminal, builds, and discovery tools
-3. **[Configuration](/about/configuration-overview/)** - Settings, drivers, and dashboard
-4. **[Tablet Setup](/about/tablet-setup/)** - Configure your specific tablet
-5. **[Actions Reference](/about/actions-reference/)** - Learn what your buttons can do
-6. **[Chords & Progressions](/about/chords-and-progressions/)** - Explore the chord system
+2. **[Jack MIDI Setup](/about/jack-midi/)** - Configure for Zynthian and professional audio (optional)
+3. **[Running the Application](/about/running-overview/)** - Terminal, builds, and discovery tools
+4. **[Configuration](/about/configuration-overview/)** - Settings, drivers, and dashboard
+5. **[Tablet Setup](/about/tablet-setup/)** - Configure your specific tablet
+6. **[Actions Reference](/about/actions-reference/)** - Learn what your buttons can do
+7. **[Chords & Progressions](/about/chords-and-progressions/)** - Explore the chord system
 
 ## Who Is This For?
 
@@ -65,6 +67,7 @@ Press a tablet button to select a chord from the C Major Pop progression, then s
 - HID-compatible drawing tablet (XP-Pen Deco 640 currently supported)
 - macOS, Linux, or Windows
 - MIDI output capability (built-in or virtual MIDI)
+- Optional: Jack Audio Connection Kit (for Zynthian integration)
 
 ## Built with AI
 

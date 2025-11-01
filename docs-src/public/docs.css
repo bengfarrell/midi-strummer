@@ -4,12 +4,17 @@
 
 html {
   overscroll-behavior: none;
-  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(107, 68, 35, 0.4) transparent;
 }
 
-/* Floating scrollbar styling */
+html:hover {
+  scrollbar-color: rgba(107, 68, 35, 0.6) transparent;
+}
+
+/* Webkit scrollbar styling (Chrome, Safari, Edge) */
 ::-webkit-scrollbar {
-  width: 12px;
+  width: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -17,15 +22,25 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(107, 68, 35, 0.5);
+  background: rgba(107, 68, 35, 0.4);
   border-radius: 6px;
   border: 2px solid transparent;
   background-clip: padding-box;
+  transition: background 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(107, 68, 35, 0.7);
   background-clip: padding-box;
+}
+
+/* Auto-hide scrollbar when not needed */
+body::-webkit-scrollbar-thumb {
+  background: rgba(107, 68, 35, 0.3);
+}
+
+body:hover::-webkit-scrollbar-thumb {
+  background: rgba(107, 68, 35, 0.5);
 }
 
 :root {
@@ -57,7 +72,7 @@ body {
   color: var(--brown);
   padding-top: 180px;
   overscroll-behavior: none;
-  overflow-y: overlay;
+  overflow-y: auto;
 }
 
 #main-wrapper {
@@ -551,6 +566,18 @@ strong {
     display: block;
     z-index: 1000;
     overflow-y: auto;
+  }
+  
+  .menu-open nav::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .menu-open nav::-webkit-scrollbar-thumb {
+    background: rgba(245, 230, 211, 0.4);
+  }
+  
+  .menu-open nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(245, 230, 211, 0.6);
   }
 
   #main-wrapper {

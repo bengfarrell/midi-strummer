@@ -18,6 +18,7 @@ The central configuration file that controls all aspects of Strumboli's behavior
 
 **Covers:**
 - Device detection (auto-detect vs manual)
+- MIDI backend selection (rtmidi or Jack)
 - MIDI channel and note configuration
 - Expression mapping (velocity, duration, pitch bend)
 - Button actions and chord progressions
@@ -54,7 +55,29 @@ JSON files that define how to interpret data from your drawing tablet.
 
 ---
 
-### 3. Web Dashboard
+### 3. Jack MIDI Integration (Optional)
+
+Advanced MIDI output for Zynthian and professional audio systems.
+
+**[Jack MIDI Setup →](/about/jack-midi/)**
+
+**Covers:**
+- Jack vs rtmidi backends
+- Zynthian integration and auto-connection
+- Multi-timbral MIDI routing
+- Manual Jack connections
+- Real-time performance optimization
+
+**Key topics:**
+- Installing Jack dependencies
+- Auto-connection modes (Zynthian-specific)
+- MIDI channel filtering
+- Generic Jack system setup
+- Troubleshooting Jack issues
+
+---
+
+### 4. Web Dashboard
 
 Real-time web interface for monitoring and visualization.
 
@@ -252,4 +275,6 @@ For detailed information on every configuration option:
 ### Full Documentation
 
 See [Settings File](/about/configuration-settings/) for complete parameter documentation.
+
+See [Jack MIDI Setup](/about/jack-midi/) for Zynthian and professional audio integration.
 
