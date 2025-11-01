@@ -105,7 +105,7 @@ class Strummer(EventEmitter):
                 self.last_x = x
                 self.last_pressure = pressure
                 self.last_timestamp = current_time
-                print(f"[STRUM] Tap start: initial_pressure={self.last_pressure:.4f}")
+                # print(f"[STRUM] Tap start: initial_pressure={self.last_pressure:.4f}")
                 return None  # Don't trigger yet, need to buffer
             
             # Handle case where pressure is already high on first sample (Raspberry Pi timing issue)
@@ -117,7 +117,7 @@ class Strummer(EventEmitter):
                 self.last_x = x
                 self.last_pressure = pressure
                 self.last_timestamp = current_time
-                print(f"[STRUM] Late start detected: pressure={pressure:.4f}, starting buffer")
+                # print(f"[STRUM] Late start detected: pressure={pressure:.4f}, starting buffer")
                 return None  # Start buffering
             
             # Continue buffering if we have a pending tap
@@ -144,8 +144,8 @@ class Strummer(EventEmitter):
                     midi_velocity = int(20 + normalized_pressure * 107)
                     midi_velocity = max(20, min(127, midi_velocity))
                     
-                    # Debug logging for velocity calculation
-                    print(f"[STRUM] Pressure: {current_pressure:.4f}, Normalized: {normalized_pressure:.4f}, MIDI velocity: {midi_velocity}")
+                    # Debug logging for velocity calculation (disabled for cleaner logs)
+                    # print(f"[STRUM] Pressure: {current_pressure:.4f}, Normalized: {normalized_pressure:.4f}, MIDI velocity: {midi_velocity}")
                     
                     # Store velocity for potential release event
                     self.last_strum_velocity = midi_velocity
@@ -168,7 +168,7 @@ class Strummer(EventEmitter):
                 # Strumming across strings - use current pressure
                 # Minimum velocity of 20 for audibility
                 midi_velocity = max(20, int(pressure * 127))
-                print(f"[STRUM] Cross-string: pressure={pressure:.4f}, midi_velocity={midi_velocity}")
+                # print(f"[STRUM] Cross-string: pressure={pressure:.4f}, midi_velocity={midi_velocity}")
                 notes_to_play = []
 
                 # Determine direction for proper ordering

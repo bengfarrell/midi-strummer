@@ -13,6 +13,7 @@ from dataclasses import asdict
 from finddevice import find_and_open_device, find_and_open_all_interfaces, HotplugMonitor
 from strummer import strummer
 from midi import Midi
+from jackmidi import JackMidi
 from midievent import MidiNoteEvent, NOTE_EVENT
 from note import Note
 from websocketserver import SocketServer
@@ -247,8 +248,35 @@ def setup_midi_and_strummer(cfg: Config, socket_server: Optional[SocketServer] =
             strumming_cfg.get('upperNoteSpread', 0)
         )
     
-    # Setup MIDI
-    midi = Midi(midi_strum_channel=cfg.get('strumming', {}).get('midiChannel'))
+    # Setup MIDI - choose backend based on configuration
+    midi_backend = cfg.midi_output_backend
+    midi_channel = cfg.get('strumming', {}).get('midiChannel')
+    
+    if midi_backend == 'jack':
+        print(f"[MIDI] Using Jack MIDI backend (client: {cfg.jack_client_name})")
+        try:
+            midi = JackMidi(
+                midi_strum_channel=midi_channel,
+                client_name=cfg.jack_client_name
+            )
+            print(f"[MIDI] ✓ Jack MIDI backend initialized successfully")
+            print(f"[MIDI] Backend type: {type(midi).__name__}")
+        except ImportError as e:
+            print(f"[MIDI] Error: {e}")
+            print("[MIDI] Falling back to rtmidi backend")
+            midi = Midi(midi_strum_channel=midi_channel)
+            print(f"[MIDI] Backend type: {type(midi).__name__}")
+        except Exception as e:
+            print(f"[MIDI] Failed to initialize Jack MIDI: {e}")
+            import traceback
+            traceback.print_exc()
+            print("[MIDI] Falling back to rtmidi backend")
+            midi = Midi(midi_strum_channel=midi_channel)
+            print(f"[MIDI] Backend type: {type(midi).__name__}")
+    else:
+        print("[MIDI] Using rtmidi backend")
+        midi = Midi(midi_strum_channel=midi_channel)
+        print(f"[MIDI] Backend type: {type(midi).__name__}")
     
     # Create a lambda that captures cfg and socket_server
     def handler(event):
@@ -364,7 +392,7 @@ def start_socket_server(port: int, cfg: Config) -> tuple[SocketServer, asyncio.A
     return socket_server, loop, thread
 
 
-def create_hid_data_handler(cfg: Config, midi: Midi, socket_server: Optional[SocketServer] = None) -> Callable[[Dict[str, Union[str, int, float]]], None]:
+def create_hid_data_handler(cfg: Config, midi: Union[Midi, JackMidi], socket_server: Optional[SocketServer] = None) -> Callable[[Dict[str, Union[str, int, float]]], None]:
     """
     Create a callback function to handle processed HID data
     
@@ -513,9 +541,9 @@ def create_hid_data_handler(cfg: Config, midi: Midi, socket_server: Optional[Soc
             'tiltXY': tilt_xy_val
         }
         
-        # Debug: Log pressure values when strumming
-        if pressure_val > 0.05:  # Only log when there's meaningful pressure
-            print(f"[HID] Pressure: {pressure_val:.4f}, X: {x:.4f}")
+        # Debug: Log pressure values when strumming (disabled for cleaner logs)
+        # if pressure_val > 0.05:  # Only log when there's meaningful pressure
+        #     print(f"[HID] Pressure: {pressure_val:.4f}, X: {x:.4f}")
         
         # Get effect configurations
         pitch_bend_cfg = cfg.get('pitchBend', {})

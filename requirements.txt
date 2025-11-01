@@ -1,6 +1,9 @@
 # MIDI functionality
 python-rtmidi>=1.5.0
 
+# Jack MIDI support (optional - for Zynthian/Jack systems)
+JACK-Client>=0.5.0
+
 # HID device support (equivalent to node-hid)
 hidapi>=0.14.0
 

@@ -42,9 +42,9 @@ def parse_multi_byte_range_data(data: List[int], byte_indices: List[int],
     
     normalized = (value - min_val) / (max_val - min_val)
     
-    # Debug logging for pressure values
-    if debug_name == "pressure" and value > 1000:  # Only log when there's significant pressure
-        print(f"[PRESSURE] Raw value: {value}, Max: {max_val}, Normalized: {normalized:.4f}")
+    # Debug logging for pressure values (disabled for cleaner logs)
+    # if debug_name == "pressure" and value > 1000:  # Only log when there's significant pressure
+    #     print(f"[PRESSURE] Raw value: {value}, Max: {max_val}, Normalized: {normalized:.4f}")
     
     return normalized
 

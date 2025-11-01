@@ -196,6 +196,23 @@ The application uses `settings.json` for configuration. The app will search for 
 
 See `settings.json` in the project root for a complete example configuration.
 
+### Jack MIDI Support (Zynthian Integration)
+
+**NEW:** MIDI Strummer now supports Jack MIDI output for seamless integration with Zynthian and other Jack-based audio systems!
+
+To enable Jack MIDI, add this to your `settings.json`:
+
+```json
+{
+  "startupConfiguration": {
+    "midiOutputBackend": "jack",
+    "jackClientName": "midi_strummer"
+  }
+}
+```
+
+See **[JACK-MIDI-SETUP.md](JACK-MIDI-SETUP.md)** for complete setup instructions and **[settings-zynthian-example.json](settings-zynthian-example.json)** for a Zynthian-ready configuration!
+
 ### Curve Values
 
 Logarithmic Curve Values:
