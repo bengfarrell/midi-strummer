@@ -38,10 +38,13 @@ class Midi(EventEmitter):
             self.midi_out = rtmidi.MidiOut()
             available_outputs = self.midi_out.get_ports()
             
+            print(f"[MIDI] Available output ports: {available_outputs}")
+            
             output_port = None
             if available_outputs:
                 self.midi_out.open_port(0)
                 output_port = available_outputs[0]
+                print(f"[MIDI] Using output port 0: {output_port}")
             else:
                 print("WARNING: No MIDI output ports available")
             
@@ -184,6 +187,7 @@ class Midi(EventEmitter):
             # Send note-off messages
             for channel in channels:
                 note_off_message = [0x80 + channel, midi_note, 0x40]
+                print(f"[MIDI] Sending NOTE_OFF: channel={channel+1}, note={midi_note}")
                 self.midi_out.send_message(note_off_message)
 
     def send_note(self, note: NoteObject, velocity: int, duration: float = 1.5) -> None:
@@ -212,6 +216,7 @@ class Midi(EventEmitter):
             # Send note-on messages
             for channel in channels:
                 note_on_message = [0x90 + channel, midi_note, velocity]
+                print(f"[MIDI] Sending NOTE_ON: channel={channel+1}, note={midi_note}, velocity={velocity}")
                 self.midi_out.send_message(note_on_message)
             
             # Track when this note started
