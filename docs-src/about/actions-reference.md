@@ -600,12 +600,6 @@ If you see "Unknown action" in console:
 - Ensure parameters are in correct format
 - Verify you're using a supported action
 
-## Next Steps
-
-- **[Chords & Progressions](/about/chords-and-progressions/)** - Explore chord system and presets
-- **[Settings Reference](/about/settings-reference/)** - Complete settings documentation
-- **[Configuration Overview](/about/configuration-overview/)** - Understand the settings system
-
 ## Action Quick Reference
 
 | Action | Format | Purpose |

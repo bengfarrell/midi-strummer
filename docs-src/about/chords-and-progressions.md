@@ -578,13 +578,6 @@ Start with basic triads:
 - **Check action format:** Ensure proper array format
 - **Look at console:** Error messages will indicate the problem
 
-## Next Steps
-
-- **[Actions Reference](/about/actions-reference/)** - Full action documentation
-- **[Settings Reference](/about/settings-reference/)** - Complete settings guide
-- **[Configuration Overview](/about/configuration-overview/)** - Understanding the config system
-- **[Getting Started](/about/getting-started/)** - Installation and setup
-
 ## Chord Reference Tables
 
 Quick reference for copying into configurations:

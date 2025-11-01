@@ -46,10 +46,11 @@ Press a tablet button to select a chord from the C Major Pop progression, then s
 ## Getting Started
 
 1. **[Installation](/about/getting-started/)** - Set up Strumboli on your system
-2. **[Configuration Overview](/about/configuration-overview/)** - Understand the settings structure
-3. **[Tablet Setup](/about/tablet-setup/)** - Configure your specific tablet
-4. **[Actions Reference](/about/actions-reference/)** - Learn what your buttons can do
-5. **[Chords & Progressions](/about/chords-and-progressions/)** - Explore the chord system
+2. **[Running the Application](/about/running-overview/)** - Terminal, builds, and discovery tools
+3. **[Configuration](/about/configuration-overview/)** - Settings, drivers, and dashboard
+4. **[Tablet Setup](/about/tablet-setup/)** - Configure your specific tablet
+5. **[Actions Reference](/about/actions-reference/)** - Learn what your buttons can do
+6. **[Chords & Progressions](/about/chords-and-progressions/)** - Explore the chord system
 
 ## Who Is This For?
 
@@ -60,9 +61,13 @@ Press a tablet button to select a chord from the C Major Pop progression, then s
 
 ## System Requirements
 
-- Python 3.7 or higher
-- HID-compatible drawing tablet (XP-Pen, Wacom, etc.)
+- Python 3.8 or higher (for running from source)
+- HID-compatible drawing tablet (XP-Pen Deco 640 currently supported)
 - macOS, Linux, or Windows
 - MIDI output capability (built-in or virtual MIDI)
+
+## Built with AI
+
+Strumboli was created with significant assistance from AI, demonstrating how AI can be a powerful tool for software development. Learn more about the [development process and philosophy](/about/built-with-ai/).
 
 Ready to get started? Head to the [Getting Started](/about/getting-started/) guide!

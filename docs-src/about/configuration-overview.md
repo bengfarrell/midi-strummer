@@ -1,339 +1,255 @@
 ---
 layout: page.njk
-title: Configuration Overview
-description: Understanding Strumboli's configuration system
+title: Configuration
+description: Overview of Strumboli's configuration system
 ---
 
-# Configuration Overview
+# Configuration
 
-Strumboli uses a JSON-based configuration system that controls everything from tablet hardware mapping to MIDI expression parameters. This guide explains the structure and key concepts.
+Strumboli's configuration system gives you complete control over device detection, MIDI expression, and interface options. This section covers the three main configuration components.
 
-## Configuration File
+## Configuration Components
 
-The main configuration file is **`settings.json`**, located in:
-1. The application directory (checked first)
-2. Parent directory
-3. Current working directory
-4. Your home directory
+### 1. Settings File (settings.json)
 
-## Configuration Structure
+The central configuration file that controls all aspects of Strumboli's behavior.
 
-The settings file is organized into logical sections:
+**[Settings File Guide →](/about/configuration-settings/)**
 
-```json
-{
-  "startupConfiguration": { /* System startup options */ },
-  "strumming": { /* Strumming behavior */ },
-  "noteDuration": { /* Note length control */ },
-  "noteVelocity": { /* Velocity/dynamics control */ },
-  "pitchBend": { /* Pitch bend mapping */ },
-  "noteRepeater": { /* Repeater effect */ },
-  "stylusButtons": { /* Stylus button actions */ },
-  "tabletButtons": { /* Tablet button actions */ },
-  "strumRelease": { /* Release trigger settings */ }
-}
-```
+**Covers:**
+- Device detection (auto-detect vs manual)
+- MIDI channel and note configuration
+- Expression mapping (velocity, duration, pitch bend)
+- Button actions and chord progressions
+- Server settings
 
-## Core Concepts
+**Key topics:**
+- Auto-detection vs specifying devices
+- Expression control parameters
+- Curve and spread settings
+- Button configuration
+- Configuration templates
 
-### 1. Control Mapping
+---
 
-Many settings map tablet inputs to MIDI parameters. Each mapping has these properties:
+### 2. Device Drivers
 
-```json
-{
-  "control": "pressure",      // Input source
-  "min": 0,                   // Minimum output value
-  "max": 127,                 // Maximum output value
-  "default": 64,              // Default when not active
-  "curve": 1.0,               // Response curve
-  "spread": "direct",         // Distribution type
-  "multiplier": 1.0           // Scale factor
-}
-```
+JSON files that define how to interpret data from your drawing tablet.
 
-#### Available Controls
+**[Device Drivers Guide →](/about/configuration-drivers/)**
 
-| Control | Description | Use Cases |
-|---------|-------------|-----------|
-| `pressure` | Stylus pressure | Velocity, dynamics |
-| `tiltX` | Left/right tilt | Pitch bend, modulation |
-| `tiltY` | Forward/back tilt | Expression, brightness |
-| `tiltXY` | Combined tilt | Note duration |
-| `xaxis` | Horizontal position | Pan, filter sweep |
-| `yaxis` | Vertical position | Pitch, cutoff |
+**Covers:**
+- Driver file structure and format
+- Byte mapping specifications
+- Creating custom drivers
+- Using the discovery tool
+- Platform-specific drivers
 
-#### Spread Types
+**Key topics:**
+- Understanding byte code mappings
+- X/Y coordinates and pressure
+- Tilt and button detection
+- Multi-interface devices
+- Testing and contributing drivers
 
-| Spread | Description | Example |
-|--------|-------------|---------|
-| `direct` | Linear mapping (0→min, 1→max) | Velocity 0-127 |
-| `inverse` | Inverted (0→max, 1→min) | Duration (light=long) |
-| `central` | Center-based (0.5→default, edges→min/max) | Pitch bend around center |
+---
 
-#### Curve Values
+### 3. Web Dashboard
 
-The `curve` parameter shapes the response:
+Real-time web interface for monitoring and visualization.
 
-- **`1.0`** - Linear (no curve)
-- **`2.0`** - Gentle logarithmic curve
-- **`3.0`** - Moderate curve (good balance)
-- **`4.0`** - Steep curve (very sensitive at low values)
-- **`0.5`** - Compressed (reduces sensitivity)
+**[Web Dashboard Guide →](/about/configuration-dashboard/)**
 
-**Example:** `curve: 4.0` for pressure makes light touches more expressive.
+**Covers:**
+- Enabling and accessing the dashboard
+- Real-time tablet input visualization
+- MIDI output monitoring
+- Configuration display
+- Network access and remote monitoring
 
-### 2. Note Spread
+**Key topics:**
+- WebSocket protocol
+- Message types and format
+- Custom dashboard development
+- Performance metrics
+- Troubleshooting
 
-The **note spread** system fills out chords with additional octaves:
+---
 
-```json
-{
-  "strumming": {
-    "initialNotes": ["C4", "E4", "G4"],
-    "lowerNoteSpread": 3,
-    "upperNoteSpread": 3
-  }
-}
-```
+## Configuration Workflow
 
-This creates:
-- 3 notes **below** the chord (C3, E3, G3)
-- The chord itself (C4, E4, G4)
-- 3 notes **above** the chord (C5, E5, G5)
+See **[Settings File](/about/configuration-settings/)** for complete configuration examples including:
+- **Minimal setup** - Just auto-detect and go
+- **Standard setup** - Dashboard and basic expression
+- **Advanced setup** - Full control with custom devices
+- **Style-specific templates** - Guitar, bass, ambient, percussion configurations
 
-Total: 9 notes to strum through
+---
 
-### 3. Actions System
+## Configuration Files Overview
 
-Actions define what happens when you press buttons. Format:
+### Location Hierarchy
 
-```json
-// Simple action (no parameters)
-"toggle-repeater"
+Strumboli searches for files in this order:
 
-// Action with parameters
-["transpose", 12]
+1. **Settings File** (`settings.json`)
+   - Application directory
+   - Parent directory
+   - Current working directory
+   - Home directory
 
-// Action with nested parameters
-["set-strum-notes", ["C4", "E4", "G4"]]
+2. **Device Drivers** (automatically loaded)
+   - `server/drivers/*.json`
+   - Matched by vendor/product ID or name
 
-// Chord action
-["set-strum-chord", "Cmaj7", 3]
-```
+3. **Chord Progressions** (built-in)
+   - `server/chord_progressions.json`
+   - Referenced by name in settings
 
-See [Actions Reference](/about/actions-reference/) for all available actions.
+---
 
-### 4. Chord Progressions
+## Common Configuration Patterns
 
-Chord progressions can be:
+Popular setup styles for different musical contexts:
 
-**Preset name** (automatic 8-button setup):
-```json
-{
-  "tabletButtons": "c-major-pop"
-}
-```
+- **Guitar-Style** - Pressure velocity, tilt pitch bend, guitar note range
+- **Bass Performance** - Low note range, longer sustain, separate channel
+- **Ambient/Pad** - Note repeater, long durations, soft velocity
+- **Percussion/Drums** - Channel 10, short durations, strum release
 
-**Custom configuration** (full control):
-```json
-{
-  "tabletButtons": {
-    "1": ["set-strum-chord", "C"],
-    "2": ["set-strum-chord", "G"],
-    "3": ["set-strum-chord", "Am"],
-    "4": ["set-strum-chord", "F"],
-    "5": ["transpose", 12],
-    "6": ["transpose", -12],
-    "7": "toggle-repeater",
-    "8": ["set-strum-notes", ["E2"]]
-  }
-}
-```
+See **[Settings File - Configuration Templates](/about/configuration-settings/#configuration-templates)** for complete examples of each style.
 
-See [Chords & Progressions](/about/chords-and-progressions/) for details.
-
-## Configuration Sections
-
-### startupConfiguration
-
-System-level settings for device detection and server startup:
-
-```json
-{
-  "startupConfiguration": {
-    "drawingTablet": "auto-detect",
-    "useSocketServer": true,
-    "socketServerPort": 8080,
-    "useWebServer": true,
-    "webServerPort": 82,
-    "midiInputId": "Your MIDI Device"
-  }
-}
-```
-
-- **`drawingTablet`**: Device identifier or `"auto-detect"` (see [Tablet Setup](/about/tablet-setup/))
-- **`useSocketServer`**: Enable WebSocket server for dashboard
-- **`useWebServer`**: Enable HTTP server for web interface
-- **`midiInputId`**: MIDI input device name (for keyboard input, optional)
-
-### strumming
-
-Controls strumming behavior:
-
-```json
-{
-  "strumming": {
-    "pluckVelocityScale": 4.0,
-    "pressureThreshold": 0.1,
-    "midiChannel": 1,
-    "initialNotes": ["C4", "E4", "G4"],
-    "upperNoteSpread": 3,
-    "lowerNoteSpread": 3
-  }
-}
-```
-
-- **`pluckVelocityScale`**: Velocity multiplier for X-axis movement
-- **`pressureThreshold`**: Minimum pressure to trigger notes (0.0-1.0)
-- **`midiChannel`**: MIDI channel for note output
-- **`initialNotes`**: Starting chord/notes
-- **`upperNoteSpread`**: Notes added above chord
-- **`lowerNoteSpread`**: Notes added below chord
-
-### Expression Controls
-
-Map tablet inputs to MIDI expression:
-
-```json
-{
-  "noteVelocity": {
-    "control": "pressure",
-    "min": 0,
-    "max": 127,
-    "default": 64,
-    "curve": 4.0,
-    "spread": "direct"
-  },
-  "noteDuration": {
-    "control": "yaxis",
-    "min": 0.15,
-    "max": 1.5,
-    "default": 1.0,
-    "curve": 1.0,
-    "spread": "central"
-  },
-  "pitchBend": {
-    "control": "tiltXY",
-    "min": -1.0,
-    "max": 1.0,
-    "default": 0,
-    "curve": 4.0,
-    "spread": "direct"
-  }
-}
-```
-
-### noteRepeater
-
-Enables note repetition based on pressure:
-
-```json
-{
-  "noteRepeater": {
-    "active": false,
-    "pressureMultiplier": 1.0,
-    "frequencyMultiplier": 5.0
-  }
-}
-```
-
-- **`active`**: Enable/disable repeater
-- **`pressureMultiplier`**: How pressure affects repetition
-- **`frequencyMultiplier`**: Repetition speed multiplier
-
-### Button Configuration
-
-Configure stylus and tablet buttons:
-
-```json
-{
-  "stylusButtons": {
-    "active": true,
-    "primaryButtonAction": ["transpose", 12],
-    "secondaryButtonAction": "toggle-repeater"
-  },
-  "tabletButtons": "c-major-pop"
-}
-```
-
-See [Actions Reference](/about/actions-reference/) for all button action options.
+---
 
 ## Configuration Tips
 
-### Starting Simple
+### Start with Defaults
 
-Begin with a minimal configuration:
+Most settings have sensible defaults. Only configure what you need to change.
+
+### Use Auto-Detection
+
+For standard setups, `"drawingTablet": "auto-detect"` works great.
+
+### Enable the Dashboard
+
+The web dashboard is invaluable for understanding what's happening and debugging issues.
+
+### Test Changes Incrementally
+
+Make one change at a time and test before adding more complexity.
+
+### Document Your Setup
+
+Add comments to your settings file (though JSON doesn't officially support comments, keep a separate notes file):
+
+```
+settings.json - My guitar-style strumming setup
+- Pressure controls velocity with steep curve
+- Tilt X for pitch bend
+- C major pop progression on buttons
+```
+
+---
+
+## Troubleshooting Configuration
+
+### Device Not Found
+
+**Problem:** `[Config] Device not found`
+
+**Solutions:**
+1. Check device is plugged in
+2. Use `"auto-detect"` instead of specific device
+3. Verify device is supported (check `server/drivers/`)
+4. Use [Discovery Tool](/about/discovery/) to create driver
+
+### Invalid JSON
+
+**Problem:** `JSON parse error`
+
+**Solutions:**
+1. Check commas between properties
+2. Verify quotes are double quotes (`"`)
+3. Match all braces `{}` and brackets `[]`
+4. Use online JSON validator
+
+### Settings Not Applied
+
+**Problem:** Changes don't take effect
+
+**Solution:** Restart Strumboli - most settings require restart:
+```bash
+# Stop with Ctrl+C
+# Restart
+python server/main.py
+```
+
+### MIDI Not Working
+
+**Problem:** No MIDI output
+
+**Solutions:**
+1. Check `midiChannel` matches your DAW
+2. Verify tablet is detected
+3. Test pressure threshold (lower it)
+4. Enable dashboard to see MIDI events
+
+---
+
+## Advanced Configuration
+
+### Multiple Tablets
+
+Specify exactly which tablet to use:
 
 ```json
 {
   "startupConfiguration": {
-    "drawingTablet": "auto-detect"
-  },
-  "strumming": {
-    "midiChannel": 1
-  },
-  "tabletButtons": "c-major-pop"
+    "drawingTablet": "xp_pen_deco_640_osx"
+  }
 }
 ```
 
-Everything else will use sensible defaults.
+### Custom MIDI Routing
 
-### Common Configurations
+Use different channels for different features:
 
-**Guitar-like strumming:**
 ```json
 {
-  "noteVelocity": { "control": "pressure", "curve": 4.0 },
-  "pitchBend": { "control": "tiltX", "curve": 3.0 },
-  "strumming": { "upperNoteSpread": 2, "lowerNoteSpread": 1 }
+  "strumming": { "midiChannel": 1 },
+  "strumRelease": { "midiChannel": 10 }
 }
 ```
 
-**Bass performance:**
-```json
-{
-  "strumming": {
-    "initialNotes": ["E1", "A1", "D2", "G2"],
-    "upperNoteSpread": 1,
-    "lowerNoteSpread": 0
-  },
-  "noteDuration": { "max": 4.0 }
-}
-```
+### Platform-Specific Drivers
 
-**Ambient pad:**
-```json
-{
-  "noteRepeater": { "active": true, "frequencyMultiplier": 2.0 },
-  "noteDuration": { "min": 2.0, "max": 8.0 },
-  "noteVelocity": { "max": 80 }
-}
-```
+Create separate settings files:
+- `settings-macos.json`
+- `settings-linux.json`
+- `settings-windows.json`
 
-## Live Configuration Changes
+Load with: `python server/main.py --config settings-macos.json`
 
-Some settings can be changed in real-time:
-- Chord/note selection (via button actions)
-- Transpose (via button actions)
-- Note repeater on/off (via button actions)
+---
 
-Most other settings require restarting Strumboli to take effect.
+## Configuration Reference
 
-## Next Steps
+For detailed information on every configuration option:
 
-- **[Tablet Setup](/about/tablet-setup/)** - Configure your specific tablet hardware
-- **[Settings Reference](/about/settings-reference/)** - Complete documentation of all settings
-- **[Actions Reference](/about/actions-reference/)** - Learn about button actions
-- **[Chords & Progressions](/about/chords-and-progressions/)** - Explore the chord system
+### Core Sections
+
+- **startupConfiguration** - Device and server settings
+- **strumming** - Core strumming parameters
+- **noteVelocity** - Velocity expression mapping
+- **noteDuration** - Note length control
+- **pitchBend** - Pitch bend mapping
+- **noteRepeater** - Repetition effects
+- **stylusButtons** - Stylus button actions
+- **tabletButtons** - Tablet button actions
+- **strumRelease** - Release trigger settings
+
+### Full Documentation
+
+See [Settings File](/about/configuration-settings/) for complete parameter documentation.
 

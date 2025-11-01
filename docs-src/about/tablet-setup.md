@@ -544,19 +544,3 @@ Here's the complete XP-Pen Deco 640 profile as a reference:
 }
 ```
 
-## Next Steps
-
-Now that your tablet is configured:
-
-- **[Configuration Overview](/about/configuration-overview/)** - Understand the settings system
-- **[Actions Reference](/about/actions-reference/)** - Set up button actions
-- **[Settings Reference](/about/settings-reference/)** - Complete settings documentation
-- **[Chords & Progressions](/about/chords-and-progressions/)** - Configure chord progressions
-
-## Additional Resources
-
-- **`/server/drivers/`** - Device profile examples
-- **`/server/drivers/README.md`** - Driver development guide
-- **`server/finddevice.py`** - Auto-detection implementation
-- **`server/hidreader.py`** - HID reading implementation
-

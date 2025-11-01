@@ -1,13 +1,26 @@
-{% set gettingStartedNav = [
+{% set aboutNav = [
     { url: '/', label: 'Introduction' },
     { url: '/about/getting-started/', label: 'Getting Started' },
-    { url: '/about/configuration-overview/', label: 'Configuration Overview' }
+    { url: '/about/built-with-ai/', label: 'Built with AI' }
+] %}
+
+{% set runningNav = [
+    { url: '/about/running-overview/', label: 'Overview' },
+    { url: '/about/run-from-source/', label: 'Run from Source' },
+    { url: '/about/builds/', label: 'Builds & Installers' },
+    { url: '/about/discovery/', label: 'Discovery Tool' }
+] %}
+
+{% set configurationNav = [
+    { url: '/about/configuration-overview/', label: 'Overview' },
+    { url: '/about/configuration-settings/', label: 'Settings File' },
+    { url: '/about/configuration-drivers/', label: 'Device Drivers' },
+    { url: '/about/configuration-dashboard/', label: 'Web Dashboard' }
 ] %}
 
 {% set serverNav = [
     { url: '/about/server-startup/', label: 'Overview' },
     { url: '/about/tablet-setup/', label: 'Tablet Setup' },
-    { url: '/about/web-dashboard/', label: 'Web Dashboard' },
     { url: '/about/midi-input/', label: 'MIDI Input' }
 ] %}
 
@@ -33,9 +46,19 @@
     <div class="mobile-header">
         <h1>Strumboli</h1>
     </div>
-    <h4>Getting Started</h4>
-    {% for item in gettingStartedNav %}
+    <h4>About</h4>
+    {% for item in aboutNav %}
     <a href="{{ page.url | resolvePath(item.url) }}">{{item.label}}</a>
+    {% endfor %}
+
+    <h4>Running the Application</h4>
+    {% for item in runningNav %}
+        <a href="{{ page.url | resolvePath(item.url) }}">{{item.label}}</a>
+    {% endfor %}
+
+    <h4>Configuration</h4>
+    {% for item in configurationNav %}
+        <a href="{{ page.url | resolvePath(item.url) }}">{{item.label}}</a>
     {% endfor %}
 
     <h4>Server & Startup</h4>

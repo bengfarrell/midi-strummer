@@ -1,218 +1,165 @@
 ---
 layout: page.njk
 title: Getting Started
-description: Install and run Strumboli on your system
+description: Quick start guide to install and run Strumboli
 ---
 
 # Getting Started
 
-This guide will help you install and run Strumboli on your system.
+Get up and running with Strumboli quickly. Choose your installation method and start strumming!
 
 ## Prerequisites
 
-Before you begin, ensure you have:
+- **Python 3.8 or higher** (for running from source)
+- **Drawing tablet** - XP-Pen Deco 640 (currently supported)
+- **MIDI capability** - Built-in or virtual MIDI output
+- **Operating System** - macOS, Linux, or Windows
 
-- **Python 3.7 or higher** installed on your system
-- A **drawing tablet** (XP-Pen, Wacom, etc.) connected via USB
-- **MIDI output** capability (built-in MIDI or virtual MIDI like IAC Driver on macOS)
+### Supported Tablet
 
-## Installation
+**XP-Pen Deco 640**  
+Currently, Strumboli has full driver support for the XP-Pen Deco 640.
 
-### Method 1: Pre-Built Application (Recommended)
+**Important:** You'll need to install the official XP-Pen drivers for your tablet to be recognized by your system:
 
-**Coming Soon:** Pre-built standalone applications for easy installation!
+📥 **[Download XP-Pen Deco 640 Drivers](https://www.xp-pen.com/download/deco-640.html)**
 
-Once available, simply:
-1. Download the app for your platform (macOS/Windows/Linux)
-2. Install system dependencies (see below)
-3. Download or create your `settings.json` configuration file
-4. Double-click to run!
+For other tablets, see the [Discovery Tool](/about/discovery/) to create custom drivers.
 
-### Method 2: Run from Source (Current Method)
+---
 
-#### Step 1: Install System Dependencies
+## Installation Options
 
-**macOS:**
-```bash
-brew install hidapi
-```
+### Option 1: Download Pre-Built App (Recommended)
 
-**Linux (Debian/Ubuntu):**
-```bash
-sudo apt-get install libhidapi-hidraw0 libhidapi-dev
-```
+**Strumboli Application:**
 
-**Linux (Fedora):**
-```bash
-sudo dnf install hidapi-devel
-```
+- 📥 [Download for macOS](https://github.com/bengfarrell/strumboli/releases) (Coming Soon)
+- 📥 [Download for Linux](https://github.com/bengfarrell/strumboli/releases) (Coming Soon)
+- 📥 [Download for Windows](https://github.com/bengfarrell/strumboli/releases) (Coming Soon)
 
-#### Step 2: Clone or Download the Repository
+**Installation:**
+1. Download the app for your platform
+2. Install XP-Pen drivers (see link above)
+3. Install system dependencies (see below)
+4. Download or create `settings.json` configuration
+5. Run the application
 
-```bash
-git clone https://github.com/yourusername/midi-strummer.git
-cd midi-strummer
-```
+See **[Builds & Installers](/about/builds/)** for detailed installation instructions.
 
-#### Step 3: Set Up Python Virtual Environment
+---
 
-```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+**Device Discovery Tool:**
 
-#### Step 4: Install Python Dependencies
+Need to add support for a new tablet? Download the discovery tool:
 
-```bash
-pip install -r requirements.txt
-```
+- 📥 [Discovery Tool for macOS](https://github.com/bengfarrell/strumboli/releases) (Coming Soon)
+- 📥 [Discovery Tool for Linux](https://github.com/bengfarrell/strumboli/releases) (Coming Soon)
 
-## Configuration
+See **[Discovery Tool](/about/discovery/)** for usage instructions.
 
-### Quick Start Configuration
+---
 
-Create a `settings.json` file in the project root (or copy the provided example):
+### Option 2: Run from Source (Developers)
+
+For developers and contributors who want the latest features and full access to the codebase.
+
+See **[Run from Source](/about/run-from-source/)** for complete setup guide including:
+- System dependencies installation
+- Git repository setup
+- Virtual environment configuration
+- Daily workflow
+- Troubleshooting and development tips
+
+---
+
+## System Dependencies
+
+System dependencies are required for HID device communication.
+
+See **[Run from Source](/about/run-from-source/#1-install-system-dependencies)** for complete installation instructions for macOS, Linux, and Windows.
+
+---
+
+## Quick Configuration
+
+Create a minimal `settings.json` file:
 
 ```json
 {
   "startupConfiguration": {
-    "drawingTablet": "auto-detect",
-    "useSocketServer": true,
-    "useWebServer": true,
-    "socketServerPort": 8080,
-    "webServerPort": 82,
-    "midiInputId": "Your MIDI Device Name"
+    "drawingTablet": "auto-detect"
   },
   "strumming": {
-    "midiChannel": 1,
-    "initialNotes": ["C4", "E4", "G4"]
-  },
-  "tabletButtons": "c-major-pop"
+    "midiChannel": 1
+  }
 }
 ```
 
-Key settings:
-- **`drawingTablet`**: Use `"auto-detect"` to automatically find your tablet
-- **`midiInputId`**: Name of your MIDI input device (optional, for receiving keyboard input)
-- **`tabletButtons`**: Chord progression preset for your tablet buttons
+This auto-detects your tablet and sets up basic MIDI output on channel 1.
 
-For detailed configuration options, see the [Configuration Overview](/about/configuration-overview/).
+See **[Settings File](/about/configuration-settings/)** for complete configuration options including chord progressions, expression controls, and button mappings.
+
+---
 
 ## Running Strumboli
 
-### Start the Server
+### From Pre-Built App
 
-```bash
-cd server
-python main.py
-```
+Double-click the application icon or run from terminal.
 
-Or from the project root:
+### From Source
 
 ```bash
 python server/main.py
 ```
 
-You should see output like:
+**Expected Output:**
 ```
 [Config] Auto-detecting device...
 [Config] Loaded device driver: XP-Pen Deco 640
 Loaded configuration from 'settings.json'
-[WebSocket Server] Starting on port 8080...
-[Web Server] Starting on port 82...
 Opening MIDI output: IAC Driver Bus 1
 Device opened successfully
 ```
 
-### Access the Web Dashboard (Optional)
+### Web Dashboard (Optional)
 
-If `useWebServer` is enabled, open your browser to:
-
+If enabled in settings, access the dashboard at:
 ```
 http://localhost:82
 ```
 
-The dashboard shows:
-- Current chord/notes being strummed
-- Real-time tablet input values
-- Active settings and configuration
-- Connection status
+See **[Web Dashboard](/about/configuration-dashboard/)** for details.
+
+---
 
 ## Basic Usage
 
 Once running:
 
-1. **Touch your tablet** with the stylus to start playing
-2. **Move across the X-axis** to strum through notes
-3. **Press harder** for louder notes (if pressure is mapped to velocity)
-4. **Tilt the stylus** for pitch bend or other expressions
-5. **Press tablet buttons** to change chords (if configured)
-6. **Use stylus buttons** for quick actions like transpose
+1. **Touch tablet** with stylus
+2. **Move horizontally** to strum through notes
+3. **Vary pressure** for dynamics
+4. **Tilt stylus** for pitch bend
+5. **Press tablet buttons** to change chords
 
-## Stopping the Server
-
-To properly stop the server:
-
-1. Press **Ctrl+C** in the terminal
-2. Wait for the "Device should be released now" message
-3. The server will automatically close MIDI and device connections
-
-**Important:** Don't use Ctrl+Z (suspend), as it won't properly release the device. If you accidentally suspend:
-- Type `fg` to bring the process back
-- Then press Ctrl+C to exit properly
+---
 
 ## Troubleshooting
 
-### Device Not Found
+### Common Issues
 
-If auto-detection fails:
-1. Ensure your tablet is plugged in and powered on
-2. Check that no other software is using the tablet exclusively
-3. Try unplugging and replugging the tablet
-4. See [Tablet Setup](/about/tablet-setup/) for manual configuration
+**Tablet not detected:** Install [XP-Pen drivers](https://www.xp-pen.com/download/deco-640.html) and ensure the tablet is connected.
 
-### "Open Failed" or Device Already in Use
+**"Open failed" error:** Close the XP-Pen application (not just the drivers). The manufacturer's software locks the device.
 
-This usually means another process is holding the device. Common causes:
-- **XPPen driver software is running** (most common)
-- Previous Strumboli process wasn't stopped properly
-- Multiple instances running
+**No MIDI output:** Check that `midiChannel` in your settings matches your DAW's input channel.
 
-**Solution:**
-1. Check for suspended processes: `jobs -l`
-2. Quit tablet manufacturer's software
-3. On macOS, quit the XPPen driver from Activity Monitor
-4. Restart Strumboli
+### Detailed Help
 
-### MIDI Not Working
-
-If MIDI notes aren't being sent:
-1. Check your DAW/MIDI software is listening to the correct MIDI port
-2. Verify `midiChannel` in settings matches your DAW channel
-3. Check that your tablet is being detected (watch console output)
-4. Try using a MIDI monitor application to verify output
-
-### Web Dashboard Not Loading
-
-If the web dashboard won't load:
-1. Check that `useWebServer` is set to `true` in settings
-2. Verify the `webServerPort` isn't already in use
-3. Try a different port number (8080, 3000, etc.)
-4. Check your firewall settings
-
-## Next Steps
-
-Now that Strumboli is running:
-
-- **[Configuration Overview](/about/configuration-overview/)** - Learn about all available settings
-- **[Tablet Setup](/about/tablet-setup/)** - Configure your specific tablet
-- **[Actions Reference](/about/actions-reference/)** - Set up button actions
-- **[Chords & Progressions](/about/chords-and-progressions/)** - Explore the chord system
-- **[Settings Reference](/about/settings-reference/)** - Complete settings documentation
-
-## Additional Resources
-
-- **README.md** - Project overview and quick reference
-- **BUILD.md** - Instructions for building standalone applications
-- **DISTRIBUTION.md** - Packaging and distribution guide
+See comprehensive troubleshooting guides:
+- **[Run from Source](/about/run-from-source/#troubleshooting)** - Installation, dependencies, and device issues
+- **[Configuration Settings](/about/configuration-settings/#validation--debugging)** - Configuration problems
+- **[Device Drivers](/about/configuration-drivers/#troubleshooting-drivers)** - Driver creation and detection
 
