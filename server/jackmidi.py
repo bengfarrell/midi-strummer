@@ -121,6 +121,9 @@ class JackMidi(EventEmitter):
             print("=" * 60)
             print()
             
+            # Auto-connect to ZynMidiRouter if available (for Zynthian)
+            self._auto_connect_to_synths()
+            
             # Emit connection event
             self.emit(
                 CONNECTION_EVENT,
@@ -182,6 +185,72 @@ class JackMidi(EventEmitter):
                         self.on_note_up(notation, octave)
                 elif command == 0x80:  # Note off message
                     self.on_note_up(notation, octave)
+    
+    def _auto_connect_to_synths(self) -> None:
+        """
+        Auto-connect to available synths/MIDI routers.
+        Tries ZynMidiRouter first (Zynthian), then other synths.
+        """
+        if not self.jack_client or not self.midi_out_port:
+            return
+        
+        try:
+            # Get all MIDI input ports
+            all_ports = self.jack_client.get_ports(is_midi=True, is_input=True)
+            
+            # Priority 1: Try to connect to ZynMidiRouter (Zynthian's MIDI router)
+            zyn_router_ports = [p for p in all_ports if 'ZynMidiRouter' in p.name and 'dev0_in' in p.name]
+            if zyn_router_ports:
+                try:
+                    self.jack_client.connect(self.midi_out_port, zyn_router_ports[0])
+                    print(f"✅ AUTO-CONNECTED to {zyn_router_ports[0].name}")
+                    print(f"   Your tablet is now ready to play Chain 0!")
+                    print()
+                    return
+                except Exception as e:
+                    print(f"⚠ Could not auto-connect to {zyn_router_ports[0].name}: {e}")
+            
+            # Priority 2: Try common synth engines
+            common_synths = ['ZynAddSubFX', 'setBfree', 'FluidSynth', 'LinuxSampler']
+            for synth_name in common_synths:
+                synth_ports = [p for p in all_ports if synth_name in p.name and 'midi_in' in p.name.lower()]
+                if synth_ports:
+                    try:
+                        self.jack_client.connect(self.midi_out_port, synth_ports[0])
+                        print(f"✅ AUTO-CONNECTED to {synth_ports[0].name}")
+                        print(f"   Your tablet is now ready to play!")
+                        print()
+                        return
+                    except Exception as e:
+                        print(f"⚠ Could not auto-connect to {synth_ports[0].name}: {e}")
+            
+            # Priority 3: Try first available synth (excluding system/internal ports)
+            user_synths = [p for p in all_ports 
+                          if 'strumboli' not in p.name.lower() 
+                          and 'system' not in p.name.lower()
+                          and 'ttymidi' not in p.name.lower()
+                          and 'a2j' not in p.name.lower()
+                          and 'Midi Through' not in p.name]
+            
+            if user_synths:
+                try:
+                    self.jack_client.connect(self.midi_out_port, user_synths[0])
+                    print(f"✅ AUTO-CONNECTED to {user_synths[0].name}")
+                    print(f"   Your tablet is now ready to play!")
+                    print()
+                    return
+                except Exception as e:
+                    print(f"⚠ Could not auto-connect to {user_synths[0].name}: {e}")
+            
+            # No suitable ports found
+            print("⚠ No synths found to auto-connect to")
+            print("  Load a synth in Zynthian, then manually connect with:")
+            print(f"  jack_connect {self.jack_client.name}:{self.midi_out_port.name} ZynMidiRouter:dev0_in")
+            print()
+            
+        except Exception as e:
+            print(f"⚠ Auto-connect error: {e}")
+            print()
     
     def _queue_midi_event(self, midi_message: bytes, offset: int = 0) -> None:
         """
