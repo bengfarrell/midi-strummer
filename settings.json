@@ -2,6 +2,7 @@
   "startupConfiguration": {
     "midiOutputBackend": "jack",
     "jackClientName": "strumboli",
+    "jackAutoConnect": "all-chains",
     "drawingTablet": "auto-detect",
     "useSocketServer": true,
     "useWebServer": true,

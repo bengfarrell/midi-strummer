@@ -80,49 +80,19 @@ class JackMidi(EventEmitter):
             # Activate the client
             self.jack_client.activate()
             
-            print(f"[Jack MIDI] ✓ Client '{self.client_name}' activated")
-            print(f"[Jack MIDI] ✓ Output port: {self.jack_client.name}:{self.midi_out_port.name}")
-            print(f"[Jack MIDI] ✓ Input port: {self.jack_client.name}:{self.midi_in_port.name}")
-            print(f"[Jack MIDI] ✓ Sample rate: {self.jack_client.samplerate} Hz")
-            print(f"[Jack MIDI] ✓ Buffer size: {self.jack_client.blocksize} frames")
-            print()
-            print("=" * 60)
-            print("🎵 JACK MIDI IS ACTIVE - ZYNTHIAN SETUP:")
-            print("=" * 60)
-            
-            # List available synth engines to connect to
-            try:
-                all_ports = self.jack_client.get_ports(is_midi=True, is_input=True)
-                if all_ports:
-                    print("Available MIDI Input Ports (Synths):")
-                    for port in all_ports:
-                        if 'strumboli' not in port.name.lower():
-                            print(f"  • {port.name}")
-                    print()
-                    print("TO CONNECT IN ZYNTHIAN:")
-                    print("  1. Go to Main Menu → Audio Mixer")
-                    print("  2. Look for 'strumboli:midi_out' in MIDI sources")
-                    print("  3. Connect it to your active synth")
-                    print()
-                    print("OR CONNECT MANUALLY VIA SSH:")
-                    synth_ports = [p.name for p in all_ports if 'strumboli' not in p.name.lower()]
-                    if synth_ports:
-                        example_synth = synth_ports[0]
-                        print(f"  jack_connect {self.jack_client.name}:{self.midi_out_port.name} {example_synth}")
-                    print()
-                else:
-                    print("⚠ No MIDI input ports found")
-                    print("  Start a synth engine in Zynthian first, then connect")
-                    print()
-            except Exception as e:
-                print(f"⚠ Could not list ports: {e}")
-                print()
-            
-            print("=" * 60)
-            print()
+            print(f"[Jack MIDI] ✓ Client activated: {self.jack_client.name}")
+            print(f"[Jack MIDI] ✓ MIDI output: {self.midi_out_port.name}")
             
             # Auto-connect to ZynMidiRouter if available (for Zynthian)
-            self._auto_connect_to_synths()
+            # Get auto-connect mode from config if available
+            auto_connect_mode = "chain0"  # default
+            try:
+                from config import Config
+                cfg = Config()
+                auto_connect_mode = cfg.jack_auto_connect
+            except:
+                pass
+            self._auto_connect_to_synths(mode=auto_connect_mode)
             
             # Emit connection event
             self.emit(
@@ -186,29 +156,51 @@ class JackMidi(EventEmitter):
                 elif command == 0x80:  # Note off message
                     self.on_note_up(notation, octave)
     
-    def _auto_connect_to_synths(self) -> None:
+    def _auto_connect_to_synths(self, mode: str = "chain0") -> None:
         """
         Auto-connect to available synths/MIDI routers.
-        Tries ZynMidiRouter first (Zynthian), then other synths.
+        
+        Args:
+            mode: "chain0" = connect to Chain 0 only (default)
+                  "all-chains" = connect to all active chains
+                  "none" = don't auto-connect
         """
         if not self.jack_client or not self.midi_out_port:
+            return
+        
+        if mode == "none":
+            print("[Jack MIDI] Auto-connect disabled")
             return
         
         try:
             # Get all MIDI input ports
             all_ports = self.jack_client.get_ports(is_midi=True, is_input=True)
             
-            # Priority 1: Try to connect to ZynMidiRouter (Zynthian's MIDI router)
+            if mode == "all-chains":
+                # Connect to ALL ZynMidiRouter chains
+                zyn_router_ports = [p for p in all_ports if 'ZynMidiRouter' in p.name and 'dev' in p.name and '_in' in p.name]
+                if zyn_router_ports:
+                    connected_count = 0
+                    for port in zyn_router_ports:
+                        try:
+                            self.jack_client.connect(self.midi_out_port, port)
+                            connected_count += 1
+                        except Exception as e:
+                            # Ignore errors (port might already be connected)
+                            pass
+                    if connected_count > 0:
+                        print(f"[Jack MIDI] ✓ Connected to {connected_count} Zynthian chain(s)")
+                        return
+            
+            # Default: Connect to Chain 0 only
             zyn_router_ports = [p for p in all_ports if 'ZynMidiRouter' in p.name and 'dev0_in' in p.name]
             if zyn_router_ports:
                 try:
                     self.jack_client.connect(self.midi_out_port, zyn_router_ports[0])
-                    print(f"✅ AUTO-CONNECTED to {zyn_router_ports[0].name}")
-                    print(f"   Your tablet is now ready to play Chain 0!")
-                    print()
+                    print(f"[Jack MIDI] ✓ Connected to Zynthian (Chain 0)")
                     return
                 except Exception as e:
-                    print(f"⚠ Could not auto-connect to {zyn_router_ports[0].name}: {e}")
+                    pass  # Try other connection methods
             
             # Priority 2: Try common synth engines
             common_synths = ['ZynAddSubFX', 'setBfree', 'FluidSynth', 'LinuxSampler']
@@ -217,12 +209,10 @@ class JackMidi(EventEmitter):
                 if synth_ports:
                     try:
                         self.jack_client.connect(self.midi_out_port, synth_ports[0])
-                        print(f"✅ AUTO-CONNECTED to {synth_ports[0].name}")
-                        print(f"   Your tablet is now ready to play!")
-                        print()
+                        print(f"[Jack MIDI] ✓ Connected to {synth_name}")
                         return
                     except Exception as e:
-                        print(f"⚠ Could not auto-connect to {synth_ports[0].name}: {e}")
+                        pass  # Try next synth
             
             # Priority 3: Try first available synth (excluding system/internal ports)
             user_synths = [p for p in all_ports 
@@ -235,22 +225,16 @@ class JackMidi(EventEmitter):
             if user_synths:
                 try:
                     self.jack_client.connect(self.midi_out_port, user_synths[0])
-                    print(f"✅ AUTO-CONNECTED to {user_synths[0].name}")
-                    print(f"   Your tablet is now ready to play!")
-                    print()
+                    print(f"[Jack MIDI] ✓ Connected to {user_synths[0].name}")
                     return
                 except Exception as e:
-                    print(f"⚠ Could not auto-connect to {user_synths[0].name}: {e}")
+                    pass
             
             # No suitable ports found
-            print("⚠ No synths found to auto-connect to")
-            print("  Load a synth in Zynthian, then manually connect with:")
-            print(f"  jack_connect {self.jack_client.name}:{self.midi_out_port.name} ZynMidiRouter:dev0_in")
-            print()
+            print("[Jack MIDI] ⚠ No synths found - load a synth in Zynthian to enable MIDI")
             
         except Exception as e:
-            print(f"⚠ Auto-connect error: {e}")
-            print()
+            print(f"[Jack MIDI] Auto-connect error: {e}")
     
     def _queue_midi_event(self, midi_message: bytes, offset: int = 0) -> None:
         """
@@ -259,7 +243,6 @@ class JackMidi(EventEmitter):
         """
         try:
             self._midi_queue.put_nowait((offset, midi_message))
-            print(f"[Jack MIDI] Queued event: {midi_message.hex()} (queue size: {self._midi_queue.qsize()})")
         except queue.Full:
             print("[Jack MIDI] Warning: MIDI queue full, dropping event")
     
@@ -323,7 +306,6 @@ class JackMidi(EventEmitter):
             # Queue note-off messages
             for channel in channels:
                 note_off_message = bytes([0x80 + channel, midi_note, 0x40])
-                print(f"[Jack MIDI] Sending NOTE_OFF: channel={channel+1}, note={midi_note}")
                 self._queue_midi_event(note_off_message)
     
     def send_note(self, note: NoteObject, velocity: int, duration: float = 1.5) -> None:
@@ -352,15 +334,6 @@ class JackMidi(EventEmitter):
         # Queue note-on messages
         for channel in channels:
             note_on_message = bytes([0x90 + channel, midi_note, velocity])
-            # Only log first few notes to avoid spam
-            if not hasattr(self, '_note_count'):
-                self._note_count = 0
-            if self._note_count < 5:
-                print(f"[Jack MIDI] Sending NOTE_ON: channel={channel+1}, note={midi_note}, velocity={velocity}")
-                self._note_count += 1
-            elif self._note_count == 5:
-                print(f"[Jack MIDI] (Further MIDI events will not be logged - Jack is working!)")
-                self._note_count += 1
             self._queue_midi_event(note_on_message)
         
         # Track when this note started
@@ -501,9 +474,9 @@ class JackMidi(EventEmitter):
             try:
                 self.jack_client.deactivate()
                 self.jack_client.close()
-                print("[Jack MIDI] Client closed")
+                print("[Jack MIDI] ✓ Client closed")
             except Exception as e:
-                print(f"[Jack MIDI] Error closing client: {e}")
+                pass  # Silently handle cleanup errors
         
         # Emit disconnection event
         self.emit(

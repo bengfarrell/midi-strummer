@@ -518,6 +518,11 @@ class Config:
         return self._config.get('startupConfiguration', {}).get('jackClientName', 'midi_strummer')
     
     @property
+    def jack_auto_connect(self) -> str:
+        """Get Jack auto-connect mode."""
+        return self._config.get('startupConfiguration', {}).get('jackAutoConnect', 'chain0')
+    
+    @property
     def midi_strum_channel(self) -> Optional[int]:
         """Get MIDI strum channel."""
         return self._config.get('strumming', {}).get('midiChannel')
