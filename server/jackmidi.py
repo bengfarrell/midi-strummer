@@ -80,12 +80,46 @@ class JackMidi(EventEmitter):
             # Activate the client
             self.jack_client.activate()
             
-            print(f"[Jack MIDI] Client '{self.client_name}' activated")
-            print(f"[Jack MIDI] Output port: {self.jack_client.name}:{self.midi_out_port.name}")
-            print(f"[Jack MIDI] Input port: {self.jack_client.name}:{self.midi_in_port.name}")
-            print("[Jack MIDI] Connect ports using qjackctl, jack_connect, or Zynthian's audio mixer")
-            print(f"[Jack MIDI] Sample rate: {self.jack_client.samplerate}, Buffer size: {self.jack_client.blocksize}")
-            print(f"[Jack MIDI] MIDI queue initialized (max size: {self._midi_queue.maxsize})")
+            print(f"[Jack MIDI] ✓ Client '{self.client_name}' activated")
+            print(f"[Jack MIDI] ✓ Output port: {self.jack_client.name}:{self.midi_out_port.name}")
+            print(f"[Jack MIDI] ✓ Input port: {self.jack_client.name}:{self.midi_in_port.name}")
+            print(f"[Jack MIDI] ✓ Sample rate: {self.jack_client.samplerate} Hz")
+            print(f"[Jack MIDI] ✓ Buffer size: {self.jack_client.blocksize} frames")
+            print()
+            print("=" * 60)
+            print("🎵 JACK MIDI IS ACTIVE - ZYNTHIAN SETUP:")
+            print("=" * 60)
+            
+            # List available synth engines to connect to
+            try:
+                all_ports = self.jack_client.get_ports(is_midi=True, is_input=True)
+                if all_ports:
+                    print("Available MIDI Input Ports (Synths):")
+                    for port in all_ports:
+                        if 'strumboli' not in port.name.lower():
+                            print(f"  • {port.name}")
+                    print()
+                    print("TO CONNECT IN ZYNTHIAN:")
+                    print("  1. Go to Main Menu → Audio Mixer")
+                    print("  2. Look for 'strumboli:midi_out' in MIDI sources")
+                    print("  3. Connect it to your active synth")
+                    print()
+                    print("OR CONNECT MANUALLY VIA SSH:")
+                    synth_ports = [p.name for p in all_ports if 'strumboli' not in p.name.lower()]
+                    if synth_ports:
+                        example_synth = synth_ports[0]
+                        print(f"  jack_connect {self.jack_client.name}:{self.midi_out_port.name} {example_synth}")
+                    print()
+                else:
+                    print("⚠ No MIDI input ports found")
+                    print("  Start a synth engine in Zynthian first, then connect")
+                    print()
+            except Exception as e:
+                print(f"⚠ Could not list ports: {e}")
+                print()
+            
+            print("=" * 60)
+            print()
             
             # Emit connection event
             self.emit(
@@ -249,7 +283,15 @@ class JackMidi(EventEmitter):
         # Queue note-on messages
         for channel in channels:
             note_on_message = bytes([0x90 + channel, midi_note, velocity])
-            print(f"[Jack MIDI] Sending NOTE_ON: channel={channel+1}, note={midi_note}, velocity={velocity}")
+            # Only log first few notes to avoid spam
+            if not hasattr(self, '_note_count'):
+                self._note_count = 0
+            if self._note_count < 5:
+                print(f"[Jack MIDI] Sending NOTE_ON: channel={channel+1}, note={midi_note}, velocity={velocity}")
+                self._note_count += 1
+            elif self._note_count == 5:
+                print(f"[Jack MIDI] (Further MIDI events will not be logged - Jack is working!)")
+                self._note_count += 1
             self._queue_midi_event(note_on_message)
         
         # Track when this note started
