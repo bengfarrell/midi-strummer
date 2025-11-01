@@ -11,6 +11,9 @@ from midievent import MidiConnectionEvent, MidiNoteEvent, NOTE_EVENT, CONNECTION
 from eventlistener import EventEmitter
 
 
+"""
+    Please note that the auto-connect logic is very Zynthian specific
+"""
 class JackMidi(EventEmitter):
     """
     Jack MIDI implementation compatible with the Midi interface.
