@@ -14,6 +14,8 @@ class Config:
     # Default configuration values
     DEFAULTS = {
         "startupConfiguration": {
+            "midiOutputBackend": "rtmidi",  # Options: "rtmidi", "jack"
+            "jackClientName": "strumboli",  # Name for Jack client (only used if backend is "jack")
             "drawingTablet": {
                 "product": "Deco 640",
                 "usage": 1,
@@ -504,6 +506,16 @@ class Config:
     def midi_input_id(self) -> Optional[str]:
         """Get MIDI input ID."""
         return self._config.get('startupConfiguration', {}).get('midiInputId')
+    
+    @property
+    def midi_output_backend(self) -> str:
+        """Get MIDI output backend (rtmidi or jack)."""
+        return self._config.get('startupConfiguration', {}).get('midiOutputBackend', 'rtmidi')
+    
+    @property
+    def jack_client_name(self) -> str:
+        """Get Jack client name."""
+        return self._config.get('startupConfiguration', {}).get('jackClientName', 'midi_strummer')
     
     @property
     def midi_strum_channel(self) -> Optional[int]:
